@@ -1,0 +1,334 @@
+import { useState, useEffect } from "react";
+import type { Script } from "../../data/scripts";
+import { RoleIcon } from "../common/RoleIcon";
+import { RoleSelectionModal } from "./RoleSelectionModal";
+import { AllRoles } from "../../data/roles";
+
+interface CenterStageProps {
+  seats: number[];
+  getPlayerInSeat: (seatIndex: number) => any;
+  handleTakeSeat: (seatIndex: number) => void;
+  handleLeaveSeat: () => void;
+  userUid: string | undefined;
+  script: Script | undefined;
+  bluffs: (string | null)[];
+  canSeeBluffs: boolean;
+  distribution: number[];
+  roomId: string;
+  onLeaveRoom: () => void;
+  onOpenScriptModal: () => void;
+  fabled?: string[];
+  hostPlayer?: any;
+}
+
+export const CenterStage = ({ 
+  seats, 
+  getPlayerInSeat, 
+  handleTakeSeat, 
+  handleLeaveSeat, 
+  userUid, 
+  script,
+  bluffs = [null, null, null],
+  canSeeBluffs,
+  distribution,
+  onLeaveRoom,
+  onOpenScriptModal,
+  roomId,
+  fabled = [],
+  hostPlayer
+}: CenterStageProps) => {
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [targetSeat, setTargetSeat] = useState<number | null>(null);
+  const [seatRoleNotes, setSeatRoleNotes] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!userUid) return;
+    const saved = localStorage.getItem(`botc_role_notes_${userUid}`);
+    if (saved) {
+      try { setSeatRoleNotes(JSON.parse(saved)); } catch (e) {}
+    }
+  }, [userUid]);
+
+  const openNoteModal = (seatIndex: number) => {
+    setTargetSeat(seatIndex);
+    setModalOpen(true);
+  };
+
+  const handleModalSelect = (roleId: string | null) => {
+    if (targetSeat === null) return;
+    const newNotes = { ...seatRoleNotes };
+    if (roleId) {
+      newNotes[targetSeat] = roleId;
+    } else {
+      delete newNotes[targetSeat];
+    }
+    setSeatRoleNotes(newNotes);
+    localStorage.setItem(`botc_role_notes_${userUid}`, JSON.stringify(newNotes));
+    setModalOpen(false);
+  };
+
+  const [seatNotes, setSeatNotes] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!userUid) return;
+    const saved = localStorage.getItem(`botc_notes_${userUid}`);
+    if (saved) {
+      try { setSeatNotes(JSON.parse(saved)); } catch (e) {}
+    }
+  }, [userUid]);
+
+  const handleNoteChange = (seatIndex: number, text: string) => {
+    const newNotes = { ...seatNotes, [seatIndex]: text };
+    setSeatNotes(newNotes);
+    if (userUid) localStorage.setItem(`botc_notes_${userUid}`, JSON.stringify(newNotes));
+  };
+
+  const totalSeats = seats.length;
+
+  const getSeatSize = () => {
+    return 120;
+  };
+
+  const getSeatStyle = (index: number) => {
+    const angleDeg = (index / totalSeats) * 360 - 90;
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const radius = 45; 
+    const x = 50 + radius * Math.cos(angleRad);
+    const y = 50 + radius * Math.sin(angleRad);
+    const size = getSeatSize();
+    return { 
+      left: `${x}%`, 
+      top: `${y}%`, 
+      transform: 'translate(-50%, -50%)',
+      width: `${size}px`,
+      height: `${size}px`
+    };
+  };
+
+  const [t, o, m, d] = distribution || [0, 0, 0, 0];
+
+  return (
+    <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+      
+      {/* 右側浮動資訊柱 (佔據 20% 寬度) */}
+      <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-y-auto no-scrollbar pb-6 w-[20%] pr-4 pl-4">
+        
+        {/* 陣營人數 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-1 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0">
+          <div className="flex justify-between items-center text-center divide-x divide-white/20">
+            <div className="flex-1"><div className="text-lg font-bold text-blue-300">鎮民</div><div className="text-lg font-bold text-white">{t}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-blue-300">外來者</div><div className="text-lg font-bold text-white">{o}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-red-400">爪牙</div><div className="text-lg font-bold text-white">{m}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-red-400">惡魔</div><div className="text-lg font-bold text-white">{d}</div></div>
+          </div>
+        </div>
+
+        {/* 惡魔的偽裝 */}
+        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-black/60 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0">
+          <h3 className="text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
+          <div className="flex justify-center w-full gap-2">
+            {[0, 1, 2].map(i => {
+              const roleId = bluffs[i];
+              const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
+              return (
+                <div key={i} className="flex flex-col items-center flex-1">
+                  <div 
+                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:scale-105 hover:border-red-400 transition-all"
+                  >
+                    {canSeeBluffs ? (
+                      role ? (
+                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                      ) : (
+                        <span className="text-white/20 text-xs">空</span>
+                      )
+                    ) : (
+                      <span className="text-white/20 text-xl font-bold">?</span>
+                    )}
+                  </div>
+                  {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 傳奇角色 */}
+        {fabled.length > 0 && (
+          <div className="bg-black/60 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0">
+            <h3 className="text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {fabled.map(fId => {
+                const role = Object.values(AllRoles).find(r => r.id === fId);
+                if (!role) return null;
+                return (
+                  <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%]">
+                    <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group hover:scale-105 hover:border-yellow-400 transition-all">
+                      <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                    </div>
+                    <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Spacer to push the rest to bottom */}
+        <div className="flex-1 min-h-[1rem]" />
+
+        {/* 說書人 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
+           <div className="w-14 h-14 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
+             <span className="text-2xl font-serif text-blue-200">GM</span>
+           </div>
+           <div className="flex flex-col items-start overflow-hidden w-full">
+             <span className="text-lg text-white/70 font-bold tracking-widest uppercase">說書人</span>
+             <span className="text-lg font-bold text-white truncate w-full">{hostPlayer?.name || "未知"}</span>
+           </div>
+        </div>
+
+        {/* 房間資訊 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
+          <div className="flex justify-start w-full items-center">
+            <span className="text-lg text-white/50 tracking-widest uppercase mr-2">Room :</span>
+            <span className="font-mono text-white text-lg font-bold">{roomId}</span>
+          </div>
+          <button 
+            onClick={onOpenScriptModal}
+            className="w-full py-1.5 bg-black/80 border border-white/30 text-yellow-400 hover:text-white hover:bg-white/10 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-1"
+          >
+            <div className="flex flex-col items-center justify-center">
+              {(script?.name || "").includes('(') ? (
+                <>
+                  <span>{(script?.name || "").split('(')[0].trim()}</span>
+                  <span className="text-lg text-yellow-500/80">({(script?.name || "").split('(')[1]}</span>
+                </>
+              ) : <span>{script?.name || "未知劇本"}</span>}
+            </div>
+          </button>
+          <button onClick={onLeaveRoom} className="w-full text-lg px-4 py-2 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
+            離開房間
+          </button>
+        </div>
+      </div>
+
+      {/* 座位區 (左側 80% 置中計算，保留 5% 邊距，無底盤) */}
+      <div className="absolute left-0 top-0 bottom-0 w-[80%] flex items-center justify-center pointer-events-none p-0 pt-6 pb-16">
+        <div className="relative w-full h-full max-w-[95vh] max-h-[95vh] aspect-square flex items-center justify-center pointer-events-none">
+          {seats.map((seatIndex) => {
+            const player = getPlayerInSeat(seatIndex);
+            const style = getSeatStyle(seatIndex);
+            const isEmpty = !player;
+            const isDead = false;
+            
+            // In CenterStage, we show guesses from seatRoleNotes
+            const guessedRoleId = seatRoleNotes[seatIndex] || null;
+            const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
+            const isEvil = guessedRole?.type === "demon" || guessedRole?.type === "minion";
+
+            return (
+              <div 
+                key={seatIndex}
+                className="absolute group z-10"
+                style={style}
+              >
+                <div 
+                  className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden ${
+                    isEmpty ? 'border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/5 cursor-pointer pointer-events-auto' 
+                            : guessedRole 
+                                ? (isEvil ? 'border-red-900 bg-black/90 cursor-pointer pointer-events-auto' : 'border-blue-900 bg-black/90 cursor-pointer pointer-events-auto')
+                                : 'border-white/30 bg-black/80 hover:border-white/50 cursor-pointer pointer-events-auto'
+                  }`}
+                  onClick={() => {
+                    if (isEmpty) {
+                      handleTakeSeat(seatIndex);
+                    } else {
+                      setTargetSeat(seatIndex);
+                      setModalOpen(true);
+                    }
+                  }}
+                >
+                  {isEmpty ? (
+                    <span className="text-3xl text-white/20 font-bold">{seatIndex}</span>
+                  ) : (
+                    <>
+                      {player.uid === userUid && (
+                        <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full border border-black shadow-[0_0_8px_rgba(34,197,94,0.8)] z-10"></div>
+                      )}
+
+                      {guessedRole ? (
+                        <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
+                           <div className="w-full h-[70%] relative mt-2">
+                             <RoleIcon icon={guessedRole.icon} className={`w-full h-full object-contain ${isDead ? 'opacity-40 grayscale sepia' : ''}`} />
+                           </div>
+                           <div className="absolute inset-0 pointer-events-none">
+                             <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
+                               <path id={`curve-${seatIndex}`} d="M 15 78 A 43 43 0 0 0 85 78" fill="transparent" />
+                               <text fill="rgba(80,50,20,0.9)" fontSize="16" fontWeight="bold" textAnchor="middle" letterSpacing="3">
+                                 <textPath href={`#curve-${seatIndex}`} startOffset="50%">
+                                   {guessedRole.name}
+                                 </textPath>
+                               </text>
+                             </svg>
+                           </div>
+                        </div>
+                      ) : (
+                        <span className="text-white/20 text-3xl font-bold">{seatIndex}</span>
+                      )}
+                      
+                      {isDead && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                          <div className="w-20 h-1 bg-red-600/80 rotate-45 absolute shadow-lg" />
+                          <div className="w-20 h-1 bg-red-600/80 -rotate-45 absolute shadow-lg" />
+                        </div>
+                      )}
+
+                      {player.uid === userUid && (
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-30 pointer-events-auto">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleLeaveSeat(); }}
+                            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded shadow-lg"
+                          >
+                            離開座位
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Render seat text independently so it stays on top of all circles */}
+          {seats.map((seatIndex) => {
+            const player = getPlayerInSeat(seatIndex);
+            const style = getSeatStyle(seatIndex);
+            
+            return (
+              <div 
+                key={`text-${seatIndex}`}
+                className="absolute z-50 pointer-events-none"
+                style={style}
+              >
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max text-center">
+                  <span className="text-white font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border border-white/30 shadow-[0_0_10px_rgba(0,0,0,1)]">
+                    {player ? player.name : `座位 ${seatIndex}`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <RoleSelectionModal 
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={handleModalSelect}
+        script={script || null}
+      />
+    </div>
+  );
+};
