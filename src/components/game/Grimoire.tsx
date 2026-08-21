@@ -23,7 +23,6 @@ interface GrimoireProps {
 export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [null, null, null], distribution, seats, getPlayerInSeat, fabled = [], onLeaveRoom, onOpenScriptModal, hostPlayer }: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
-  const [hoveredSeat, setHoveredSeat] = useState<number | null>(null);
 
   if (!script) return null;
 
@@ -227,7 +226,7 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
             return (
               <div 
                 key={seatIndex} 
-                className={`absolute pointer-events-auto cursor-pointer group z-10 hover:z-[9999]`}
+                className="absolute pointer-events-auto cursor-pointer group z-10"
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
               >
@@ -286,7 +285,7 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
             return (
               <div 
                 key={`badge-${seatIndex}`}
-                className={`absolute pointer-events-none ${hoveredSeat === seatIndex ? 'z-[10000]' : 'z-30'}`}
+                className="absolute pointer-events-none z-30"
                 style={style}
               >
                 {firstNum && (

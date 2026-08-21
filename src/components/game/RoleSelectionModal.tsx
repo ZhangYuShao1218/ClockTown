@@ -13,9 +13,10 @@ interface RoleSelectionModalProps {
   script: Script | null;
   filterType?: 'fabled' | 'normal';
   selectedFabled?: string[];
+  noOverlay?: boolean;
 }
 
-export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterType = 'normal', selectedFabled = [] }: RoleSelectionModalProps) => {
+export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterType = 'normal', selectedFabled = [], noOverlay = false }: RoleSelectionModalProps) => {
   const [hoveredRole, setHoveredRole] = useState<{role: Role, x: number, y: number} | null>(null);
 
   if (!isOpen) return null;
