@@ -22,6 +22,7 @@ export const Room = () => {
   const [rightTab, setRightTab] = useState<'observers' | 'chat'>('chat');
   const [isScriptModalOpen, setScriptModalOpen] = useState(false);
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
+  const [isViewingList, setIsViewingList] = useState(false);
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
@@ -212,7 +213,7 @@ export const Room = () => {
           <h2 className="text-lg font-bold text-white tracking-widest">{isHost && activeTab === 'truth' ? '說書人面版' : '玩家面板'}</h2>
           {isHost && activeTab === 'truth' && activeScriptId && (
             <button 
-              onClick={() => { console.log("🔘 [Button] 點擊劇本列表按鈕，設定 activeScriptId = null"); setActiveScriptId(null); }} 
+              onClick={() => setIsViewingList(true)} 
               className="bg-slate-800 hover:bg-slate-700 border border-slate-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors text-sm font-bold flex items-center"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -233,7 +234,10 @@ export const Room = () => {
               grimoireState={gameState.private?.grimoire}
               customScript={gameState.public.customScript}
               activeScriptId={activeScriptId}
+              activeSetupId={gameState.public.activeSetupId || null}
               setActiveScriptId={setActiveScriptId}
+              isViewingList={isViewingList}
+              setIsViewingList={setIsViewingList}
               settings={gameState.public.settings}
             />
           ) : (

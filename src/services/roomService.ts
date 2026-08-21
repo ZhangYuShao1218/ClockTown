@@ -144,7 +144,7 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
   updates[`rooms/${roomId}/public/scriptId`] = setup.scriptId;
   updates[`rooms/${roomId}/public/seatCount`] = setup.seatCount;
   updates[`rooms/${roomId}/public/distribution`] = setup.distribution;
-  updates[`rooms/${roomId}/public/customScript`] = setup.customScript;
+  updates[`rooms/${roomId}/public/customScript`] = setup.customScript !== undefined ? setup.customScript : null;
   updates[`rooms/${roomId}/public/settings`] = setup.settings || {
     evilKnowsEachOther: true,
     evilCanMsg: false,
@@ -157,8 +157,8 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
     updates[`rooms/${roomId}/public/activeSetupId`] = setupId;
   }
   
-  updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs;
-  updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire;
+  updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs !== undefined ? setup.bluffs : null;
+  updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire !== undefined ? setup.grimoire : null;
   
   await update(ref(db), updates);
 };
