@@ -20,6 +20,7 @@ interface ChatProps {
   isEvil?: boolean;
   settings?: any;
   seatCount?: number;
+  onUnreadCountChange?: (count: number) => void;
 }
 
 export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, isEvil, settings, seatCount = 15 }: ChatProps) => {

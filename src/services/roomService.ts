@@ -68,8 +68,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     throw new Error("遊戲已經開始，無法加入。");
   }
 
-  const currentPlayersCount = roomData.players ? Object.keys(roomData.players).length : 0;
-
+  
   const updates: Record<string, any> = {};
   updates[`rooms/${roomId}/players/${userId}`] = {
     name: userName,

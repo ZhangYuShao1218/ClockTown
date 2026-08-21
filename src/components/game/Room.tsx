@@ -20,13 +20,13 @@ export const Room = () => {
 
   const [activeTab, setActiveTab] = useState<'stage' | 'truth'>('stage');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [rightTab, setRightTab] = useState<'observers' | 'chat'>('chat');
-  const [isScriptModalOpen, setScriptModalOpen] = useState(false);
+    const [isScriptModalOpen, setScriptModalOpen] = useState(false);
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
   const [isViewingList, setIsViewingList] = useState(false);
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
 
   useEffect(() => {
     if (gameState?.public?.activeSetupId && !activeScriptId) {
@@ -204,8 +204,15 @@ export const Room = () => {
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
             className="px-[10px] py-4 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-r-xl border-y-2 border-r-2 border-l-0 border-slate-700 shadow-[10px_0_20px_rgba(0,0,0,0.8)] transition-all flex flex-col items-center justify-center cursor-pointer"
           >
-            <span className="mb-2 text-lg">☰</span>
-            <div className="flex flex-col items-center gap-1 text-lg tracking-widest font-serif">
+              <div className="relative">
+                <span className="mb-2 text-lg">📜</span>
+                {totalUnreadCount > 0 && (
+                  <div className="absolute -top-3 -right-3 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold border border-slate-900 shadow-md z-10">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col items-center gap-1 text-lg tracking-widest font-serif mt-2">
               {(isHost && activeTab === "truth" ? "說書人面版" : "遊戲訊息").split('').map((char, i) => (
                 <span key={i} className="leading-none">{char}</span>
               ))}
@@ -266,7 +273,7 @@ export const Room = () => {
               </div>
               <div className="flex-1 min-h-0 border border-white/10 rounded-xl overflow-hidden shadow-inner">
                 
-                <Chat roomId={id!} userUid={user?.uid!} userName={user?.displayName || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid, p]: [string, any]) => ({ uid, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} />
+                <Chat roomId={id!} userUid={user?.uid!} userName={user?.displayName || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} />
               </div>
             </div>
           )}

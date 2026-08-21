@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Script } from "../../data/scripts";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
@@ -63,8 +64,7 @@ export const CenterStage = ({
     }
   }, [userUid]);
 
-  const openNoteModal = (seatIndex: number) => {
-    setTargetSeat(seatIndex);
+      setTargetSeat(seatIndex);
     setModalOpen(true);
   };
 
@@ -99,16 +99,10 @@ export const CenterStage = ({
     }
   }, [userUid]);
 
-  const handleNoteChange = (seatIndex: number, text: string) => {
-    const newNotes = { ...seatNotes, [seatIndex]: text };
-    setSeatNotes(newNotes);
-    if (userUid) localStorage.setItem(`botc_notes_${userUid}`, JSON.stringify(newNotes));
-  };
-
   const totalSeats = seats.length;
 
   const getSeatConfig = () => {
-    const count = typeof totalSeats !== 'undefined' ? totalSeats : seatCount;
+    const count = totalSeats;
     if (count <= 6) return { size: 170, radius: 36, badgeClass: 'w-11 h-11 text-xl' };
     if (count <= 8) return { size: 160, radius: 38, badgeClass: 'w-10 h-10 text-lg' };
     if (count <= 10) return { size: 150, radius: 40, badgeClass: 'w-9 h-9 text-base' };
@@ -253,8 +247,7 @@ export const CenterStage = ({
           {seats.map((seatIndex) => {
             const player = getPlayerInSeat(seatIndex);
             const style = getSeatStyle(seatIndex);
-            const isEmpty = !player;
-            
+                        
             const angleDeg = (seatIndex / totalSeats) * 360 - 90;
             const angleRad = (angleDeg * Math.PI) / 180;
               const { radius } = getSeatConfig();

@@ -55,7 +55,7 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
   };
 
   const getSeatConfig = () => {
-    const count = typeof totalSeats !== 'undefined' ? totalSeats : seatCount;
+    const count = seatCount;
     if (count <= 6) return { size: 170, radius: 36, badgeClass: 'w-11 h-11 text-xl' };
     if (count <= 8) return { size: 160, radius: 38, badgeClass: 'w-10 h-10 text-lg' };
     if (count <= 10) return { size: 150, radius: 40, badgeClass: 'w-9 h-9 text-base' };

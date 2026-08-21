@@ -16,7 +16,7 @@ interface RoleSelectionModalProps {
   noOverlay?: boolean;
 }
 
-export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterType = 'normal', selectedFabled = [], noOverlay = false }: RoleSelectionModalProps) => {
+export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterType = 'normal', selectedFabled = [], noOverlay = true }: RoleSelectionModalProps) => {
   const [hoveredRole, setHoveredRole] = useState<{role: Role, x: number, y: number} | null>(null);
 
   if (!isOpen) return null;
@@ -40,11 +40,11 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
         <h4 className={`text-lg font-bold mb-3 border-b pb-2 px-3 pt-2 rounded-t-md ${isFabled ? 'text-yellow-400 border-yellow-600/50 bg-yellow-900/40' : isEvil ? 'text-red-300 border-red-900/50 bg-red-900/40' : 'text-blue-200 border-blue-900/50 bg-blue-900/40'}`}>
           {title}
         </h4>
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+        <div className="flex flex-wrap gap-3 items-start justify-start">
           {roles.map(role => {
             const isSelected = isFabled && selectedFabled.includes(role.id);
             return (
-              <div key={role.id} className="relative flex flex-col items-center group">
+              <div key={role.id} className="relative flex flex-col items-center group w-[116px] shrink-0">
                 <button
                   onClick={() => handleSelect(role.id)}
                   onMouseEnter={(e) => handleMouseEnter(e, role)}
@@ -103,7 +103,7 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-lg" noOverlay={noOverlay} title={filterType === 'fabled' ? "選擇傳奇角色" : "選擇角色"}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={noOverlay} title={filterType === 'fabled' ? "選擇傳奇角色" : "選擇角色"}>
       <div className="relative">
         <div className="max-h-[70vh] overflow-y-auto px-2 pb-8 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {content}
