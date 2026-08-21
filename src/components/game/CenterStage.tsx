@@ -112,7 +112,7 @@ export const CenterStage = ({
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       
       {/* 右側浮動資訊柱 (佔據 20% 寬度) */}
-      <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-y-auto no-scrollbar pb-6 w-[20%] pr-4 pl-4">
+      <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-visible pb-6 w-[20%] pr-4 pl-4">
         
         {/* 陣營人數 */}
         <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-1 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0">
@@ -125,7 +125,7 @@ export const CenterStage = ({
         </div>
 
         {/* 惡魔的偽裝 */}
-        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-black/60 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0">
+        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-black/60 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0 relative z-30">
           <h3 className="text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
           <div className="flex justify-center w-full gap-2">
             {[0, 1, 2].map(i => {
@@ -147,7 +147,7 @@ export const CenterStage = ({
                     )}
                   </div>
                   {canSeeBluffs && role && (
-                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
                       <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
                     </div>
                   )}
@@ -160,7 +160,7 @@ export const CenterStage = ({
 
         {/* 傳奇角色 */}
         {fabled.length > 0 && (
-          <div className="bg-black/60 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0">
+          <div className="bg-black/60 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0 relative z-20">
             <h3 className="text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
             <div className="flex flex-wrap gap-2 justify-center">
               {fabled.map(fId => {
@@ -171,7 +171,7 @@ export const CenterStage = ({
                     <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group-hover:scale-105 group-hover:border-yellow-400 transition-all">
                       <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
                     </div>
-                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
                       <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
                     </div>
                     <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>

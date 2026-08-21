@@ -51,10 +51,10 @@ const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
       </div>
       
       {role?.type === 'demon' && (
-        <img src="/icons/demon_badge.jpg" alt="Demon" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-red-500 shadow-md" />
+        <img src="/icons/demon_badge.png" alt="Demon" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-red-500 shadow-md" />
       )}
       {role?.type === 'outsider' && (
-        <img src="/icons/outsider_badge.jpg" alt="Outsider" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-blue-400 shadow-md" />
+        <img src="/icons/outsider_badge.png" alt="Outsider" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-blue-400 shadow-md" />
       )}
 
       <span className="text-xs font-bold text-white text-center leading-tight mt-1">{item.name}</span>
