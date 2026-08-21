@@ -6,9 +6,11 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   maxWidth?: string;
+  noOverlay?: boolean;
+  contentClass?: string;
 }
 
-export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg", noOverlay = false, contentClass = "bg-black/95" }: ModalProps) => {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -23,11 +25,11 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${noOverlay ? "" : "bg-black/80 backdrop-blur-sm"}`}
       onClick={onClose}
     >
       <div 
-        className={`w-full ${maxWidth} rounded-md border-2 border-white/30 bg-black/95 backdrop-blur-xl p-8 shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200`}
+        className={`w-full ${maxWidth} rounded-md border-2 border-white/30 ${contentClass} backdrop-blur-xl p-8 shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">

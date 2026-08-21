@@ -138,7 +138,7 @@ export const updateDistribution = async (roomId: string, distribution: number[])
   await update(ref(db), { [`rooms/${roomId}/public/distribution`]: distribution });
 };
 
-export const applySetupToRoom = async (roomId: string, setup: any) => {
+export const applySetupToRoom = async (roomId: string, setup: any, setupId?: string) => {
   const updates: any = {};
   
   updates[`rooms/${roomId}/public/scriptId`] = setup.scriptId;
@@ -152,6 +152,10 @@ export const applySetupToRoom = async (roomId: string, setup: any) => {
     adjacentCanMsg: false
   };
   updates[`rooms/${roomId}/public/fabled`] = setup.fabled || [];
+  
+  if (setupId) {
+    updates[`rooms/${roomId}/public/activeSetupId`] = setupId;
+  }
   
   updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs;
   updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire;

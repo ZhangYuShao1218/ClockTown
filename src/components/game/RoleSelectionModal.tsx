@@ -48,18 +48,25 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
                   onClick={() => handleSelect(role.id)}
                   onMouseEnter={(e) => handleMouseEnter(e, role)}
                   onMouseLeave={() => setHoveredRole(null)}
-                  className="flex flex-col items-center focus:outline-none w-full"
+                  className="flex flex-col items-center focus:outline-none w-full relative"
                 >
-                  <div className={`w-[116px] h-[116px] rounded-full border-[2px] flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] transition-transform group-hover:scale-110 shadow-md ${
-                    isSelected 
-                      ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' 
-                      : isFabled 
-                        ? 'border-yellow-600/80' 
-                        : isEvil 
-                          ? 'border-red-900/80' 
-                          : 'border-blue-900/80'
-                  }`}>
-                    <RoleIcon icon={role.icon} className="w-full h-full object-cover" />
+                  <div className="relative transition-transform group-hover:scale-110">
+                    <div className={`w-[116px] h-[116px] rounded-full border-[2px] flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] shadow-md ${
+                      isSelected 
+                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' 
+                        : isFabled 
+                          ? 'border-yellow-600/80' 
+                          : isEvil 
+                            ? 'border-red-900/80' 
+                            : 'border-blue-900/80'
+                    }`}>
+                      <RoleIcon icon={role.icon} className="w-full h-full object-cover" />
+                    </div>
+                    {isSelected && (
+                      <div className="absolute -bottom-1 -left-1 w-8 h-8 bg-green-500 rounded-full border-2 border-black flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.6)] z-10">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                    )}
                   </div>
                   <span className={`text-base mt-1.5 text-center truncate w-full ${isFabled ? 'text-yellow-200' : isEvil ? 'text-red-200' : 'text-blue-100'}`}>
                     {role.name}
@@ -103,10 +110,10 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
       </div>
       {hoveredRole && document.body && createPortal(
         <div 
-          className="fixed z-[99999] w-64 bg-black/95 p-4 text-base border-2 border-white/40 rounded-xl shadow-[0_0_50px_rgba(0,0,0,1)] pointer-events-none text-center"
+          className="fixed z-[99999] w-64 bg-slate-900/95 p-[5px] text-base border-2 border-white/40 rounded-xl shadow-2xl pointer-events-none text-left"
           style={{ left: hoveredRole.x, top: hoveredRole.y + 15, transform: 'translateX(-50%)' }}
         >
-          <div className="text-white font-bold leading-tight">{hoveredRole.role.ability}</div>
+          <div className="text-white/80 font-bold leading-[1.5]">{hoveredRole.role.ability}</div>
         </div>,
         document.body
       )}

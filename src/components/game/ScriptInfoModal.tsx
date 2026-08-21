@@ -14,7 +14,7 @@ export const ScriptInfoModal = ({ isOpen, onClose, script }: ScriptInfoModalProp
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={script.name}>
       <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-6 text-white/90">
-        <p className="text-sm text-white/60 pb-4 border-b border-white/20 leading-relaxed">
+        <p className="text-sm text-white/60 pb-4 border-b border-white/20 leading-[1.5] text-left">
           {script.description}
         </p>
 
@@ -41,9 +41,9 @@ export const ScriptInfoModal = ({ isOpen, onClose, script }: ScriptInfoModalProp
                           <span className={`text-sm font-bold ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>{role.name}</span>
                         </div>
                         {role.abilityHTML ? (
-                          <p className="text-xs text-white/70 leading-relaxed" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
+                          <p className="text-xs text-white/70 leading-[1.5] text-left" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
                         ) : (
-                          <p className="text-xs text-white/70 leading-relaxed">{role.ability}</p>
+                          <p className="text-xs text-white/70 leading-[1.5] text-left">{role.ability}</p>
                         )}
                       </div>
                     </div>

@@ -191,7 +191,7 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
             const style = getSeatStyle(seatIndex);
             
             const roleId = grimoireState?.[seatIndex]?.roleId;
-            const isDead = grimoireState?.[seatIndex]?.isDead;
+            const isDead = (grimoireState?.[seatIndex] as any)?.isDead;
             const role = roleId ? script.roles.find(r => r.id === roleId) : null;
             const isEvil = role?.type === "demon" || role?.type === "minion";
 
