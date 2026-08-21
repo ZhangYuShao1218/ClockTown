@@ -132,18 +132,13 @@ export const CenterStage = ({
               const roleId = bluffs[i];
               const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
               return (
-                <div key={i} className="flex flex-col items-center flex-1">
+                <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group hover:scale-105 hover:border-red-400 transition-all"
+                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 group-hover:border-red-400 transition-all"
                   >
                     {canSeeBluffs ? (
                       role ? (
-                        <>
-                          <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
-                          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
-                            <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
-                          </div>
-                        </>
+                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
                       ) : (
                         <span className="text-white/20 text-xs">空</span>
                       )
@@ -151,6 +146,11 @@ export const CenterStage = ({
                       <span className="text-white/20 text-xl font-bold">?</span>
                     )}
                   </div>
+                  {canSeeBluffs && role && (
+                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                    </div>
+                  )}
                   {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
                 </div>
               );
@@ -167,12 +167,12 @@ export const CenterStage = ({
                 const role = Object.values(AllRoles).find(r => r.id === fId);
                 if (!role) return null;
                 return (
-                  <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%]">
-                    <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group hover:scale-105 hover:border-yellow-400 transition-all">
+                  <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%] group relative hover:z-[9999]">
+                    <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group-hover:scale-105 group-hover:border-yellow-400 transition-all">
                       <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
-                    <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
-                  </div>
+                    </div>
+                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
                     </div>
                     <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>
                   </div>
@@ -228,6 +228,19 @@ export const CenterStage = ({
             const player = getPlayerInSeat(seatIndex);
             const style = getSeatStyle(seatIndex);
             const isEmpty = !player;
+            
+            const angleDeg = (seatIndex / totalSeats) * 360 - 90;
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const x = 50 + 45 * Math.cos(angleRad);
+            const y = 50 + 45 * Math.sin(angleRad);
+            
+            let tooltipClass = "top-[110%] mt-2 ";
+            if (y > 75) tooltipClass = "bottom-[110%] mb-2 ";
+            
+            if (x < 25) tooltipClass += "left-0";
+            else if (x > 75) tooltipClass += "right-0";
+            else tooltipClass += "left-1/2 -translate-x-1/2";
+
             const isDead = false;
             
             // In CenterStage, we show guesses from seatRoleNotes
@@ -238,9 +251,32 @@ export const CenterStage = ({
             return (
               <div 
                 key={seatIndex}
-                className="absolute group z-10"
+                className="absolute group z-10 hover:z-[9999]"
                 style={style}
               >
+                {guessedRole && (() => {
+                    const fIdx = script?.firstNight?.findIndex(x => x.id === guessedRole.id);
+                    const oIdx = script?.otherNight?.findIndex(x => x.id === guessedRole.id);
+                    const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
+                    const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
+                    return (
+                      <>
+                        {firstNum && (
+                          <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl z-20 pointer-events-none">
+                            {firstNum}
+                          </div>
+                        )}
+                        {otherNum && (
+                          <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl z-20 pointer-events-none">
+                            {otherNum}
+                          </div>
+                        )}
+                        <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                          <div dangerouslySetInnerHTML={{ __html: guessedRole.abilityHTML || guessedRole.ability }} />
+                        </div>
+                      </>
+                    );
+                })()}
                 <div 
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden ${
                     isEmpty ? 'border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/5 cursor-pointer pointer-events-auto' 
@@ -267,29 +303,6 @@ export const CenterStage = ({
 
                       {guessedRole ? (
                         <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
-                  <div className="absolute top-[110%] left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none cursor-default text-left">
-                    <div dangerouslySetInnerHTML={{ __html: guessedRole.abilityHTML || guessedRole.ability }} />
-                  </div>
-                  {(() => {
-                    const fIdx = script?.firstNight?.findIndex(x => x.id === guessedRole.id);
-                    const oIdx = script?.otherNight?.findIndex(x => x.id === guessedRole.id);
-                    const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
-                    const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
-                    return (
-                      <>
-                        {firstNum && (
-                          <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-400 text-white flex items-center justify-center font-bold shadow-lg z-20">
-                            {firstNum}
-                          </div>
-                        )}
-                        {otherNum && (
-                          <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-400 text-white flex items-center justify-center font-bold shadow-lg z-20">
-                            {otherNum}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
                            <div className="w-full h-[70%] relative mt-2">
                              <RoleIcon icon={guessedRole.icon} className={`w-full h-full object-contain ${isDead ? 'opacity-40 grayscale sepia' : ''}`} />
                            </div>
