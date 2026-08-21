@@ -23,6 +23,7 @@ interface GrimoireProps {
 export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [null, null, null], distribution, seats, getPlayerInSeat, fabled = [], onLeaveRoom, onOpenScriptModal, hostPlayer }: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
+  const [hoveredSeat, setHoveredSeat] = useState<number | null>(null);
 
   if (!script) return null;
 
