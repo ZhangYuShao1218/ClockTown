@@ -54,12 +54,12 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
 
   const getSeatConfig = () => {
     const count = typeof totalSeats !== 'undefined' ? totalSeats : seatCount;
-    if (count <= 6) return { size: 170, radius: 36 };
-    if (count <= 8) return { size: 160, radius: 38 };
-    if (count <= 10) return { size: 150, radius: 40 };
-    if (count <= 12) return { size: 140, radius: 42 };
-    if (count <= 14) return { size: 130, radius: 43.5 };
-    return { size: 120, radius: 45 };
+    if (count <= 6) return { size: 170, radius: 36, badgeClass: 'w-11 h-11 text-xl' };
+    if (count <= 8) return { size: 160, radius: 38, badgeClass: 'w-10 h-10 text-lg' };
+    if (count <= 10) return { size: 150, radius: 40, badgeClass: 'w-9 h-9 text-base' };
+    if (count <= 12) return { size: 140, radius: 42, badgeClass: 'w-9 h-9 text-base' };
+    if (count <= 14) return { size: 130, radius: 43.5, badgeClass: 'w-8 h-8 text-sm' };
+    return { size: 120, radius: 45, badgeClass: 'w-8 h-8 text-sm' };
   };
 
   const getSeatStyle = (index: number) => {
@@ -230,29 +230,11 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
               >
-                {role && (() => {
-                    const fIdx = script?.firstNight?.findIndex(x => x.id === role.id);
-                    const oIdx = script?.otherNight?.findIndex(x => x.id === role.id);
-                    const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
-                    const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
-                    return (
-                      <>
-                        {firstNum && (
-                          <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl z-20 pointer-events-none">
-                            {firstNum}
-                          </div>
-                        )}
-                        {otherNum && (
-                          <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl z-20 pointer-events-none">
-                            {otherNum}
-                          </div>
-                        )}
-                        <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
-                          <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
-                        </div>
-                      </>
-                    );
-                })()}
+                {role && (
+                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
+                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                    </div>
+                )}
                 <div className={`w-full h-full rounded-full border-4 flex items-center justify-center shadow-2xl relative overflow-hidden bg-black/90 transition-colors ${role ? (isEvil ? 'border-red-900 hover:border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.3)]' : 'border-blue-900 hover:border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]') : 'border-white/20 hover:border-white/50'}`}>
                    {role ? (
                        <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
@@ -280,6 +262,41 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
                       </div>
                     )}
                 </div>
+              </div>
+            );
+          })}
+
+          {/* Night Order Badges */}
+          {seats.map((seatIndex) => {
+            const role = seatRoles[seatIndex];
+            if (!role) return null;
+
+            const fIdx = script?.firstNight?.findIndex(x => x.id === role.id);
+            const oIdx = script?.otherNight?.findIndex(x => x.id === role.id);
+            const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
+            const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
+
+            if (!firstNum && !otherNum) return null;
+
+            const style = getSeatStyle(seatIndex);
+            const { badgeClass } = getSeatConfig();
+
+            return (
+              <div 
+                key={`badge-${seatIndex}`}
+                className={`absolute pointer-events-none ${hoveredSeat === seatIndex ? 'z-[10000]' : 'z-30'}`}
+                style={style}
+              >
+                {firstNum && (
+                  <div className={`absolute left-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
+                    {firstNum}
+                  </div>
+                )}
+                {otherNum && (
+                  <div className={`absolute right-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
+                    {otherNum}
+                  </div>
+                )}
               </div>
             );
           })}

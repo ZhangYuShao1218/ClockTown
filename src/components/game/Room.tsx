@@ -139,7 +139,8 @@ export const Room = () => {
           <div className="bg-black/90 border border-white/20 rounded-lg shadow-2xl backdrop-blur-md flex flex-col w-36 overflow-hidden">
             <button onClick={() => setRoleInfoOpen(true)} className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base border-b border-white/10 transition-colors">角色資訊</button>
             <button onClick={() => setNightOrderOpen(true)} className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base border-b border-white/10 transition-colors">角色順序表</button>
-            <button className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base transition-colors">投票紀錄</button>
+            <button className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base transition-colors border-b border-white/10">投票紀錄</button>
+            <button onClick={() => { if(window.confirm('確定要清空所有自行標記的角色與筆記嗎？')) window.dispatchEvent(new CustomEvent('clear-local-notes')); }} className="px-4 py-3 text-red-400 hover:bg-red-500/30 hover:text-red-200 text-center font-bold tracking-widest text-base transition-colors">清空資料</button>
           </div>
         </div>
       </div>
