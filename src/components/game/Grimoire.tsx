@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { setGrimoireRole, setGrimoireBluff, updateFabled } from "../../services/roomService";
 import type { Script } from "../../data/scripts";
 import { RoleIcon } from "../common/RoleIcon";
@@ -23,6 +24,7 @@ interface GrimoireProps {
 export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [null, null, null], distribution, seats, getPlayerInSeat, fabled = [], onLeaveRoom, onOpenScriptModal, hostPlayer }: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
+  const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
 
   if (!script) return null;
 
