@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGameState } from "../../hooks/useGameState";
 import { useAuth } from "../../hooks/useAuth";
@@ -22,15 +22,13 @@ export const Room = () => {
   const [rightTab, setRightTab] = useState<'observers' | 'chat'>('chat');
   const [isScriptModalOpen, setScriptModalOpen] = useState(false);
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
-  const hasInitialized = useRef(false);
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
 
   useEffect(() => {
-    if (gameState?.public?.activeSetupId && !hasInitialized.current) {
+    if (gameState?.public?.activeSetupId && !activeScriptId) {
       setActiveScriptId(gameState.public.activeSetupId);
-      hasInitialized.current = true;
     }
   }, [gameState?.public?.activeSetupId]);
 
@@ -235,7 +233,6 @@ export const Room = () => {
               grimoireState={gameState.private?.grimoire}
               customScript={gameState.public.customScript}
               activeScriptId={activeScriptId}
-              activeSetupId={gameState.public.activeSetupId || null}
               setActiveScriptId={setActiveScriptId}
               settings={gameState.public.settings}
             />
