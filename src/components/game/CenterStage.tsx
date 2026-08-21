@@ -83,6 +83,7 @@ export const CenterStage = ({
 
   const [seatNotes, setSeatNotes] = useState<Record<number, string>>({});
   const [activeDropdownSeat, setActiveDropdownSeat] = useState<number | null>(null);
+  const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
 
   useEffect(() => {
     const handleGlobalClick = () => setActiveDropdownSeat(null);
@@ -280,11 +281,7 @@ export const CenterStage = ({
                 className="absolute group z-10"
                 style={style}
               >
-                {guessedRole && (
-                    <div className={`absolute ${tooltipClass} w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default`}>
-                      <div dangerouslySetInnerHTML={{ __html: guessedRole.abilityHTML || guessedRole.ability }} />
-                    </div>
-                )}
+                
                 <div 
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
                     guessedRole 
@@ -387,7 +384,7 @@ export const CenterStage = ({
                   </div>
                   
                   {activeDropdownSeat === seatIndex && (
-                    <div className="absolute top-full mt-1 w-24 bg-slate-900 border border-slate-600 rounded-md shadow-xl overflow-hidden z-[100]">
+                    <div className={`absolute ${parseInt(style.top as string) > 50 ? 'bottom-full mb-1' : 'top-full mt-1'} w-24 bg-slate-900 border border-slate-600 rounded-md shadow-xl overflow-hidden z-[100]`}>
                       {player && player.uid === userUid ? (
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleLeaveSeat(); setActiveDropdownSeat(null); }}
@@ -416,6 +413,14 @@ export const CenterStage = ({
         </div>
       </div>
 
+      {hoveredRoleTooltip && document.body && createPortal(
+        <div className="fixed z-[99999] w-64 bg-slate-900/95 p-3 text-sm border-2 border-slate-500 rounded-xl shadow-2xl pointer-events-none text-left"
+            style={{ left: hoveredRoleTooltip.x, top: hoveredRoleTooltip.y + 10, transform: 'translateX(-50%)' }}
+          >
+            <div className="text-white/80 font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: hoveredRoleTooltip.role.abilityHTML || hoveredRoleTooltip.role.ability }} />
+          </div>,
+        document.body
+      )}
       <RoleSelectionModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

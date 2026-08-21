@@ -103,9 +103,9 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-5xl" title={filterType === 'fabled' ? "選擇傳奇角色" : "選擇角色"}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-lg" noOverlay={noOverlay} title={filterType === 'fabled' ? "選擇傳奇角色" : "選擇角色"}>
       <div className="relative">
-        <div className="max-h-[70vh] overflow-y-auto px-2 pb-8">
+        <div className="max-h-[70vh] overflow-y-auto px-2 pb-8 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {content}
         </div>
       </div>
