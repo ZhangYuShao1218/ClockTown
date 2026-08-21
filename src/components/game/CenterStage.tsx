@@ -167,11 +167,10 @@ export const CenterStage = ({
                 return (
                   <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%]">
                     <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group hover:scale-105 hover:border-yellow-400 transition-all">
-                      <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
+                      <><RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" /><div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
                     <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
                   </div>
-                    </div>
+                    </div></>
                     <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>
                   </div>
                 );
