@@ -1,11 +1,19 @@
-import type { Role } from './roles';
+import type { Role, RoleType } from './roles';
 import { AllRoles } from './roles';
+
+export interface NightOrderItem {
+  id: string; // role id or custom id like 'minion_info'
+  name: string;
+  type: RoleType | 'info';
+}
 
 export interface Script {
   id: string;
   name: string;
   description: string;
   roles: Role[];
+  firstNight: NightOrderItem[];
+  otherNight: NightOrderItem[];
 }
 
 export const TroubleBrewing: Script = {
@@ -35,6 +43,31 @@ export const TroubleBrewing: Script = {
     AllRoles.scarlet_woman,
     AllRoles.baron,
     AllRoles.imp
+  ],
+  firstNight: [
+    { id: 'minion_info', name: '爪牙資訊', type: 'info' },
+    { id: 'demon_info', name: '惡魔資訊', type: 'info' },
+    { id: 'poisoner', name: '投毒者', type: 'minion' },
+    { id: 'washerwoman', name: '洗衣婦', type: 'townsfolk' },
+    { id: 'librarian', name: '圖書管理員', type: 'townsfolk' },
+    { id: 'investigator', name: '調查員', type: 'townsfolk' },
+    { id: 'chef', name: '廚師', type: 'townsfolk' },
+    { id: 'empath', name: '共情者', type: 'townsfolk' },
+    { id: 'fortune_teller', name: '占卜師', type: 'townsfolk' },
+    { id: 'butler', name: '管家', type: 'outsider' },
+    { id: 'spy', name: '間諜', type: 'minion' },
+  ],
+  otherNight: [
+    { id: 'poisoner', name: '投毒者', type: 'minion' },
+    { id: 'monk', name: '僧侶', type: 'townsfolk' },
+    { id: 'scarlet_woman', name: '紅唇女郎', type: 'minion' },
+    { id: 'imp', name: '小惡魔', type: 'demon' },
+    { id: 'ravenkeeper', name: '守鴉人', type: 'townsfolk' },
+    { id: 'empath', name: '共情者', type: 'townsfolk' },
+    { id: 'fortune_teller', name: '占卜師', type: 'townsfolk' },
+    { id: 'butler', name: '管家', type: 'outsider' },
+    { id: 'undertaker', name: '送葬者', type: 'townsfolk' },
+    { id: 'spy', name: '間諜', type: 'minion' },
   ]
 };
 

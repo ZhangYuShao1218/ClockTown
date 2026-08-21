@@ -88,3 +88,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .highlight-good {
+    @apply text-blue-400 font-bold;
+  }
+  .highlight-evil {
+    @apply text-red-400 font-bold;
+  }
+}

@@ -9,33 +9,7 @@ interface NightOrderModalProps {
   script: Script | undefined;
 }
 
-// 根據暗流湧動固定順序
-const firstNightOrder = [
-  { id: 'minion_info', name: '爪牙資訊', type: 'info' },
-  { id: 'demon_info', name: '惡魔資訊', type: 'info' },
-  { id: 'poisoner', name: '投毒者', type: 'minion' },
-  { id: 'washerwoman', name: '洗衣婦', type: 'townsfolk' },
-  { id: 'librarian', name: '圖書管理員', type: 'townsfolk' },
-  { id: 'investigator', name: '調查員', type: 'townsfolk' },
-  { id: 'chef', name: '廚師', type: 'townsfolk' },
-  { id: 'empath', name: '共情者', type: 'townsfolk' },
-  { id: 'fortune_teller', name: '占卜師', type: 'townsfolk' },
-  { id: 'butler', name: '管家', type: 'outsider' },
-  { id: 'spy', name: '間諜', type: 'minion' },
-];
 
-const otherNightsOrder = [
-  { id: 'poisoner', name: '投毒者', type: 'minion' },
-  { id: 'monk', name: '僧侶', type: 'townsfolk' },
-  { id: 'scarlet_woman', name: '紅唇女郎', type: 'minion' },
-  { id: 'imp', name: '小惡魔', type: 'demon' },
-  { id: 'ravenkeeper', name: '守鴉人', type: 'townsfolk' },
-  { id: 'empath', name: '共情者', type: 'townsfolk' },
-  { id: 'fortune_teller', name: '占卜師', type: 'townsfolk' },
-  { id: 'butler', name: '管家', type: 'outsider' },
-  { id: 'undertaker', name: '送葬者', type: 'townsfolk' },
-  { id: 'spy', name: '間諜', type: 'minion' },
-];
 
 const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
   const role = AllRoles[item.id as keyof typeof AllRoles];
@@ -90,7 +64,7 @@ export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProp
           
           {/* 上方：首夜 */}
           <div className="flex items-end gap-3 mb-6">
-            {firstNightOrder.map((item, idx) => (
+            {script.firstNight?.map((item, idx) => (
               <div key={`first-${idx}`} className="flex flex-col items-center">
                 <span className="text-[14pt] text-white/60 mb-2 font-bold">{idx + 1}</span>
                 <RolePill item={item} />
@@ -114,7 +88,7 @@ export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProp
 
           {/* 下方：其他夜晚 */}
           <div className="flex items-start gap-3 mt-6">
-            {otherNightsOrder.map((item, idx) => (
+            {script.otherNight?.map((item, idx) => (
               <div key={`other-${idx}`} className="flex flex-col items-center">
                 <RolePill item={item} isBottom={true} />
                 <span className="text-[14pt] text-white/60 mt-2 font-bold">{idx + 1}</span>
