@@ -52,22 +52,22 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
     await updateFabled(roomId, fabled.filter(id => id !== roleId));
   };
 
-  const getSeatSize = () => {
+  const getSeatConfig = () => {
     const count = typeof totalSeats !== 'undefined' ? totalSeats : seatCount;
-    if (count <= 6) return 160;
-    if (count <= 8) return 150;
-    if (count <= 10) return 140;
-    if (count <= 12) return 130;
-    return 120;
+    if (count <= 6) return { size: 170, radius: 36 };
+    if (count <= 8) return { size: 160, radius: 38 };
+    if (count <= 10) return { size: 150, radius: 40 };
+    if (count <= 12) return { size: 140, radius: 42 };
+    if (count <= 14) return { size: 130, radius: 43.5 };
+    return { size: 120, radius: 45 };
   };
 
   const getSeatStyle = (index: number) => {
     const angleDeg = (index / seatCount) * 360 - 90;
     const angleRad = (angleDeg * Math.PI) / 180;
-    const radius = 45; 
+    const { size, radius } = getSeatConfig(); 
     const x = 50 + radius * Math.cos(angleRad);
     const y = 50 + radius * Math.sin(angleRad);
-    const size = getSeatSize();
     return { 
       left: `${x}%`, 
       top: `${y}%`, 
@@ -212,8 +212,9 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
 
             const angleDeg = (seatIndex / seatCount) * 360 - 90;
             const angleRad = (angleDeg * Math.PI) / 180;
-            const x = 50 + 45 * Math.cos(angleRad);
-            const y = 50 + 45 * Math.sin(angleRad);
+              const { radius } = getSeatConfig();
+              const x = 50 + radius * Math.cos(angleRad);
+              const y = 50 + radius * Math.sin(angleRad);
             
             let tooltipClass = "top-[110%] mt-2 ";
             if (y > 75) tooltipClass = "bottom-[110%] mb-2 ";
