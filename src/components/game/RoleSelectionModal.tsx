@@ -109,12 +109,11 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
         </div>
       </div>
       {hoveredRole && document.body && createPortal(
-        <div 
-          className="fixed z-[99999] w-64 bg-slate-900/95 p-[5px] text-base border-2 border-white/40 rounded-xl shadow-2xl pointer-events-none text-left"
-          style={{ left: hoveredRole.x, top: hoveredRole.y + 15, transform: 'translateX(-50%)' }}
-        >
-          <div className="text-white/80 font-bold leading-[1.5]">{hoveredRole.role.ability}</div>
-        </div>,
+        <div className="fixed z-[99999] w-64 bg-slate-900/95 p-3 text-sm border-2 border-slate-500 rounded-xl shadow-2xl pointer-events-none text-left"
+            style={{ left: hoveredRole.x, top: hoveredRole.y + 15, transform: 'translateX(-50%)' }}
+          >
+            <div className="text-white/80 font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: hoveredRole.role.abilityHTML || hoveredRole.role.ability }} />
+          </div>,
         document.body
       )}
     </Modal>

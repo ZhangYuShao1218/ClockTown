@@ -139,6 +139,9 @@ export const CenterStage = ({
                     {canSeeBluffs ? (
                       role ? (
                         <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
+                    <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                  </div>
                       ) : (
                         <span className="text-white/20 text-xs">空</span>
                       )
@@ -165,6 +168,9 @@ export const CenterStage = ({
                   <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%]">
                     <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group hover:scale-105 hover:border-yellow-400 transition-all">
                       <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none">
+                    <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                  </div>
                     </div>
                     <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>
                   </div>
@@ -259,6 +265,29 @@ export const CenterStage = ({
 
                       {guessedRole ? (
                         <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
+                  <div className="absolute top-[110%] left-1/2 -translate-x-1/2 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none cursor-default text-left">
+                    <div dangerouslySetInnerHTML={{ __html: guessedRole.abilityHTML || guessedRole.ability }} />
+                  </div>
+                  {(() => {
+                    const fIdx = script?.firstNight?.findIndex(x => x.id === guessedRole.id);
+                    const oIdx = script?.otherNight?.findIndex(x => x.id === guessedRole.id);
+                    const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
+                    const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
+                    return (
+                      <>
+                        {firstNum && (
+                          <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-400 text-white flex items-center justify-center font-bold shadow-lg z-20">
+                            {firstNum}
+                          </div>
+                        )}
+                        {otherNum && (
+                          <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-400 text-white flex items-center justify-center font-bold shadow-lg z-20">
+                            {otherNum}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                            <div className="w-full h-[70%] relative mt-2">
                              <RoleIcon icon={guessedRole.icon} className={`w-full h-full object-contain ${isDead ? 'opacity-40 grayscale sepia' : ''}`} />
                            </div>

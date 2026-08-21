@@ -18,17 +18,17 @@ const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
     'townsfolk': 'bg-blue-900/60 border-blue-500 shadow-blue-900/50',
     'outsider': 'bg-blue-800/60 border-blue-400 shadow-blue-800/50',
     'minion': 'bg-red-900/60 border-red-500 shadow-red-900/50',
-    'demon': 'bg-rose-900/60 border-rose-500 shadow-rose-900/50',
+    'demon': 'bg-red-900/60 border-red-500 shadow-red-900/50', // Match minion color
     'info': 'bg-purple-900/60 border-purple-500 shadow-purple-900/50'
   };
 
   const color = bgColors[role?.type || item.type];
 
-  let abilityText = role?.ability || '';
+  let abilityHTML = role?.abilityHTML || role?.ability || '';
   if (item.id === 'minion_info') {
-    abilityText = '如果有7名或更多玩家，會得知惡魔及其可偽裝的身分';
+    abilityHTML = '如果有7名或更多玩家，會得知<span class="highlight-evil">惡魔</span>及其可偽裝的身分';
   } else if (item.id === 'demon_info') {
-    abilityText = '如果有7名或更多玩家，惡魔會得知爪牙，並獲得三個不在場的善良陣營角色';
+    abilityHTML = '如果有7名或更多玩家，惡魔會得知<span class="highlight-evil">爪牙</span>，並獲得三個不在場的<span class="highlight-good">善良陣營</span>角色';
   }
 
   return (
@@ -36,19 +36,27 @@ const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
       
       {/* Tooltip */}
       <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 w-48 bg-slate-800/95 border-2 border-slate-500 text-white text-xs leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none`}>
-        {abilityText}
+        <div dangerouslySetInnerHTML={{ __html: abilityHTML }} />
       </div>
 
       {!isBottom && <div className="absolute bottom-[-10px] w-2 h-2 rounded-full bg-white/20"></div>}
       {isBottom && <div className="absolute top-[-10px] w-2 h-2 rounded-full bg-white/20"></div>}
 
-      <div className="w-12 h-12 rounded-full border-2 border-white/30 bg-black overflow-hidden mb-1 flex items-center justify-center shrink-0">
+      <div className="w-12 h-12 rounded-full border-2 border-white/30 bg-black overflow-hidden mb-1 flex items-center justify-center shrink-0 relative">
         {role ? (
           <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
         ) : (
           <span className="text-2xl font-bold font-serif text-white/80">{item.id === 'minion_info' ? 'M' : 'D'}</span>
         )}
       </div>
+      
+      {role?.type === 'demon' && (
+        <img src="/icons/demon_badge.jpg" alt="Demon" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-red-500 shadow-md" />
+      )}
+      {role?.type === 'outsider' && (
+        <img src="/icons/outsider_badge.jpg" alt="Outsider" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-blue-400 shadow-md" />
+      )}
+
       <span className="text-xs font-bold text-white text-center leading-tight mt-1">{item.name}</span>
     </div>
   );
