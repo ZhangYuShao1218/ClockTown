@@ -14,50 +14,48 @@ interface NightOrderModalProps {
 const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
   const role = AllRoles[item.id as keyof typeof AllRoles];
   
-  const bgColors: Record<string, string> = {
-    'townsfolk': 'bg-blue-900/60 border-blue-500 shadow-blue-900/50',
-    'outsider': 'bg-blue-800/60 border-blue-400 shadow-blue-800/50',
-    'minion': 'bg-red-900/60 border-red-500 shadow-red-900/50',
-    'demon': 'bg-red-900/60 border-red-500 shadow-red-900/50', // Match minion color
-    'info': 'bg-purple-900/60 border-purple-500 shadow-purple-900/50'
+  const pillStyles: Record<string, { outer: string, inner: string }> = {
+    'townsfolk': { outer: 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.4)]', inner: 'bg-slate-900/95' },
+    'outsider': { outer: 'bg-gradient-to-br from-blue-500 from-10% to-red-900 to-90% shadow-[0_0_10px_rgba(96,165,250,0.4)]', inner: 'bg-slate-900/95' },
+    'minion': { outer: 'bg-red-800 shadow-[0_0_10px_rgba(153,27,27,0.4)]', inner: 'bg-slate-900/95' },
+    'demon': { outer: 'bg-[linear-gradient(135deg,#7f1d1d_0%,#ef4444_25%,#fef08a_40%,#ffffff_50%,#fef08a_60%,#ef4444_75%,#7f1d1d_100%)] shadow-[0_0_20px_rgba(239,68,68,0.8)] ring-1 ring-red-500/50', inner: 'bg-neutral-900/95 shadow-[inset_0_0_25px_rgba(239,68,68,0.7)]' },
+    'info': { outer: 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.4)]', inner: 'bg-slate-900/95' }
   };
 
-  const color = bgColors[role?.type || item.type];
+  const type = role?.type || item.type || 'info';
+  const style = pillStyles[type] || pillStyles['info'];
 
   let abilityHTML = role?.abilityHTML || role?.ability || '';
   if (item.id === 'minion_info') {
-    abilityHTML = '如果有7名或更多玩家，會得知<span class="highlight-evil">惡魔</span>及其可偽裝的身分';
+    abilityHTML = '如果場上有爪牙玩家，你得知<span class="highlight-evil">惡魔</span>以及其他爪牙偽裝的身分。';
   } else if (item.id === 'demon_info') {
-    abilityHTML = '如果有7名或更多玩家，惡魔會得知<span class="highlight-evil">爪牙</span>，並獲得三個不在場的<span class="highlight-good">善良陣營</span>角色';
+    abilityHTML = '如果場上有爪牙玩家，惡魔會得知<span class="highlight-evil">爪牙</span>，並得知三個不在場的<span class="highlight-good">善良陣營</span>角色。';
   }
 
   return (
-    <div className={`flex flex-col items-center p-2 rounded-lg border-2 ${color} w-20 shrink-0 shadow-lg group hover:-translate-y-1 transition-transform relative ${isBottom ? 'pt-4' : 'pb-4'}`}>
-      
-      {/* Tooltip */}
-      <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 w-48 bg-slate-800/95 border-2 border-slate-500 text-white text-xs leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none`}>
-        <div dangerouslySetInnerHTML={{ __html: abilityHTML }} />
+    <div className={`p-[2px] rounded-lg w-[80px] shrink-0 shadow-lg group hover:-translate-y-1 transition-transform relative ${style.outer}`}>
+      <div className={`flex flex-col items-center px-[3px] pt-[3px] pb-2 rounded-[6px] w-full h-full ${style.inner}`}>
+        
+        {/* Tooltip */}
+        <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 w-48 bg-slate-800/95 border-2 border-slate-500 text-white text-xs leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none`}>
+          <div dangerouslySetInnerHTML={{ __html: abilityHTML }} />
+        </div>
+
+        {!isBottom && <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/20"></div>}
+        {isBottom && <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/20"></div>}
+
+        <div className="w-[70px] h-[70px] rounded-full border-2 border-white/30 bg-black mb-1 flex items-center justify-center shrink-0 relative overflow-visible">
+          <div className="w-full h-full rounded-full overflow-hidden absolute inset-0 flex items-center justify-center">
+            {role ? (
+              <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+            ) : (
+              <span className="text-3xl font-bold font-serif text-white/80">{item.id === 'minion_info' ? 'M' : 'D'}</span>
+            )}
+          </div>
+        </div>
+
+        <span className="text-xs font-bold text-white text-center leading-tight mt-1">{item.name}</span>
       </div>
-
-      {!isBottom && <div className="absolute bottom-[-10px] w-2 h-2 rounded-full bg-white/20"></div>}
-      {isBottom && <div className="absolute top-[-10px] w-2 h-2 rounded-full bg-white/20"></div>}
-
-      <div className="w-12 h-12 rounded-full border-2 border-white/30 bg-black overflow-hidden mb-1 flex items-center justify-center shrink-0 relative">
-        {role ? (
-          <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
-        ) : (
-          <span className="text-2xl font-bold font-serif text-white/80">{item.id === 'minion_info' ? 'M' : 'D'}</span>
-        )}
-      </div>
-      
-      {role?.type === 'demon' && (
-        <img src="/icons/demon_badge.png" alt="Demon" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-red-500 shadow-md" />
-      )}
-      {role?.type === 'outsider' && (
-        <img src="/icons/outsider_badge.png" alt="Outsider" className="absolute top-1 left-1 w-6 h-6 rounded-full border border-blue-400 shadow-md" />
-      )}
-
-      <span className="text-xs font-bold text-white text-center leading-tight mt-1">{item.name}</span>
     </div>
   );
 };
@@ -66,7 +64,7 @@ export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProp
   if (!isOpen || !script) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={true} title={`${script.name} - 夜晚順序表`}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={true} title={`${script.name} - 角色順序表`}>
       <div className="w-full py-6">
         <div className="flex flex-col items-center">
           
