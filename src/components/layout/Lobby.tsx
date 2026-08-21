@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ref, onValue, query, orderByChild, limitToLast } from "firebase/database";
+import { ref, onValue, query, limitToLast } from "firebase/database";
 import { db } from "../../services/firebase";
 import { createRoom, joinRoom } from "../../services/roomService";
 import { useAuth } from "../../hooks/useAuth";

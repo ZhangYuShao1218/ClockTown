@@ -46,8 +46,7 @@ export const CenterStage = ({
   useEffect(() => {
     const handleClear = () => {
       setSeatRoleNotes({});
-      setSeatNotes({});
-      if (userUid) {
+            if (userUid) {
         localStorage.removeItem(`botc_role_notes_${userUid}`);
         localStorage.removeItem(`botc_notes_${userUid}`);
       }
@@ -64,9 +63,6 @@ export const CenterStage = ({
     }
   }, [userUid]);
 
-      setTargetSeat(seatIndex);
-    setModalOpen(true);
-  };
 
   const handleModalSelect = (roleId: string | null) => {
     if (targetSeat === null) return;
@@ -81,8 +77,7 @@ export const CenterStage = ({
     setModalOpen(false);
   };
 
-  const [seatNotes, setSeatNotes] = useState<Record<number, string>>({});
-  const [activeDropdownSeat, setActiveDropdownSeat] = useState<number | null>(null);
+    const [activeDropdownSeat, setActiveDropdownSeat] = useState<number | null>(null);
   const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
 
   useEffect(() => {
@@ -93,11 +88,7 @@ export const CenterStage = ({
 
   useEffect(() => {
     if (!userUid) return;
-    const saved = localStorage.getItem(`botc_notes_${userUid}`);
-    if (saved) {
-      try { setSeatNotes(JSON.parse(saved)); } catch (e) {}
-    }
-  }, [userUid]);
+      }, [userUid]);
 
   const totalSeats = seats.length;
 
@@ -276,7 +267,8 @@ export const CenterStage = ({
               >
                 
                 <div 
-                  className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
+                  onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
+                    className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
                     guessedRole 
                       ? (isEvil ? 'border-red-900 bg-black/90' : 'border-blue-900 bg-black/90')
                       : 'border-white/30 bg-black/80 hover:border-white/50'

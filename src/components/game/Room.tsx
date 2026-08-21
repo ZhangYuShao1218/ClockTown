@@ -80,9 +80,9 @@ export const Room = () => {
   const canSeeBluffs = isHost || isEvil;
 
   const getPlayerInSeat = (seatIndex: number) => {
-    const entry = Object.entries(players).find(([uid, p]: [string, any]) => p.seat === seatIndex);
+    const entry = Object.entries(players).find(([_, p]: [string, any]) => p.seat === seatIndex);
     if (!entry) return undefined;
-    return { uid: entry[0], ...entry[1] };
+    return { uid: entry[0], ...(entry[1] || {}) };
   };
 
   const handleTakeSeat = async (seatIndex: number) => {

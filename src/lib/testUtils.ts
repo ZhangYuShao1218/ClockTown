@@ -1,4 +1,4 @@
-import { ref, set, push } from "firebase/database";
+import { ref, set } from "firebase/database";
 import { db } from "../services/firebase";
 
 // 隨機產生假玩家名稱
