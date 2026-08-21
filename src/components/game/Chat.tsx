@@ -41,7 +41,8 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer }:
     } else {
       // 根據劇本設定決定，但使用者說「必定能和說書人聊天 並且查看廣場公告」，
       // 「除此之外 要實作能夠分別和所有玩家一對一聊天的功能」。
-      // 為了滿足需求，我們先把所有玩家的一對一對話加進來。
+      // 防止說書人重複出現（因為前面已經加了 'host'）
+      if (hostPlayer && p.uid === hostPlayer.uid) return;
       availableChannels.push({ id: p.uid, name: p.name });
     }
   });
