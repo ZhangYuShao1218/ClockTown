@@ -9,6 +9,7 @@ import { GrimoireSettings } from "./GrimoireSettings";
 import { ScriptInfoModal } from "./ScriptInfoModal";
 import { RoleInfoModal } from "./RoleInfoModal";
 import { NightOrderModal } from "./NightOrderModal";
+import { Chat } from "./Chat";
 import { AllScripts } from "../../data/scripts";
 
 export const Room = () => {
@@ -263,23 +264,7 @@ export const Room = () => {
               </div>
               <div className="flex-1 min-h-0 border border-white/10 rounded-xl overflow-hidden shadow-inner">
                 
-                <div className="flex flex-col h-full bg-black/40">
-                  <div className="p-3 border-b border-white/10 bg-white/5">
-                    <h2 className="text-base uppercase tracking-wider font-semibold text-white/50">系統訊息與私訊</h2>
-                  </div>
-                  <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                    <div className="text-base text-center text-white/30">遊戲尚未開始 (此處預留復盤系統與私訊)</div>
-                  </div>
-                  <div className="p-3 border-t border-white/10 bg-white/5">
-                    <input 
-                      type="text" 
-                      placeholder="發送文字..." 
-                      className="w-full bg-black/50 border border-white/10 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-purple-500/50 text-white placeholder-white/20"
-                      disabled
-                    />
-                  </div>
-                </div>
-
+                <Chat roomId={id!} userUid={user?.uid!} userName={user?.displayName || 'Unknown'} isHost={isHost} players={Object.values(players)} hostPlayer={hostPlayer} />
               </div>
             </div>
           )}
