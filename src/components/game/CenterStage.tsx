@@ -375,10 +375,10 @@ export const CenterStage = ({
             return (
               <div 
                 key={`text-${seatIndex}`}
-                className="absolute z-50 pointer-events-auto"
+                className="absolute z-50 pointer-events-none"
                 style={style}
               >
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center">
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto">
                   <div 
                     className="cursor-pointer text-white font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border border-white/30 shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black hover:border-white/50 transition-colors"
                     onClick={(e) => { e.stopPropagation(); setActiveDropdownSeat(activeDropdownSeat === seatIndex ? null : seatIndex); }}

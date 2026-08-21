@@ -80,7 +80,9 @@ export const Room = () => {
   const canSeeBluffs = isHost || isEvil;
 
   const getPlayerInSeat = (seatIndex: number) => {
-    return Object.values(players).find((p: any) => p.seat === seatIndex);
+    const entry = Object.entries(players).find(([uid, p]: [string, any]) => p.seat === seatIndex);
+    if (!entry) return undefined;
+    return { uid: entry[0], ...entry[1] };
   };
 
   const handleTakeSeat = async (seatIndex: number) => {
@@ -264,7 +266,7 @@ export const Room = () => {
               </div>
               <div className="flex-1 min-h-0 border border-white/10 rounded-xl overflow-hidden shadow-inner">
                 
-                <Chat roomId={id!} userUid={user?.uid!} userName={user?.displayName || 'Unknown'} isHost={isHost} players={Object.values(players)} hostPlayer={hostPlayer} />
+                <Chat roomId={id!} userUid={user?.uid!} userName={user?.displayName || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid, p]: [string, any]) => ({ uid, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} />
               </div>
             </div>
           )}
