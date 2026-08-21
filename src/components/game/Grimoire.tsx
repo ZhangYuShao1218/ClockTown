@@ -268,7 +268,8 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
 
           {/* Night Order Badges */}
           {seats.map((seatIndex) => {
-            const role = seatRoles[seatIndex];
+            const roleId = grimoireState?.[seatIndex]?.roleId;
+            const role = roleId ? script.roles.find(r => r.id === roleId) : null;
             if (!role) return null;
 
             const fIdx = script?.firstNight?.findIndex(x => x.id === role.id);
