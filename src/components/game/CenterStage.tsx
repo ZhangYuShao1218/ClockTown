@@ -87,6 +87,11 @@ export const CenterStage = ({
   const totalSeats = seats.length;
 
   const getSeatSize = () => {
+    const count = typeof totalSeats !== 'undefined' ? totalSeats : seatCount;
+    if (count <= 6) return 160;
+    if (count <= 8) return 150;
+    if (count <= 10) return 140;
+    if (count <= 12) return 130;
     return 120;
   };
 

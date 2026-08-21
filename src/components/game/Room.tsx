@@ -30,7 +30,7 @@ export const Room = () => {
     if (gameState?.public?.activeSetupId && !activeScriptId) {
       setActiveScriptId(gameState.public.activeSetupId);
     }
-  }, [gameState?.public?.activeSetupId]);
+  }, [gameState?.public?.activeSetupId, activeScriptId]);
 
   useEffect(() => {
     if (!user || !id || !gameState) return;
@@ -233,6 +233,7 @@ export const Room = () => {
               grimoireState={gameState.private?.grimoire}
               customScript={gameState.public.customScript}
               activeScriptId={activeScriptId}
+              activeSetupId={gameState.public.activeSetupId || null}
               setActiveScriptId={setActiveScriptId}
               settings={gameState.public.settings}
             />

@@ -15,6 +15,7 @@ interface GrimoireSettingsProps {
   grimoireState: any;
   customScript: any;
   activeScriptId: string | null;
+  activeSetupId: string | null;
   setActiveScriptId: (id: string | null) => void;
   settings: any;
 }
@@ -29,6 +30,7 @@ export const GrimoireSettings = ({
   grimoireState,
   customScript,
   activeScriptId,
+  activeSetupId,
   setActiveScriptId,
   settings
 }: GrimoireSettingsProps) => {
@@ -46,20 +48,14 @@ export const GrimoireSettings = ({
     }
   }, []);
 
-  const lastActiveScriptId = React.useRef(activeScriptId);
-  const skipNextSave = React.useRef(false);
-
   useEffect(() => {
-    if (activeScriptId !== lastActiveScriptId.current) {
-      lastActiveScriptId.current = activeScriptId;
-      skipNextSave.current = true;
-      return;
-    }
-
-    if (activeScriptId && !skipNextSave.current) {
+    // Only auto-save if the current script is active AND Firebase has fully synced it
+    if (activeScriptId && activeScriptId === activeSetupId) {
       setLocalScripts(prev => {
+        let isChanged = false;
         const updated = prev.map(s => {
           if (s.id === activeScriptId) {
+            isChanged = true;
             return {
               ...s,
               data: { scriptId, seatCount, distribution, bluffs, grimoire: grimoireState, customScript, settings: safeSettings }
@@ -67,17 +63,13 @@ export const GrimoireSettings = ({
           }
           return s;
         });
-        localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+        if (isChanged) {
+          localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+        }
         return updated;
       });
     }
-    
-    if (skipNextSave.current) {
-        // We wait for the room data to match what we just loaded.
-        // Actually, just giving it a short timeout or waiting for next render is enough.
-        skipNextSave.current = false;
-    }
-  }, [scriptId, seatCount, distribution, bluffs, grimoireState, customScript, settings, activeScriptId]);
+  }, [scriptId, seatCount, distribution, bluffs, grimoireState, customScript, settings, activeScriptId, activeSetupId]);
 
   const handleAddScript = () => {
     if (!newScriptName.trim()) return;
