@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings } from "../../services/roomService";
+import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles } from "../../services/roomService";
+import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
 import type { Script } from "../../data/scripts";
 
@@ -20,6 +21,7 @@ interface GrimoireSettingsProps {
   isViewingList: boolean;
   setIsViewingList: (val: boolean) => void;
   settings: any;
+  players: any[];
 }
 
 export const GrimoireSettings = ({ 
@@ -36,12 +38,34 @@ export const GrimoireSettings = ({
   setActiveScriptId,
   isViewingList,
   setIsViewingList,
-  settings
+  settings,
+  players
 }: GrimoireSettingsProps) => {
   const [localScripts, setLocalScripts] = useState<any[]>([]);
   const [newScriptName, setNewScriptName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [missingSeatAlert, setMissingSeatAlert] = useState<string | null>(null);
 
+  const handleDistribute = async () => {
+    // 檢查是否有空位
+    const missingSeats: number[] = [];
+    for (let i = 1; i <= seatCount; i++) {
+      if (!players.find(p => p.seat === i)) {
+        missingSeats.push(i);
+      }
+    }
+    
+    if (missingSeats.length > 0) {
+      setMissingSeatAlert(`無法分配角色：第 ${missingSeats.join('、')} 號座位目前沒有玩家坐下。請確保所有座位都有玩家。`);
+      return;
+    }
+    
+    // 如果沒缺，正式分配角色
+    const playersDict: Record<string, any> = {};
+    players.forEach(p => playersDict[p.uid] = p);
+    await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script);
+    setMissingSeatAlert("分配完成！已將角色與資訊發送給所有玩家。"); // Using the same alert just to show success, but maybe without cancel? Wait, AlertDialog has confirm button.
+  };
   const [t, o, m, d] = distribution || [0, 0, 0, 0];
   const safeSettings = settings || { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false };
 
@@ -331,8 +355,24 @@ export const GrimoireSettings = ({
           </div>
         </div>
 
+
         {renderSettingsBlock()}
+
+        <button 
+          onClick={handleDistribute}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 mt-6 transition-transform hover:scale-[1.02]"
+        >
+          正式分配角色
+        </button>
+
       </div>
+      <AlertDialog 
+        isOpen={!!missingSeatAlert} 
+        onClose={() => setMissingSeatAlert(null)} 
+        onConfirm={() => setMissingSeatAlert(null)} 
+        message={missingSeatAlert || ""} 
+        showCancel={false} 
+      />
     </div>
   );
 };

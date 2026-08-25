@@ -10,6 +10,7 @@ import { ScriptInfoModal } from "./ScriptInfoModal";
 import { RoleInfoModal } from "./RoleInfoModal";
 import { NightOrderModal } from "./NightOrderModal";
 import { Chat } from "./Chat";
+import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
 
 export const Room = () => {
@@ -27,6 +28,7 @@ export const Room = () => {
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+  const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
 
   useEffect(() => {
     if (gameState?.public?.activeSetupId && !activeScriptId) {
@@ -74,8 +76,7 @@ export const Room = () => {
   const bluffs = gameState?.private?.bluffs || [null, null, null];
   
   const myPlayer = user ? players[user.uid] : null;
-  const mySeat = myPlayer?.seat;
-  const myRoleInfo = mySeat ? (gameState?.private?.grimoire?.[mySeat]?.roleId ? currentScript?.roles.find(r => r.id === gameState.private.grimoire![mySeat].roleId) : null) : null;
+  const myRoleInfo = myPlayer?.roleId ? currentScript?.roles.find(r => r.id === myPlayer.roleId) : null;
   const isEvil = myRoleInfo?.type === 'demon' || myRoleInfo?.type === 'minion';
   const canSeeBluffs = isHost || isEvil;
 
@@ -143,7 +144,9 @@ export const Room = () => {
             <button onClick={() => setRoleInfoOpen(true)} className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base border-b border-white/10 transition-colors">角色資訊</button>
             <button onClick={() => setNightOrderOpen(true)} className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base border-b border-white/10 transition-colors">角色順序表</button>
             <button className="px-4 py-3 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-base transition-colors border-b border-white/10">投票紀錄</button>
-            <button onClick={() => { if(window.confirm('確定要清空所有自行標記的角色與筆記嗎？')) window.dispatchEvent(new CustomEvent('clear-local-notes')); }} className="px-4 py-3 text-red-400 hover:bg-red-500/30 hover:text-red-200 text-center font-bold tracking-widest text-base transition-colors">清空資料</button>
+            {activeTab !== "truth" && (
+              <button onClick={() => setClearDataAlertOpen(true)} className="px-4 py-3 text-red-400 hover:bg-red-500/30 hover:text-red-200 text-center font-bold tracking-widest text-base transition-colors">清空資料</button>
+            )}
           </div>
         </div>
       </div>
@@ -205,7 +208,7 @@ export const Room = () => {
             className="px-[10px] py-4 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-r-xl border-y-2 border-r-2 border-l-0 border-slate-700 shadow-[10px_0_20px_rgba(0,0,0,0.8)] transition-all flex flex-col items-center justify-center cursor-pointer"
           >
               <div className="relative">
-                <span className="mb-2 text-lg">📜</span>
+                <span className="mb-2 text-lg">☰</span>
                 {totalUnreadCount > 0 && (
                   <div className="absolute -top-3 -right-3 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold border border-slate-900 shadow-md z-10">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
@@ -250,6 +253,7 @@ export const Room = () => {
               isViewingList={isViewingList}
               setIsViewingList={setIsViewingList}
               settings={gameState.public.settings}
+              players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...(p || {}) }))}
             />
           ) : (
             <div className="flex flex-col h-full">
@@ -261,12 +265,25 @@ export const Room = () => {
                   </div>
                 ) : (
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full border-2 border-white/20 flex items-center justify-center bg-black/60 shadow-lg overflow-hidden">
-                      <span className="text-white/30 text-2xl font-bold">?</span>
+                    <div className="w-16 h-16 rounded-full border-2 border-white/20 flex items-center justify-center bg-black/60 shadow-lg overflow-hidden shrink-0">
+                      {myRoleInfo ? (
+                         <img src={`/assets/icons/${myRoleInfo.id}.png`} alt={myRoleInfo.name} className="w-full h-full object-contain p-2" />
+                      ) : (
+                         <span className="text-white/30 text-2xl font-bold">?</span>
+                      )}
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xl font-bold text-white/50">尚未分配</span>
-                      <span className="text-base text-white/30 mt-1 capitalize">等待說書人</span>
+                    <div className="flex flex-col flex-1">
+                      <span className={`text-xl font-bold ${myRoleInfo ? (isEvil ? 'text-red-400' : 'text-blue-300') : 'text-white/50'}`}>
+                        {myRoleInfo ? myRoleInfo.name : '尚未分配'}
+                      </span>
+                      <span className="text-base text-white/30 mt-1 capitalize">
+                        {myRoleInfo ? (myRoleInfo.type === 'townsfolk' ? '鎮民' : myRoleInfo.type === 'outsider' ? '外人' : myRoleInfo.type === 'minion' ? '爪牙' : myRoleInfo.type === 'demon' ? '惡魔' : myRoleInfo.type === 'fabled' ? '傳奇' : myRoleInfo.type) : '等待說書人'}
+                      </span>
+                      {myPlayer?.info && (
+                        <div className="mt-2 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
+                          {myPlayer.info}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -294,6 +311,14 @@ export const Room = () => {
         isOpen={isNightOrderOpen} 
         onClose={() => setNightOrderOpen(false)} 
         script={currentScript}
+      />
+
+      <AlertDialog 
+        isOpen={isClearDataAlertOpen} 
+        onClose={() => setClearDataAlertOpen(false)} 
+        onConfirm={() => window.dispatchEvent(new CustomEvent('clear-local-notes'))} 
+        message="確定要清空所有自行標記的角色與筆記嗎？" 
+        showCancel={true} 
       />
     </div>
   );
