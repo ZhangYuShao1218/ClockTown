@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg",
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div 
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${noOverlay ? "" : "bg-black/80 backdrop-blur-sm"}`}
       onClick={onClose}
@@ -39,6 +40,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg",
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

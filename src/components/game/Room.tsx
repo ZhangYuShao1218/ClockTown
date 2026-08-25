@@ -235,7 +235,7 @@ export const Room = () => {
             </button>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto p-0 min-h-0">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-0 min-h-0">
           {activeTab === 'truth' && isHost ? (
             <GrimoireSettings 
               roomId={id!}
@@ -318,7 +318,6 @@ export const Room = () => {
         onClose={() => setClearDataAlertOpen(false)} 
         onConfirm={() => window.dispatchEvent(new CustomEvent('clear-local-notes'))} 
         message="確定要清空所有自行標記的角色與筆記嗎？" 
-        showCancel={true} 
       />
     </div>
   );

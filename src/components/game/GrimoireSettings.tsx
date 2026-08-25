@@ -63,7 +63,7 @@ export const GrimoireSettings = ({
     // 如果沒缺，正式分配角色
     const playersDict: Record<string, any> = {};
     players.forEach(p => playersDict[p.uid] = p);
-    await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script);
+    await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script, settings || {});
     setMissingSeatAlert("分配完成！已將角色與資訊發送給所有玩家。"); // Using the same alert just to show success, but maybe without cancel? Wait, AlertDialog has confirm button.
   };
   const [t, o, m, d] = distribution || [0, 0, 0, 0];
@@ -205,7 +205,7 @@ export const GrimoireSettings = ({
         <div className="p-4 border-b border-white/20 bg-white/5 shrink-0">
           <h2 className="text-base font-bold text-white/80 uppercase tracking-widest">選擇劇本</h2>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
           <div className="flex space-x-2">
             <input 
               value={newScriptName} 
@@ -270,7 +270,7 @@ export const GrimoireSettings = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden">
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 relative">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 relative">
 
         <div className="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-600 shadow-sm">
           <span className="text-base font-bold text-slate-300">劇本名稱</span>
@@ -362,7 +362,7 @@ export const GrimoireSettings = ({
           onClick={handleDistribute}
           className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 mt-6 transition-transform hover:scale-[1.02]"
         >
-          正式分配角色
+          分配角色
         </button>
 
       </div>
@@ -371,7 +371,6 @@ export const GrimoireSettings = ({
         onClose={() => setMissingSeatAlert(null)} 
         onConfirm={() => setMissingSeatAlert(null)} 
         message={missingSeatAlert || ""} 
-        showCancel={false} 
       />
     </div>
   );
