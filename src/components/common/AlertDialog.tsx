@@ -30,7 +30,7 @@ export const AlertDialog = ({
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-transparent"
       onClick={onClose}
     >
       <div 
@@ -51,7 +51,7 @@ export const AlertDialog = ({
               onConfirm();
               onClose();
             }}
-            className="w-3/4 py-2 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 text-yellow-500 hover:text-yellow-400 border border-yellow-900/50 rounded transition-all font-bold tracking-widest shadow-lg hover:shadow-yellow-900/20"
+            className="px-10 py-2 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 text-yellow-500 hover:text-yellow-400 border border-yellow-900/50 rounded transition-all font-bold tracking-widest shadow-lg hover:shadow-yellow-900/20"
           >
             {confirmText}
           </button>
