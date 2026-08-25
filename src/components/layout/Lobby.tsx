@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ref, onValue, query, limitToLast } from "firebase/database";
 import { db } from "../../services/firebase";
 import { createRoom, joinRoom } from "../../services/roomService";
@@ -9,6 +9,7 @@ import { generateMockRoom } from "../../lib/testUtils";
 
 export const Lobby = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
   
   const [playerName, setPlayerName] = useState(() => {
@@ -54,12 +55,18 @@ export const Lobby = () => {
 
   const saveName = () => {
     if (!playerName.trim()) {
-      setError("請輸入一個有效的暱稱");
+      setError("請輸入你的玩家名稱");
       return;
     }
     localStorage.setItem("botc_player_name", playerName.trim());
     setIsEditingName(false);
     setError("");
+    
+    const searchParams = new URLSearchParams(location.search);
+    const returnUrl = searchParams.get('returnUrl');
+    if (returnUrl) {
+      navigate(returnUrl);
+    }
   };
 
   const handleCreateRoom = async () => {

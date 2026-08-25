@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import type { Script } from "../../data/scripts";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
+import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
 import { AllRoles } from "../../data/roles";
 
 interface CenterStageProps {
@@ -46,9 +47,8 @@ export const CenterStage = ({
   useEffect(() => {
     const handleClear = () => {
       setSeatRoleNotes({});
-            if (userUid) {
-        localStorage.removeItem(`botc_role_notes_${userUid}`);
-        localStorage.removeItem(`botc_notes_${userUid}`);
+      if (userUid && roomId) {
+        clearSeatRoleNotes(roomId, userUid);
       }
     };
     window.addEventListener('clear-local-notes', handleClear);
@@ -56,12 +56,10 @@ export const CenterStage = ({
   }, [userUid]);
 
   useEffect(() => {
-    if (!userUid) return;
-    const saved = localStorage.getItem(`botc_role_notes_${userUid}`);
-    if (saved) {
-      try { setSeatRoleNotes(JSON.parse(saved)); } catch (e) {}
-    }
-  }, [userUid]);
+    if (!userUid || !roomId) return;
+    const saved = loadSeatRoleNotes(roomId, userUid);
+    setSeatRoleNotes(saved);
+  }, [userUid, roomId]);
 
 
   const handleModalSelect = (roleId: string | null) => {
@@ -73,7 +71,7 @@ export const CenterStage = ({
       delete newNotes[targetSeat];
     }
     setSeatRoleNotes(newNotes);
-    localStorage.setItem(`botc_role_notes_${userUid}`, JSON.stringify(newNotes));
+    if (userUid) saveSeatRoleNotes(roomId, userUid, newNotes);
     setModalOpen(false);
   };
 

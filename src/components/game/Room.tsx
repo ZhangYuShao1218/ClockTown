@@ -31,6 +31,13 @@ export const Room = () => {
   const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
 
   useEffect(() => {
+    const hasName = !!localStorage.getItem("botc_player_name");
+    if (!hasName && id) {
+      navigate(`/?returnUrl=/room/${id}`);
+    }
+  }, [navigate, id]);
+
+  useEffect(() => {
     if (gameState?.public?.activeSetupId && !activeScriptId) {
       setActiveScriptId(gameState.public.activeSetupId);
     }
@@ -38,6 +45,15 @@ export const Room = () => {
 
   useEffect(() => {
     if (!user || !id || !gameState) return;
+    
+    // Auto join if not in players list
+    const name = localStorage.getItem("botc_player_name");
+    if (name && !gameState.players?.[user.uid]) {
+      import("../../services/roomService").then(({ joinRoom }) => {
+         joinRoom(id, user.uid, name).catch(console.error);
+      });
+    }
+
     import("firebase/database").then(({ onDisconnect, ref, update }) => {
       import("../../services/firebase").then(({ db }) => {
         const playerOnlineRef = ref(db, `rooms/${id}/players/${user.uid}/isOnline`);

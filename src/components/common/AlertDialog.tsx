@@ -34,12 +34,12 @@ export const AlertDialog = ({
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-sm rounded-lg border border-yellow-900/50 bg-gradient-to-b from-slate-900 to-black p-6 shadow-[0_0_40px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
+        className="w-full max-w-sm rounded-lg border border-red-900/50 bg-gradient-to-b from-slate-900 to-black p-6 shadow-[0_0_40px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-700/50 to-transparent"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-900/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-700/50 to-transparent"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-900/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="flex flex-col items-center gap-5 relative z-10">
           <div className="text-slate-200 text-lg text-center leading-relaxed tracking-wide font-medium">
@@ -51,7 +51,7 @@ export const AlertDialog = ({
               onConfirm();
               onClose();
             }}
-            className="px-10 py-2 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 text-yellow-500 hover:text-yellow-400 border border-yellow-900/50 rounded transition-all font-bold tracking-widest shadow-lg hover:shadow-yellow-900/20"
+            className="px-10 py-2 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 text-red-500 hover:text-red-400 border border-red-900/50 rounded transition-all font-bold tracking-widest shadow-lg hover:shadow-red-900/20"
           >
             {confirmText}
           </button>
