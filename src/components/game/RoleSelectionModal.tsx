@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Modal } from "../common/Modal";
-import type { Script } from "../../data/scripts";
-import type { Role } from "../../data/roles";
+import type { Script } from "../../data/types";
+import type { Role } from "../../data/types";
 import { AllRoles } from "../../data/roles";
 import { RoleIcon } from "../common/RoleIcon";
 

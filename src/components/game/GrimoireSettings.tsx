@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles } from "../../services/roomService";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
-import type { Script } from "../../data/scripts";
+import type { Script } from "../../data/types";
 
 
 
@@ -66,7 +66,7 @@ export const GrimoireSettings = ({
     await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script, settings || {});
     setMissingSeatAlert("分配完成！已將角色與資訊發送給所有玩家。"); // Using the same alert just to show success, but maybe without cancel? Wait, AlertDialog has confirm button.
   };
-  const [t, o, m, d] = distribution || [0, 0, 0, 0];
+  const [t, o, m, d, v = 0] = distribution || [0, 0, 0, 0, 0];
   const safeSettings = settings || { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false };
 
   useEffect(() => {
@@ -135,13 +135,13 @@ export const GrimoireSettings = ({
   };
 
   const getDistribution = (count: number) => {
-    if (count < 5) return [count, 0, 0, 0];
+    if (count < 5) return [count, 0, 0, 0, 0];
     const rules: Record<number, number[]> = {
       5: [3, 0, 1, 1], 6: [3, 1, 1, 1], 7: [5, 0, 1, 1], 8: [5, 1, 1, 1], 9: [5, 2, 1, 1],
       10: [7, 0, 2, 1], 11: [7, 1, 2, 1], 12: [7, 2, 2, 1], 13: [9, 0, 3, 1], 14: [9, 1, 3, 1], 15: [9, 2, 3, 1]
     };
-    if (count > 15) return [rules[15][0] + (count - 15), rules[15][1], rules[15][2], rules[15][3]];
-    return rules[count];
+    if (count > 15) return [...rules[15], count - 15];
+    return [...rules[count], 0];
   };
 
   const handleScriptTypeChange = async (newScriptId: string) => {
@@ -157,7 +157,7 @@ export const GrimoireSettings = ({
   };
 
   const handleDistChange = async (index: number, delta: number) => {
-    const newDist = [t, o, m, d];
+    const newDist = [t, o, m, d, v];
     newDist[index] = Math.max(0, newDist[index] + delta);
     const newCount = newDist.reduce((a, b) => a + b, 0);
     await updateDistribution(roomId, newDist);
@@ -323,11 +323,11 @@ export const GrimoireSettings = ({
 
         <div className="flex space-x-3 pb-4 border-b border-slate-700">
           <label className="flex-1 text-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg cursor-pointer transition-colors shadow-md">
-            匯入角色 JSON
+            匯入劇本
             <input type="file" accept=".json" onChange={handleImportScript} className="hidden" />
           </label>
           <button onClick={handleExportScript} className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg transition-colors shadow-md">
-            匯出角色 JSON
+            匯出劇本
           </button>
         </div>
 
@@ -341,7 +341,8 @@ export const GrimoireSettings = ({
               { label: '村民', count: t, idx: 0, color: 'text-blue-300', bg: 'bg-blue-900/20', border: 'border-blue-900/50' },
               { label: '外來者', count: o, idx: 1, color: 'text-blue-300', bg: 'bg-blue-900/20', border: 'border-blue-900/50' },
               { label: '爪牙', count: m, idx: 2, color: 'text-red-400', bg: 'bg-red-900/20', border: 'border-red-900/50' },
-              { label: '惡魔', count: d, idx: 3, color: 'text-red-400', bg: 'bg-red-900/20', border: 'border-red-900/50' }
+              { label: '惡魔', count: d, idx: 3, color: 'text-red-400', bg: 'bg-red-900/20', border: 'border-red-900/50' },
+              { label: '旅行者', count: v, idx: 4, color: 'text-purple-400', bg: 'bg-purple-900/20', border: 'border-purple-900/50' }
             ].map(item => (
               <div key={item.idx} className={`flex flex-col items-center justify-center p-3 rounded-lg border ${item.bg} ${item.border}`}>
                 <div className={`text-base font-bold ${item.color} mb-3 tracking-widest`}>{item.label}</div>
@@ -355,15 +356,29 @@ export const GrimoireSettings = ({
           </div>
         </div>
 
-
         {renderSettingsBlock()}
 
-        <button 
-          onClick={handleDistribute}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 mt-6 transition-transform hover:scale-[1.02]"
-        >
-          分配角色
-        </button>
+        <div className="flex space-x-3 mt-2">
+          <button 
+            onClick={handleDistribute}
+            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 transition-transform hover:scale-[1.02]"
+          >
+            分配角色
+          </button>
+          
+          <button 
+            onClick={async () => {
+              const playersDict: Record<string, any> = {};
+              players.forEach(p => playersDict[p.uid] = p);
+              const { recallRoles } = await import('../../services/roomService');
+              await recallRoles(roomId, playersDict);
+              setMissingSeatAlert("已收回所有玩家角色。");
+            }}
+            className="flex-1 bg-red-900/80 hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-lg border border-red-500/50 transition-colors"
+          >
+            收回角色
+          </button>
+        </div>
 
       </div>
       <AlertDialog 

@@ -1,20 +1,5 @@
-import type { Role, RoleType } from './roles';
-import { AllRoles } from './roles';
-
-export interface NightOrderItem {
-  id: string; // role id or custom id like 'minion_info'
-  name: string;
-  type: RoleType | 'info';
-}
-
-export interface Script {
-  id: string;
-  name: string;
-  description: string;
-  roles: Role[];
-  firstNight: NightOrderItem[];
-  otherNight: NightOrderItem[];
-}
+import type { Script } from '../types';
+import { AllRoles } from '../roles';
 
 export const TroubleBrewing: Script = {
   id: 'trouble_brewing',
@@ -42,7 +27,8 @@ export const TroubleBrewing: Script = {
     AllRoles.spy,
     AllRoles.scarlet_woman,
     AllRoles.baron,
-    AllRoles.imp
+    AllRoles.imp,
+    AllRoles.scapegoat
   ],
   firstNight: [
     { id: 'minion_info', name: '爪牙資訊', type: 'info' },
@@ -69,8 +55,4 @@ export const TroubleBrewing: Script = {
     { id: 'undertaker', name: '送葬者', type: 'townsfolk' },
     { id: 'spy', name: '間諜', type: 'minion' },
   ]
-};
-
-export const AllScripts: Record<string, Script> = {
-  trouble_brewing: TroubleBrewing
 };

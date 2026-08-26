@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import type { Script } from "../../data/scripts";
+import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
@@ -21,6 +21,7 @@ interface CenterStageProps {
   onOpenScriptModal: () => void;
   fabled?: string[];
   hostPlayer?: any;
+  privateNotes?: Record<number, string>;
 }
 
 export const CenterStage = ({ 
@@ -37,7 +38,8 @@ export const CenterStage = ({
   onOpenScriptModal,
   roomId,
   fabled = [],
-  hostPlayer
+  hostPlayer,
+  privateNotes
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,10 +61,19 @@ export const CenterStage = ({
     if (!userUid || !roomId) return;
     const saved = loadSeatRoleNotes(roomId, userUid);
     setSeatRoleNotes(saved);
-  }, [userUid, roomId]);
+  }, [roomId, userUid]);
+
+  useEffect(() => {
+    if (privateNotes !== undefined) {
+      setSeatRoleNotes(privateNotes || {});
+      if (roomId && userUid) saveSeatRoleNotes(roomId, userUid, privateNotes || {});
+    }
+  }, [privateNotes, roomId, userUid]);
 
 
-  const handleModalSelect = (roleId: string | null) => {
+
+
+  const handleModalSelect = async (roleId: string | null) => {
     if (targetSeat === null) return;
     const newNotes = { ...seatRoleNotes };
     if (roleId) {
@@ -71,7 +82,12 @@ export const CenterStage = ({
       delete newNotes[targetSeat];
     }
     setSeatRoleNotes(newNotes);
-    if (userUid) saveSeatRoleNotes(roomId, userUid, newNotes);
+    if (userUid) {
+      saveSeatRoleNotes(roomId, userUid, newNotes);
+      const { update, ref } = await import("firebase/database");
+      const { db } = await import("../../services/firebase");
+      await update(ref(db), { [`rooms/${roomId}/private/notes/${userUid}/${targetSeat}`]: roleId || null });
+    }
     setModalOpen(false);
   };
 
@@ -115,7 +131,7 @@ export const CenterStage = ({
     };
   };
 
-  const [t, o, m, d] = distribution || [0, 0, 0, 0];
+  const [t, o, m, d, v = 0] = distribution || [0, 0, 0, 0, 0];
 
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
@@ -126,10 +142,11 @@ export const CenterStage = ({
         {/* 陣營人數 */}
         <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-1 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0">
           <div className="flex justify-between items-center text-center divide-x divide-white/20">
-            <div className="flex-1"><div className="text-lg font-bold text-blue-300">鎮民</div><div className="text-lg font-bold text-white">{t}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-blue-300">外來者</div><div className="text-lg font-bold text-white">{o}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-red-400">爪牙</div><div className="text-lg font-bold text-white">{m}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-red-400">惡魔</div><div className="text-lg font-bold text-white">{d}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-blue-300">民</div><div className="text-lg font-bold text-white">{t}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-blue-300">外</div><div className="text-lg font-bold text-white">{o}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-red-400">爪</div><div className="text-lg font-bold text-white">{m}</div></div>
+            <div className="flex-1"><div className="text-lg font-bold text-red-400">惡</div><div className="text-lg font-bold text-white">{d}</div></div>
+            {v > 0 && <div className="flex-1"><div className="text-lg font-bold text-purple-400">旅</div><div className="text-lg font-bold text-white">{v}</div></div>}
           </div>
         </div>
 
@@ -210,11 +227,38 @@ export const CenterStage = ({
           <div className="flex justify-start w-full items-center">
             <span className="text-lg text-white/50 tracking-widest uppercase mr-2">Room :</span>
             <span className="font-mono text-white text-lg font-bold">{roomId}</span>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                const btn = document.getElementById('copy-url-btn');
+                if (btn) {
+                  const originalText = btn.innerText;
+                  btn.innerText = '已複製';
+                  btn.classList.add('text-green-400');
+                  setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('text-green-400');
+                  }, 2000);
+                }
+              }}
+              id="copy-url-btn"
+              className="ml-auto text-sm bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 px-2 py-1 rounded transition-colors"
+            >
+              複製網址
+            </button>
           </div>
           <button 
             onClick={onOpenScriptModal}
-            className="w-full py-1.5 bg-black/80 border border-white/30 text-yellow-400 hover:text-white hover:bg-white/10 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-1"
+            className="w-full py-2 bg-black/80 border border-white/30 text-yellow-400 hover:text-white hover:bg-white/10 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-2 flex items-center justify-center space-x-3"
           >
+            {script?.id && (
+              <img 
+                src={`/drama/Drama_${script.id}.png`} 
+                alt="Script" 
+                className="w-14 h-14 object-contain shrink-0 drop-shadow-md" 
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+              />
+            )}
             <div className="flex flex-col items-center justify-center">
               {(script?.name || "").includes('(') ? (
                 <>
@@ -234,7 +278,6 @@ export const CenterStage = ({
       <div className="absolute left-0 top-0 bottom-0 w-[80%] flex items-center justify-center pointer-events-none p-0 pt-6 pb-16">
         <div className="relative w-full h-full max-w-[95vh] max-h-[95vh] aspect-square flex items-center justify-center pointer-events-none">
           {seats.map((seatIndex) => {
-            const player = getPlayerInSeat(seatIndex);
             const style = getSeatStyle(seatIndex);
                         
             const angleDeg = (seatIndex / totalSeats) * 360 - 90;
@@ -276,10 +319,6 @@ export const CenterStage = ({
                     setModalOpen(true);
                   }}
                 >
-                  {player && player.uid === userUid && (
-                    <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full border border-black shadow-[0_0_8px_rgba(34,197,94,0.8)] z-10"></div>
-                  )}
-
                   {guessedRole ? (
                     <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
                         <div className="w-full h-[70%] relative mt-2">
@@ -360,7 +399,11 @@ export const CenterStage = ({
               >
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto">
                   <div 
-                    className="cursor-pointer text-white font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border border-white/30 shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black hover:border-white/50 transition-colors"
+                    className={`cursor-pointer font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black transition-colors ${
+                      player && player.uid === userUid 
+                        ? 'border-emerald-500 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
+                        : 'border-white/30 text-white hover:border-white/50'
+                    }`}
                     onClick={(e) => { e.stopPropagation(); setActiveDropdownSeat(activeDropdownSeat === seatIndex ? null : seatIndex); }}
                   >
                     {seatIndex}. {player ? player.name : '空座位'}

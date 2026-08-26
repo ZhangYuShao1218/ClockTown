@@ -40,7 +40,7 @@ export const Lobby = () => {
           .map(room => {
             const hostName = room.players?.[room.public.hostId]?.name || "未知說書人";
             const playerCount = room.players ? Object.keys(room.players).length : 0;
-            return { id: room.id, hostName, playerCount, createdAt: room.public.createdAt };
+            return { id: room.id, hostName, playerCount, createdAt: room.public.createdAt, scriptId: room.public.scriptId };
           })
           .sort((a, b) => b.createdAt - a.createdAt); // 最新建立的在上面
 
@@ -262,11 +262,21 @@ export const Lobby = () => {
                   {publicRooms.map(room => (
                     <li 
                       key={room.id} 
-                      className="flex justify-between items-center rounded-md border border-white/10 bg-white/5 p-3 hover:bg-white/10 cursor-pointer transition-colors group" 
+                      className="flex justify-between items-center rounded-md border border-white/10 bg-white/5 p-3 hover:bg-white/10 cursor-pointer transition-colors group relative overflow-hidden" 
                       onClick={() => handleJoinRoom(room.id)}
                     >
-                      <span className="text-sm font-medium text-white/90 group-hover:text-white">{room.hostName} <span className="text-white/40 font-normal">的局</span></span>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 z-10">
+                        {room.scriptId && (
+                          <img 
+                            src={`/drama/Drama_${room.scriptId}.png`} 
+                            alt="Script" 
+                            className="w-10 h-10 object-contain shrink-0 drop-shadow-md" 
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+                          />
+                        )}
+                        <span className="text-sm font-medium text-white/90 group-hover:text-white">{room.hostName} <span className="text-white/40 font-normal">的局</span></span>
+                      </div>
+                      <div className="flex items-center space-x-3 z-10">
                         <span className="text-xs bg-black/50 border border-white/10 text-white/70 px-2 py-1 rounded">
                           {room.playerCount} 人
                         </span>

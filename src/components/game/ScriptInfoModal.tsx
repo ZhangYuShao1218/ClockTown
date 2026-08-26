@@ -1,5 +1,5 @@
 import { Modal } from "../common/Modal";
-import type { Script } from "../../data/scripts";
+import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 
 interface ScriptInfoModalProps {

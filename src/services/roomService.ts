@@ -187,6 +187,9 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
     }
   });
 
+  const hostSnapshot = await get(ref(db, `rooms/${roomId}/public/hostId`));
+  const hostId = hostSnapshot.val();
+
   Object.entries(players).forEach(([uid, p]) => {
     const seat = p.seat;
     if (seat && grimoire[seat]) {
@@ -197,45 +200,57 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
       
       if (roleDef) {
         let flavor = "";
+        let colorTag = "";
         if (roleDef.type === 'demon' || roleDef.type === 'minion') {
-          flavor = `你是黑鍾鎮隱藏的邪惡存在 一段被遺忘的過去
-人們是如此稱呼你 ${roleDef.name}
-
-`;
+          flavor = roleDef.flavor || `你是黑鍾鎮隱藏的邪惡存在 一段被遺忘的過去\n人們是如此稱呼你 ${roleDef.name}`;
+          colorTag = "red";
         } else {
-          flavor = `你是這迷霧重重的黑鍾鎮中，尋求真相與希望的光芒
-人們是如此稱呼你 ${roleDef.name}
-
-`;
+          flavor = roleDef.flavor || `你是這迷霧重重的黑鍾鎮中，尋求真相與希望的光芒\n人們是如此稱呼你 ${roleDef.name}`;
+          colorTag = "blue";
         }
 
-        let info = `${flavor}你是黑鍾鎮的 - ${roleDef.name}
-你的能力是 - ${roleDef.ability}`;
+        let chatMsg = `[${colorTag}]${flavor}[/${colorTag}]\n\n你是黑鍾鎮的 - ${roleDef.name}\n\n你的能力是 - ${roleDef.ability}`;
 
         if (settings?.evilKnowsEachOther && (roleDef.type === 'demon' || roleDef.type === 'minion')) {
-          info += `
-
-【邪惡陣營資訊】
-`;
+          chatMsg += `\n\n【邪惡陣營資訊】\n`;
           evilPlayers.forEach(e => {
              const eRole = script?.roles.find((r: any) => r.id === e.roleId);
-             info += `第 ${e.seat} 號座位：${e.name} (${eRole ? eRole.name : '未知'})
-`;
+             chatMsg += `第 ${e.seat} 號座位：${e.name} (${eRole ? eRole.name : '未知'})\n`;
           });
           if (roleDef.type === 'demon' && bluffs && bluffs.length > 0) {
              const bluffNames = bluffs.map(b => script?.roles.find((r:any)=>r.id===b)?.name || b).filter(Boolean);
-             info += `
-你的偽裝牌是：${bluffNames.join('、')}`;
+             chatMsg += `\n你的偽裝牌是：${bluffNames.join('、')}`;
           }
         }
         
-        updates[`rooms/${roomId}/players/${uid}/info`] = info;
+        // Also send this chatMsg to the DM channel between hostId and uid
+        if (hostId && hostId !== uid) {
+          const uids = [uid, hostId].sort();
+          const channelId = `dm_${uids[0]}_${uids[1]}`;
+          updates[`rooms/${roomId}/messages/${channelId}/${Date.now()}_sys`] = {
+            senderUid: 'system',
+            senderName: '說書人',
+            text: chatMsg,
+            timestamp: Date.now()
+          };
+        }
+        
+        // Auto-populate the player's own seat note with their role
+        updates[`rooms/${roomId}/private/notes/${uid}/${seat}`] = roleId;
       }
     } else {
       updates[`rooms/${roomId}/players/${uid}/roleId`] = null;
-      updates[`rooms/${roomId}/players/${uid}/info`] = null;
     }
   });
   
+  await update(ref(db), updates);
+};
+
+export const recallRoles = async (roomId: string, players: Record<string, any>) => {
+  const updates: Record<string, any> = {};
+  Object.keys(players).forEach(uid => {
+    updates[`rooms/${roomId}/players/${uid}/roleId`] = null;
+    updates[`rooms/${roomId}/private/notes/${uid}`] = null; // Clear all notes or just their own seat? Let's just clear roleId. Wait, better clear all notes? The user said "玩家的座位也自動放上...". If we recall roles, maybe they want to clear their role from the notes. I'll just clear the roleId from players so it counts as recalled.
+  });
   await update(ref(db), updates);
 };
