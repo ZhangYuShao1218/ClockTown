@@ -415,7 +415,7 @@ export const CenterStage = ({
                   {guessedRole ? (
                     <div className="w-full h-full relative flex flex-col items-center justify-start bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
                         <div className="w-full h-[70%] relative mt-2">
-                          <RoleIcon icon={guessedRole.icon} className={`w-full h-full object-contain ${isDead ? 'opacity-40 grayscale sepia' : ''}`} />
+                          <RoleIcon icon={guessedRole.icon} className="w-full h-full object-contain" />
                         </div>
                         <div className="absolute inset-0 pointer-events-none">
                           <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible drop-shadow-md">
@@ -448,8 +448,19 @@ export const CenterStage = ({
                 )}
 
                 {pendingExecution && (
-                  <div className="absolute -top-[5%] -left-[5%] w-[31%] h-[31%] rounded-full border border-red-900/50 flex items-center justify-center z-20 shadow-xl pointer-events-none animate-bounce bg-black/80">
-                    <img src="/assets/images/pending_execution.jpg" className="w-[80%] h-[80%] object-contain drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" style={{ mixBlendMode: 'screen' }} alt="Pending Execution" />
+                  <div className="absolute inset-0 flex items-center justify-center z-[900] pointer-events-none opacity-80">
+                    <img src="/assets/images/WaitExecute.png" className="w-[70%] h-[70%] object-contain" alt="Pending Execution" />
+                  </div>
+                )}
+
+                {votingState?.votes?.[playerInSeat?.uid] === true && (
+                  <div className="absolute inset-0 flex items-center justify-center z-[999] pointer-events-none">
+                    <img 
+                      src="/assets/images/Execute.png" 
+                      className="w-[90%] h-[90%] object-contain" 
+                      alt="Voted Execute" 
+                      style={{ filter: 'brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(3000%) hue-rotate(345deg) brightness(75%) contrast(95%)' }}
+                    />
                   </div>
                 )}
               </div>
@@ -501,7 +512,7 @@ export const CenterStage = ({
             return (
               <div 
                 key={`text-${seatIndex}`}
-                className="absolute z-50 pointer-events-none"
+                className={`absolute pointer-events-none ${activeDropdownSeat === seatIndex ? 'z-[1000]' : 'z-50'}`}
                 style={style}
               >
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto">
