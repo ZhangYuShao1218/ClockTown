@@ -66,7 +66,9 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   // End voting if finished
   useEffect(() => {
     if (isHost && phase === 'voting' && isVotingFinished) {
-      updateVotingState(roomId, { phase: 'finished' });
+      import('../../services/roomService').then(({ updateVotingState }) => {
+        updateVotingState(roomId, { phase: 'finished' });
+      });
     }
   }, [isHost, phase, isVotingFinished, roomId]);
 
@@ -78,7 +80,24 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
     });
   };
 
+  const saveVoteRecord = () => {
+    import('../../services/roomService').then(({ addVoteRecord }) => {
+      const totalVotes = Object.values(votes || {}).filter(Boolean).length;
+      const timeStr = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+      addVoteRecord(roomId, {
+        time: timeStr,
+        nominatorSeat,
+        nomineeSeat,
+        totalVotes,
+        votes: votes || {}
+      });
+    });
+  };
+
   const handleCloseVoting = () => {
+    if (phase === 'finished') {
+      saveVoteRecord();
+    }
     import('../../services/roomService').then(({ updateVotingState }) => {
       updateVotingState(roomId, {
         phase: 'idle',
@@ -97,6 +116,16 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
         handleCloseVoting();
       });
     }
+  };
+
+  const handleRevote = () => {
+    import('../../services/roomService').then(({ updateVotingState }) => {
+      updateVotingState(roomId, {
+        phase: 'idle',
+        startTime: null,
+        votes: {}
+      });
+    });
   };
 
   const userSeat = seats.find(s => getPlayerInSeat(s)?.uid === userUid);
@@ -118,10 +147,9 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
     }
   }
 
-  const toggleVote = () => {
+  const castVote = (voteToExecute: boolean) => {
     if (!userUid || isLocked) return;
-    const currentVote = votes?.[userUid] || false;
-    updatePlayerVote(roomId, userUid, !currentVote);
+    updatePlayerVote(roomId, userUid, voteToExecute);
   };
 
   const currentVoteCount = Object.values(votes || {}).filter(Boolean).length;
@@ -166,7 +194,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
           style={{ 
             height: `${redHeight}%`,
             transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : (((typeof nomineeSeat === 'number' ? nomineeSeat : nominatorSeat) / totalSeats) * 360 - 90)) + 270}deg)`,
-            transition: phase === 'voting' ? 'transform 0.5s ease-in-out' : 'none'
+            transition: phase === 'voting' ? `transform ${Math.max(timePerPlayerMs * 0.5, timePerPlayerMs - 500)}ms ease-in-out` : 'none'
           }}
           alt="pointer"
         />
@@ -176,7 +204,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       <div className="relative z-10 w-full max-w-2xl flex flex-col items-center pointer-events-auto mt-8">
         
         {phase === 'selecting_nominee' && (
-          <h2 className="text-3xl font-bold text-white mb-4 font-serif tracking-widest text-center animate-pulse drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
+          <h2 className="text-3xl font-bold text-white mb-4 font-serif tracking-widest text-center animate-pulse drop-shadow-[0_4px_4px_rgba(0,0,0,1)]" style={{ animationDuration: '3s' }}>
             {isHost ? '請選擇被提名人...' : '等待發起提名...'}
           </h2>
         )}
@@ -185,76 +213,108 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
           <div className="w-full flex flex-col items-center">
             
             {/* VS Header Text (Line 1) */}
-            <div className="text-3xl sm:text-4xl font-bold drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-white mb-2 text-center whitespace-nowrap">
-              <span className="text-amber-400">{nominatorSeat}. </span>
-              <span className="text-blue-500">{getPlayerInSeat(nominatorSeat)?.name || '未知'}</span>
-              <span className="mx-3 text-white">提名</span>
-              {typeof nomineeSeat === 'number' ? (
-                <>
+            {typeof nomineeSeat === 'number' && (
+              <>
+                <div className="text-3xl sm:text-4xl font-bold drop-shadow-[0_4px_6px_rgba(0,0,0,1)] text-white mb-2 text-center whitespace-nowrap font-sans tracking-wide">
+                  <span className="text-amber-400">{nominatorSeat}. </span>
+                  <span className="text-blue-500">{getPlayerInSeat(nominatorSeat)?.name || '未知'}</span>
+                  <span className="mx-5 text-white">提名</span>
                   <span className="text-amber-400">{nomineeSeat}. </span>
                   <span className="text-red-600">{getPlayerInSeat(nomineeSeat)?.name || '未知'}</span>
-                </>
-              ) : null}
-            </div>
+                </div>
+                <div className="text-lg sm:text-xl font-bold drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-stone-200 mb-2 flex items-center justify-center tracking-widest font-sans w-4/5 mx-auto">
+                  <span>存活人數：</span>
+                  <span className="text-amber-100">{aliveCount}</span> 
+                  <span className="mx-4 text-stone-300">|</span> 
+                  <span>處決門檻：</span>
+                  <span className="text-amber-500">{requiredVotes}</span>
+                </div>
+              </>
+            )}
 
             {/* Voting Stats (Line 2) */}
             {(phase === 'voting' || phase === 'finished') && (
-              <div className="text-2xl sm:text-3xl font-bold drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-white mb-6 text-center whitespace-nowrap">
-                <span className="text-blue-500">{currentVoteCount} 票</span>
-                <span className="mx-2">有效</span>
-                <span className="text-red-600">(門檻是 {requiredVotes})</span>
+              <div className="text-3xl sm:text-4xl font-bold drop-shadow-[0_4px_10px_rgba(0,0,0,1)] text-white mb-2 text-center whitespace-nowrap font-sans">
+                <span className="text-amber-400">{currentVoteCount}</span>
+                <span className="text-stone-200 text-2xl ml-3 tracking-widest">票有效</span>
               </div>
             )}
             
-            {/* Spacing for idle phase */}
-            {phase === 'idle' && <div className="h-6" />}
+            {/* Spacing and Divider */}
+            {phase === 'idle' && (
+              <div className="w-full flex flex-col items-center">
+                <div className="w-[85%] h-[3px] bg-gradient-to-r from-transparent via-stone-300 to-transparent my-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
+              </div>
+            )}
 
             {/* Actions */}
             {phase === 'idle' && isHost && (
-              <div className="flex flex-col gap-3 w-full items-center pointer-events-auto">
-                {/* Time Setting (Blue) */}
-                <div className="flex bg-gradient-to-b from-blue-700 to-blue-950 rounded-lg border-2 border-black shadow-[0_4px_10px_rgba(0,0,0,0.8)] overflow-hidden">
-                  <button onClick={() => setTimeSetting(Math.max(1000, timeSetting - 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">-</button>
-                  <div className="w-40 py-2 text-white font-bold border-x-2 border-black text-center flex items-center justify-center text-xl bg-blue-800">
-                    {timeSetting / 1000}s /人
+              <div className="flex flex-col gap-4 w-full items-center pointer-events-auto mt-0">
+                {/* Time Setting */}
+                <div className="flex bg-stone-900/90 backdrop-blur-sm rounded-sm border-2 border-stone-700 shadow-[0_8px_30px_rgba(0,0,0,0.8)] overflow-hidden ring-1 ring-black">
+                  <button onClick={() => setTimeSetting(Math.max(750, timeSetting - 250))} className="px-4 py-1.5 text-stone-400 hover:text-amber-500 font-bold hover:bg-stone-800 transition-colors text-xl bg-stone-950/50 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]">-</button>
+                  <div className="w-24 py-1.5 text-amber-500/90 font-mono font-bold border-x-2 border-stone-700 text-center flex items-center justify-center text-lg bg-stone-900 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)] tracking-widest">
+                    {(timeSetting / 1000).toFixed(2)}s
                   </div>
-                  <button onClick={() => setTimeSetting(Math.min(5000, timeSetting + 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">+</button>
+                  <button onClick={() => setTimeSetting(Math.min(3000, timeSetting + 250))} className="px-4 py-1.5 text-stone-400 hover:text-amber-500 font-bold hover:bg-stone-800 transition-colors text-xl bg-stone-950/50 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]">+</button>
                 </div>
                 
                 <div className="flex gap-4">
-                  {/* Start Button (Dark Gray) */}
-                  <button onClick={handleStartVoting} className="px-8 py-3 bg-gradient-to-b from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                    開始投票
+                  {/* Start Button */}
+                  <button onClick={handleStartVoting} className="px-6 py-2 bg-gradient-to-b from-stone-800 to-stone-950 hover:from-stone-700 hover:to-stone-900 text-amber-500/90 hover:text-amber-400 font-sans font-bold text-lg rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.9)] border-2 border-stone-600 transition-all duration-300 tracking-[0.2em] hover:-translate-y-0.5 ring-1 ring-black flex items-center justify-center">
+                    <span className="ml-[0.2em]">開始投票</span>
                   </button>
                   
-                  {/* Cancel Button (Red) */}
-                  <button onClick={handleCloseVoting} className="px-8 py-3 bg-gradient-to-b from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                    關閉
+                  {/* Cancel Button */}
+                  <button onClick={handleCloseVoting} className="px-6 py-2 bg-gradient-to-b from-zinc-900 to-black hover:from-zinc-800 hover:to-zinc-950 text-stone-400 hover:text-stone-300 font-sans font-bold text-lg rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.9)] border-2 border-zinc-700 transition-all duration-300 tracking-[0.2em] hover:-translate-y-0.5 ring-1 ring-black flex items-center justify-center">
+                    <span className="ml-[0.2em]">關閉</span>
                   </button>
                 </div>
               </div>
             )}
 
             {(phase === 'voting' || phase === 'idle') && !isHost && userSeat !== undefined && typeof nomineeSeat === 'number' && (
-              <button 
-                onClick={toggleVote}
-                disabled={isLocked}
-                className={`w-48 py-3 rounded-full font-bold text-2xl transition-all shadow-[0_6px_15px_rgba(0,0,0,0.9)] border-2 border-black ${
-                  isLocked ? 'bg-gradient-to-b from-gray-700 to-gray-900 text-gray-500 cursor-not-allowed' :
-                  votes?.[userUid!] ? 'bg-gradient-to-b from-amber-500 to-amber-700 text-white' : 'bg-gradient-to-b from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800'
-                }`}
-              >
-                {votes?.[userUid!] ? '放下' : '處決！'}
-              </button>
+              <div className="flex gap-4 mt-2 pointer-events-auto">
+                <button 
+                  onClick={() => castVote(true)}
+                  disabled={isLocked || votes?.[userUid!] === true}
+                  className={`w-28 py-2.5 rounded-sm font-sans font-bold text-lg tracking-[0.15em] transition-all duration-300 flex items-center justify-center border-2 ring-1 ring-black ${
+                    isLocked 
+                      ? 'bg-stone-950 text-stone-700 border-stone-800 cursor-not-allowed shadow-none'
+                      : votes?.[userUid!] === true
+                        ? 'bg-gradient-to-b from-red-900 to-black text-red-200 border-red-700 shadow-[0_0_20px_rgba(185,28,28,0.5)] cursor-default'
+                        : 'bg-gradient-to-b from-stone-800 to-stone-950 text-stone-400 hover:text-red-400 hover:border-red-900/80 border-stone-700 hover:shadow-[0_4px_15px_rgba(153,27,27,0.5)] hover:-translate-y-0.5'
+                  }`}
+                >
+                  <span className="ml-[0.15em]">處決！</span>
+                </button>
+
+                <button 
+                  onClick={() => castVote(false)}
+                  disabled={isLocked || !votes?.[userUid!]}
+                  className={`w-28 py-2.5 rounded-sm font-sans font-bold text-lg tracking-[0.15em] transition-all duration-300 flex items-center justify-center border-2 ring-1 ring-black ${
+                    isLocked 
+                      ? 'bg-stone-950 text-stone-700 border-stone-800 cursor-not-allowed shadow-none'
+                      : !votes?.[userUid!]
+                        ? 'bg-gradient-to-b from-cyan-900 to-black text-cyan-200 border-cyan-700 shadow-[0_0_20px_rgba(8,145,178,0.3)] cursor-default'
+                        : 'bg-gradient-to-b from-stone-800 to-stone-950 text-stone-400 hover:text-cyan-400 hover:border-cyan-900/80 border-stone-700 hover:shadow-[0_4px_15px_rgba(8,145,178,0.3)] hover:-translate-y-0.5'
+                  }`}
+                >
+                  <span className="ml-[0.15em]">饒恕</span>
+                </button>
+              </div>
             )}
 
             {phase === 'finished' && isHost && (
               <div className="flex gap-4 mt-2 pointer-events-auto">
-                <button onClick={markPendingAction} className="px-8 py-3 bg-gradient-to-b from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 text-white font-bold text-xl rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                  標記待處決
+                <button onClick={markPendingAction} className="px-4 py-2 bg-gradient-to-b from-red-950 to-black hover:from-red-900 hover:to-red-950 text-red-500/90 hover:text-red-400 font-sans font-bold text-base rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.9)] border-2 border-red-900/50 transition-all duration-300 tracking-[0.1em] hover:-translate-y-0.5 ring-1 ring-black flex items-center justify-center">
+                  <span className="ml-[0.1em]">標記為待處決</span>
                 </button>
-                <button onClick={handleCloseVoting} className="px-8 py-3 bg-gradient-to-b from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 text-white font-bold text-xl rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                  清除標記
+                <button onClick={handleRevote} className="px-4 py-2 bg-gradient-to-b from-stone-800 to-stone-950 hover:from-stone-700 hover:to-stone-900 text-amber-500/90 hover:text-amber-400 font-sans font-bold text-base rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.9)] border-2 border-stone-600 transition-all duration-300 tracking-[0.1em] hover:-translate-y-0.5 ring-1 ring-black flex items-center justify-center">
+                  <span className="ml-[0.1em]">重新投票</span>
+                </button>
+                <button onClick={handleCloseVoting} className="px-4 py-2 bg-gradient-to-b from-zinc-900 to-black hover:from-zinc-800 hover:to-zinc-950 text-stone-400 hover:text-stone-300 font-sans font-bold text-base rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.9)] border-2 border-zinc-700 transition-all duration-300 tracking-[0.1em] hover:-translate-y-0.5 ring-1 ring-black flex items-center justify-center">
+                  <span className="ml-[0.1em]">關閉</span>
                 </button>
               </div>
             )}
