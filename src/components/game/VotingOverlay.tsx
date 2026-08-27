@@ -11,6 +11,7 @@ interface VotingOverlayProps {
   getPlayerInSeat: (seatIndex: number) => any;
   userUid?: string;
   totalSeats: number;
+  dayNumber?: number;
 }
 
 export const VotingOverlay: React.FC<VotingOverlayProps> = ({
@@ -21,7 +22,8 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   seats,
   getPlayerInSeat,
   userUid,
-  totalSeats
+  totalSeats,
+  dayNumber = 1
 }) => {
   const { phase, nominatorSeat, nomineeSeat, startTime, timePerPlayerMs, votes } = votingState;
   
@@ -83,7 +85,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   const saveVoteRecord = () => {
     import('../../services/roomService').then(({ addVoteRecord }) => {
       const totalVotes = Object.values(votes || {}).filter(Boolean).length;
-      const timeStr = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+      const timeStr = `第 ${dayNumber} 天`;
       addVoteRecord(roomId, {
         time: timeStr,
         nominatorSeat,

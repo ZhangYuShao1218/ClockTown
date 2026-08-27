@@ -6,6 +6,7 @@ import { RoleSelectionModal } from "./RoleSelectionModal";
 import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
 import { updateSeatStatus, updateVotingState } from "../../services/roomService";
 import { VotingOverlay } from "./VotingOverlay";
+import { RoleTooltip } from "../common/RoleTooltip";
 import { AllRoles } from "../../data/roles";
 
 interface CenterStageProps {
@@ -27,6 +28,7 @@ interface CenterStageProps {
   isHost?: boolean;
   seatStatus?: Record<number, import('../../data/types').SeatStatus>;
   votingState?: import('../../data/types').VotingState;
+  dayNumber?: number;
 }
 
 export const CenterStage = ({ 
@@ -47,7 +49,8 @@ export const CenterStage = ({
   privateNotes = {},
   isHost = false,
   seatStatus = {},
-  votingState
+  votingState,
+  dayNumber = 1
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -222,7 +225,14 @@ export const CenterStage = ({
               return (
                 <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-105 group-hover:border-red-400 transition-all"
+                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden hover:scale-105 hover:border-red-400 transition-all cursor-help"
+                    onMouseEnter={(e) => {
+                      if (canSeeBluffs && role) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setHoveredRoleTooltip({ role: role, x: rect.left + rect.width / 2, y: rect.bottom });
+                      }
+                    }}
+                    onMouseLeave={() => setHoveredRoleTooltip(null)}
                   >
                     {canSeeBluffs ? (
                       role ? (
@@ -234,11 +244,6 @@ export const CenterStage = ({
                       <span className="text-white/20 text-xl font-bold">?</span>
                     )}
                   </div>
-                  {canSeeBluffs && role && (
-                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
-                    </div>
-                  )}
                   {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
                 </div>
               );
@@ -350,20 +355,24 @@ export const CenterStage = ({
               />
             </div>
           )}
-          {votingState && (
-            <VotingOverlay 
-              roomId={roomId}
-              isHost={isHost}
-              votingState={votingState}
-              seatStatus={seatStatus}
-              seats={seats}
-              getPlayerInSeat={getPlayerInSeat}
-              userUid={userUid}
-              totalSeats={totalSeats}
-            />
-          )}
+          
+          {/* Seats and Voting Overlay Wrapper */}
+          <div className="absolute inset-0 z-10">
+            {votingState && (
+              <VotingOverlay 
+                roomId={roomId}
+                isHost={isHost}
+                votingState={votingState}
+                seatStatus={seatStatus}
+                seats={seats}
+                getPlayerInSeat={getPlayerInSeat}
+                userUid={userUid}
+                totalSeats={totalSeats}
+                dayNumber={dayNumber}
+              />
+            )}
 
-          {seats.map((seatIndex) => {
+            {seats.map((seatIndex) => {
             const style = getSeatStyle(seatIndex);
                         
             const angleDeg = (seatIndex / totalSeats) * 360 - 90;
@@ -398,10 +407,10 @@ export const CenterStage = ({
                 
                 <div 
                   onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
-                    className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
+                  className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
                     guessedRole 
-                      ? (isEvil ? 'border-red-900 bg-black/90' : 'border-blue-900 bg-black/90')
-                      : 'border-white/30 bg-black/80 hover:border-white/50'
+                      ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
+                      : 'border-amber-600/80 bg-black/80 hover:border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.3)]'
                   }`}
                   onClick={() => {
                     if (isHost && votingState?.phase === 'selecting_nominee') {
@@ -586,17 +595,11 @@ export const CenterStage = ({
               </div>
             );
           })}
+          </div> {/* End of Moonlight Wrapper */}
         </div>
       </div>
 
-      {hoveredRoleTooltip && document.body && createPortal(
-        <div className="fixed z-[99999] w-64 bg-slate-900/95 p-3 text-sm border-2 border-slate-500 rounded-xl shadow-2xl pointer-events-none text-left"
-            style={{ left: hoveredRoleTooltip.x, top: hoveredRoleTooltip.y + 10, transform: 'translateX(-50%)' }}
-          >
-            <div className="text-white/80 font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: hoveredRoleTooltip.role.abilityHTML || hoveredRoleTooltip.role.ability }} />
-          </div>,
-        document.body
-      )}
+      <RoleTooltip hoveredRole={hoveredRoleTooltip} />
       <RoleSelectionModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

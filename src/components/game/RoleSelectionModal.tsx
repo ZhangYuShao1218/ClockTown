@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Modal } from "../common/Modal";
-import type { Script } from "../../data/types";
-import type { Role } from "../../data/types";
+import type { Script, Role } from "../../data/types";
+import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
 import { RoleIcon } from "../common/RoleIcon";
 
@@ -61,7 +61,7 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
                             ? 'border-red-900/80' 
                             : 'border-blue-900/80'
                     }`}>
-                      <RoleIcon icon={role.icon} className="w-full h-full object-cover" />
+                      <RoleIcon icon={role.icon} className={`w-full h-full object-cover ${role.id === '' ? '!text-red-800 drop-shadow-md text-[4rem]' : ''}`} />
                     </div>
                     {isSelected && (
                       <div className="absolute -bottom-1 -left-1 w-8 h-8 bg-green-500 rounded-full border-2 border-black flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.6)] z-10">
@@ -88,7 +88,7 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
   } else {
     if (!script) return null;
     const townsfolk = script.roles.filter(r => r.type === 'townsfolk');
-    const clearRole = { id: '', name: '清除', type: 'townsfolk', icon: '✖', alignment: 'good', ability: '' } as unknown as Role;
+    const clearRole = { id: '', name: '清除', type: 'townsfolk', icon: 'X', alignment: 'good', ability: '清除資訊' } as unknown as Role;
     const townsfolkWithClear = [clearRole, ...townsfolk];
     const outsider = script.roles.filter(r => r.type === 'outsider');
     const minion = script.roles.filter(r => r.type === 'minion');
@@ -111,14 +111,7 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
           {content}
         </div>
       </div>
-      {hoveredRole && document.body && createPortal(
-        <div className="fixed z-[99999] w-64 bg-slate-900/95 p-3 text-sm border-2 border-slate-500 rounded-xl shadow-2xl pointer-events-none text-left"
-            style={{ left: hoveredRole.x, top: hoveredRole.y + 15, transform: 'translateX(-50%)' }}
-          >
-            <div className="text-white/80 font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: hoveredRole.role.abilityHTML || hoveredRole.role.ability }} />
-          </div>,
-        document.body
-      )}
+      <RoleTooltip hoveredRole={hoveredRole} />
     </Modal>
   );
 };

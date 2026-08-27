@@ -281,3 +281,11 @@ export const addVoteRecord = async (roomId: string, record: any) => {
   history.push(record);
   await update(ref(db), { [`rooms/${roomId}/public/voteHistory`]: history });
 };
+
+export const updateGameTime = async (roomId: string, dayNumber: number, timePhase: 'day' | 'night') => {
+  await update(ref(db), { 
+    [`rooms/${roomId}/public/dayNumber`]: dayNumber,
+    [`rooms/${roomId}/public/timePhase`]: timePhase,
+    [`rooms/${roomId}/public/isNight`]: timePhase === 'night' 
+  });
+};

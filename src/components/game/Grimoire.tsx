@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { setGrimoireRole, setGrimoireBluff, updateFabled } from "../../services/roomService";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
+import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 
@@ -385,14 +386,7 @@ export const Grimoire = ({
         </div>
       </div>
 
-      {hoveredRoleTooltip && document.body && createPortal(
-        <div className="fixed z-[99999] w-64 bg-slate-900/95 p-3 text-sm border-2 border-slate-500 rounded-xl shadow-2xl pointer-events-none text-left"
-            style={{ left: hoveredRoleTooltip.x, top: hoveredRoleTooltip.y + 10, transform: 'translateX(-50%)' }}
-          >
-            <div className="text-white/80 font-bold leading-relaxed" dangerouslySetInnerHTML={{ __html: hoveredRoleTooltip.role.abilityHTML || hoveredRoleTooltip.role.ability }} />
-          </div>,
-        document.body
-      )}
+      <RoleTooltip hoveredRole={hoveredRoleTooltip} />
       <RoleSelectionModal 
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)} 

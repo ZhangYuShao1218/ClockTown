@@ -1,4 +1,4 @@
-import type { Role } from '../types';
+﻿import type { Role } from '../types';
 
 // ================= Townsfolk (鎮民) =================
 export const Washerwoman: Role = {
@@ -118,7 +118,8 @@ export const Slayer: Role = {
   alignment: 'good',
   type: 'townsfolk',
   icon: '/icons/slayer.png',
-  ability: '一局遊戲僅限一次。在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為惡魔，則該玩家死亡（善良陣營獲勝）；否則無事發生。'
+  ability: '一局遊戲僅限一次。在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為惡魔，則該玩家死亡；否則無事發生。',
+  abilityHTML: '<span class="highlight-good">一局遊戲僅限一次。</span>在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為<span class="highlight-evil">惡魔</span>，則該玩家<span class="highlight-evil">死亡</span>；否則無事發生。'
 };
 
 export const Soldier: Role = {
@@ -139,7 +140,6 @@ export const Mayor: Role = {
   alignment: 'good',
   type: 'townsfolk',
   icon: '/icons/mayor.png',
-  ability: '如果在白天僅有三名存活玩家，且你沒有被處決時，善良陣營獲得勝利。如果你在夜晚被擊殺，有 50% 的機率另一名玩家會代替你死去。'
+  ability: '如果只有三名玩家存活且白天没有人被處决，你的陣營獲勝。如果你在夜晚即將死亡，可能會有一名其他玩家代替你死亡。',
+  abilityHTML: '如果只有<span class="highlight-good">三名玩家存活</span>且白天<span class="highlight-good">没有人被處决，你的陣營獲勝</span>。如果你在夜晚即將<span class="highlight-evil">死亡</span>，可能會有一名其他玩家<span class="highlight-evil">代替你死亡</span>。'
 };
-
-

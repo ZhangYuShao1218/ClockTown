@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGameState } from "../../hooks/useGameState";
 import { useAuth } from "../../hooks/useAuth";
-import { leaveRoom, setPlayerSeat } from "../../services/roomService";
+import { leaveRoom, setPlayerSeat, updateGameTime } from "../../services/roomService";
 import { CenterStage } from "./CenterStage";
 import { Grimoire } from "./Grimoire";
 import { GrimoireSettings } from "./GrimoireSettings";
@@ -26,6 +26,10 @@ export const Room = () => {
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
   const [isViewingList, setIsViewingList] = useState(false);
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
+  const [testBlur, setTestBlur] = useState<number>(0);
+  const [testFilterOpacity, setTestFilterOpacity] = useState<number>(50);
+  const [testFilterColor, setTestFilterColor] = useState<string>('#A14B12');
+  const [testBlendMode, setTestBlendMode] = useState<string>('overlay');
   const [topMenuTab, setTopMenuTab] = useState<'info' | 'settings'>('info');
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
@@ -33,6 +37,7 @@ export const Room = () => {
   const [isVoteHistoryOpen, setVoteHistoryOpen] = useState(false);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
+  const [hostDrawerTab, setHostDrawerTab] = useState<'chat' | 'controls'>('chat');
   
   const myPlayerRaw = user && gameState?.players ? gameState.players[user.uid] : null;
   const isHostRaw = gameState?.public?.hostId === user?.uid;
@@ -142,16 +147,42 @@ export const Room = () => {
     navigate('/');
   };
 
-
+  const dayNumber = gameState?.public?.dayNumber || 1;
+  const timePhase = gameState?.public?.timePhase || (gameState?.public?.isNight ? 'night' : 'day');
+  const isNight = timePhase === 'night';
 
   return (
     <div className="flex flex-col h-screen p-0 bg-black overflow-hidden relative">
-      {/* Background Image */}
+      {/* Background Image - Day (Always present as fallback) */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60 mix-blend-luminosity pointer-events-none"
-        style={{ backgroundImage: "url('/background.jpg')" }}
+        style={{ backgroundImage: "url('/BackgroundDay.jpg')" }}
       />
-      <div className="absolute inset-0 z-0 bg-transparent backdrop-blur-sm pointer-events-none" />
+      {/* Background Image - Night (Fades in over the day image if the file exists) */}
+      <div 
+        className={`absolute inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-[3000ms] ease-in-out ${
+          isNight ? 'opacity-80' : 'opacity-0'
+        }`}
+        style={{ backgroundImage: "url('/BackgroundNight.jpg')" }}
+      />
+      
+      {/* 淺灰藍濾鏡 (僅作用於背景圖，黑夜時顯示) */}
+      <div 
+        className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-[3000ms] ease-in-out ${
+          isNight ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          backgroundColor: testFilterColor,
+          opacity: isNight ? (testFilterOpacity / 100) : 0,
+          mixBlendMode: testBlendMode as any
+        }}
+      />
+
+      {/* 測試用模糊層 */}
+      <div 
+        className="absolute inset-0 z-0 bg-transparent pointer-events-none transition-all duration-300"
+        style={{ backdropFilter: `blur(${testBlur}px)` }}
+      />
 
       {/* Top Left Nav */}
       <div className="absolute top-4 left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
@@ -220,9 +251,9 @@ export const Room = () => {
                 </>
               ) : (
                 <>
-                  <button className="px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">測試按鈕 1</button>
-                  <button className="px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">測試按鈕 2</button>
-                  <button className="px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm transition-colors">測試按鈕 3</button>
+                  <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
+                  <a href="https://script.bloodontheclocktower.com/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">腳本工具</a>
+                  <a href="https://anispace.zhangyushao.dev/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm transition-colors">AniSpace</a>
                 </>
               )}
             </div>
@@ -258,6 +289,7 @@ export const Room = () => {
             isHost={isHost}
             seatStatus={gameState?.public?.seatStatus || {}}
             votingState={gameState?.public?.votingState}
+            dayNumber={dayNumber}
           />
         ) : (
           isHost ? (
@@ -348,66 +380,185 @@ export const Room = () => {
             />
           ) : (
             <div className="flex flex-col h-full">
-              <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-xl shrink-0">
-                {!isHost && !myRoleInfo && (
-                  <h3 className="text-base font-bold text-white/50 mb-3 border-b border-white/10 pb-2">你的角色</h3>
-                )}
-                {isHost ? (
-                  <div className="flex flex-col">
-                    <div className="flex justify-between items-end mb-3 pb-2 border-b border-white/10">
-                      <span className="text-xl font-bold text-yellow-500">說書人</span>
-                      <span className="text-base text-white/40">陣營：???</span>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 rounded-full border-2 border-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.3)] flex items-center justify-center bg-black/60 overflow-hidden shrink-0">
-                        <img src={`/icons/storyteller.png`} alt="說書人" className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
-                        <span className="hidden text-white/30 text-2xl font-bold">?</span>
-                      </div>
-                      <div className="flex-1 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
-                        你是說書人，掌控全域。
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    {myRoleInfo && (
-                      <div className="flex justify-between items-end mb-3 pb-2 border-b border-white/10">
-                        <span className={`text-xl font-bold ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
-                          {myRoleInfo.name}
-                        </span>
-                        <span className={`text-base font-medium ${isEvil ? 'text-red-400/80' : 'text-blue-300/80'}`}>
-                          陣營：{isEvil ? '邪惡' : '善良'}
-                        </span>
-                      </div>
+              {isHost && (
+                <div className="flex border-b border-white/10 shrink-0 bg-black/40">
+                  <button 
+                    onClick={() => setHostDrawerTab('chat')}
+                    className={`flex-1 py-3 text-sm font-bold tracking-widest transition-colors ${hostDrawerTab === 'chat' ? 'bg-white/10 text-white border-b-2 border-cyan-500' : 'text-white/40 hover:bg-white/5 hover:text-white/80'}`}
+                  >
+                    遊戲訊息
+                  </button>
+                  <button 
+                    onClick={() => setHostDrawerTab('controls')}
+                    className={`flex-1 py-3 text-sm font-bold tracking-widest transition-colors ${hostDrawerTab === 'controls' ? 'bg-white/10 text-white border-b-2 border-amber-500' : 'text-white/40 hover:bg-white/5 hover:text-white/80'}`}
+                  >
+                    遊戲進程
+                  </button>
+                </div>
+              )}
+
+              {(!isHost || hostDrawerTab === 'chat') ? (
+                <>
+                  <div className="mb-4 p-4 bg-white/5 border-b border-white/10 shrink-0">
+                    {!isHost && !myRoleInfo && (
+                      <h3 className="text-base font-bold text-white/50 mb-3 border-b border-white/10 pb-2">你的角色</h3>
                     )}
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-black/60 shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
-                        {myRoleInfo ? (
-                           <img src={myRoleInfo.icon || `/icons/${myRoleInfo.id}.png`} alt={myRoleInfo.name} className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
-                        ) : null}
-                        <span className={`${myRoleInfo ? 'hidden' : ''} text-white/30 text-2xl font-bold`}>?</span>
+                    {isHost ? (
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-end mb-3 pb-2 border-b border-white/10">
+                          <span className="text-xl font-bold text-yellow-500">說書人</span>
+                          <span className="text-base text-white/40">陣營：???</span>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 rounded-full border-2 border-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.3)] flex items-center justify-center bg-black/60 overflow-hidden shrink-0">
+                            <img src={`/icons/storyteller.png`} alt="說書人" className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+                            <span className="hidden text-white/30 text-2xl font-bold">?</span>
+                          </div>
+                          <div className="flex-1 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
+                            你是說書人，掌控全域。
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col flex-1 justify-center">
-                        {!myRoleInfo && (
-                          <>
-                            <span className="text-xl font-bold text-white/50">尚未分配</span>
-                            <span className="text-base text-white/30 mt-1 capitalize">等待說書人</span>
-                          </>
-                        )}
+                    ) : (
+                      <div className="flex flex-col">
                         {myRoleInfo && (
-                          <div className="mt-1 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
-                            {myRoleInfo.ability}
+                          <div className="flex justify-between items-end mb-3 pb-2 border-b border-white/10">
+                            <span className={`text-xl font-bold ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
+                              {myRoleInfo.name}
+                            </span>
+                            <span className={`text-base font-medium ${isEvil ? 'text-red-400/80' : 'text-blue-300/80'}`}>
+                              陣營：{isEvil ? '邪惡' : '善良'}
+                            </span>
                           </div>
                         )}
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-black/60 shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
+                            {myRoleInfo ? (
+                               <img src={myRoleInfo.icon || `/icons/${myRoleInfo.id}.png`} alt={myRoleInfo.name} className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+                            ) : null}
+                            <span className={`${myRoleInfo ? 'hidden' : ''} text-white/30 text-2xl font-bold`}>?</span>
+                          </div>
+                          <div className="flex flex-col flex-1 justify-center">
+                            {!myRoleInfo && (
+                              <>
+                                <span className="text-xl font-bold text-white/50">尚未分配</span>
+                                <span className="text-base text-white/30 mt-1 capitalize">等待說書人</span>
+                              </>
+                            )}
+                            {myRoleInfo && (
+                              <div className="mt-1 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
+                                {myRoleInfo.ability}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="flex-1 min-h-0 border border-white/10 rounded-xl overflow-hidden shadow-inner">
-                
-                <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} />
-              </div>
+                  <div className="flex-1 min-h-0 border-t border-white/10 overflow-hidden shadow-inner">
+                    <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} />
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col">
+                  <div className="p-4 bg-white/5 border-b border-white/10 shrink-0 flex flex-col items-center justify-center">
+                    <div className="text-2xl font-bold tracking-widest text-stone-300 drop-shadow-sm flex items-center mb-5 mt-2">
+                      第 <span className="font-sans mx-2 text-3xl text-white">{dayNumber}</span> 天 - 
+                      <span className={`ml-2 ${isNight ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]' : 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'}`}>
+                        {isNight ? '黑夜' : '白天'}
+                      </span>
+                    </div>
+                    
+                    <div className="w-full flex gap-4">
+                      <button 
+                        onClick={() => {
+                          if (dayNumber === 1 && timePhase === 'day') return;
+                          if (timePhase === 'night') updateGameTime(id!, dayNumber, 'day');
+                          else updateGameTime(id!, Math.max(1, dayNumber - 1), 'night');
+                        }}
+                        disabled={dayNumber === 1 && timePhase === 'day'}
+                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white font-bold tracking-widest transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
+                      >
+                        上一個
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (timePhase === 'day') updateGameTime(id!, dayNumber, 'night');
+                          else updateGameTime(id!, dayNumber + 1, 'day');
+                        }}
+                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white font-bold tracking-widest transition-colors shadow-sm"
+                      >
+                        下一個
+                      </button>
+                    </div>
+                    
+                    {/* TEST PANELS */}
+                    {import.meta.env.DEV && (
+                      <div className="w-full mt-6 p-4 bg-white/5 border border-white/10 rounded-lg flex flex-col gap-4">
+                        <h4 className="text-amber-500 font-bold tracking-widest text-center border-b border-white/10 pb-2">測試工具 (開發環境)</h4>
+                        
+                        {/* Blur Slider */}
+                      <div>
+                        <label className="text-white/80 text-sm font-bold flex justify-between">
+                          背景模糊 (0-5px): <span className="text-amber-400">{testBlur}px</span>
+                        </label>
+                        <input 
+                          type="range" 
+                          min="0" max="5" step="1" 
+                          value={testBlur} 
+                          onChange={(e) => setTestBlur(parseInt(e.target.value))}
+                          className="w-full mt-2 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Filter Opacity */}
+                      <div>
+                        <label className="text-white/80 text-sm font-bold flex justify-between">
+                          黑夜濾鏡不透明度: <span className="text-amber-400">{testFilterOpacity}%</span>
+                        </label>
+                        <input 
+                          type="range" 
+                          min="0" max="100" step="5" 
+                          value={testFilterOpacity} 
+                          onChange={(e) => setTestFilterOpacity(parseInt(e.target.value))}
+                          className="w-full mt-2 cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Filter Color and Blend Mode */}
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="text-white/80 text-sm font-bold mb-2 block">濾鏡顏色</label>
+                          <input 
+                            type="color" 
+                            value={testFilterColor} 
+                            onChange={(e) => setTestFilterColor(e.target.value)}
+                            className="w-full h-8 cursor-pointer rounded bg-black/40 border border-white/20"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-white/80 text-sm font-bold mb-2 block">混合模式</label>
+                          <select 
+                            value={testBlendMode}
+                            onChange={(e) => setTestBlendMode(e.target.value)}
+                            className="w-full h-8 bg-black/60 text-white/80 border border-white/20 rounded text-sm px-1 cursor-pointer"
+                          >
+                            <option value="normal">正常 (Normal)</option>
+                            <option value="multiply">色彩增值 (Multiply)</option>
+                            <option value="overlay">覆蓋 (Overlay)</option>
+                            <option value="screen">濾色 (Screen)</option>
+                            <option value="color-burn">加深 (Color Burn)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                    </div>
+                    )}
+
+                  </div>
+                  <div className="flex-1 min-h-0 shadow-inner bg-black/20"></div>
+                </div>
+              )}
             </div>
           )}
         </div>

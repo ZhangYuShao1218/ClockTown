@@ -114,8 +114,8 @@ export const Lobby = () => {
     <div className="relative min-h-screen flex items-center justify-center p-4 text-foreground">
       {/* 黑暗奇幻克蘇魯背景圖 */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/background.jpg')" }}
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat blur-[1pt]"
+        style={{ backgroundImage: "url('/BackgroundRoom.jpg')" }}
       />
       {/* 背景遮罩讓 UI 更好閱讀 */}
       <div className="absolute inset-0 z-0 bg-black/30 backdrop-blur-[2px]" />

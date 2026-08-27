@@ -4,14 +4,14 @@ import { createPortal } from "react-dom";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   maxWidth?: string;
   noOverlay?: boolean;
   contentClass?: string;
 }
 
-export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg", noOverlay = false, contentClass = "bg-black/95" }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg", noOverlay = false, contentClass = "bg-slate-900/95" }: ModalProps) => {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -30,7 +30,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg",
       onClick={onClose}
     >
       <div 
-        className={`w-full ${maxWidth} rounded-md border-2 border-white/30 ${contentClass} backdrop-blur-xl p-8 shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200`}
+        className={`w-full ${maxWidth} rounded-xl border-2 border-slate-500 ${contentClass} backdrop-blur-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">

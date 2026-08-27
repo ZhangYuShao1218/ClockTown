@@ -1,5 +1,6 @@
 import React from 'react';
 import { useGameState } from '../../hooks/useGameState';
+import { Modal } from '../common/Modal';
 
 interface VoteHistoryModalProps {
   roomId: string;
@@ -16,20 +17,21 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
   const history = gameState?.public?.voteHistory || [];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-auto">
-      <div className="absolute inset-0 bg-transparent" onClick={onClose}></div>
-      <div className="relative bg-stone-900/95 backdrop-blur-md border-2 border-stone-600/80 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.9)] w-full max-w-3xl flex flex-col max-h-[80vh] ring-1 ring-black">
-        <div className="flex justify-center items-center p-4 border-b-2 border-stone-700/80 bg-gradient-to-b from-stone-800/50 to-transparent rounded-t-xl shrink-0">
-          <h2 className="text-xl font-bold text-stone-200 tracking-widest font-serif drop-shadow-md">投票紀錄</h2>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={<span className="text-amber-500 drop-shadow-sm">投票紀錄</span>} 
+      maxWidth="max-w-3xl"
+      noOverlay={true}
+    >
+      <div className="flex flex-col max-h-[60vh] text-lg">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
           {history.length === 0 ? (
-            <div className="text-center text-stone-500 font-serif py-10 tracking-widest">目前尚無投票紀錄</div>
+            <div className="text-center text-white font-serif py-10 tracking-widest text-lg">目前尚無投票紀錄</div>
           ) : (
             <div className="flex flex-col min-w-[500px]">
               {/* Header */}
-              <div className="grid grid-cols-5 gap-2 border-b-2 border-stone-700 pb-3 mb-2 text-stone-400 text-base font-bold text-center tracking-widest font-serif">
+              <div className="grid grid-cols-5 gap-2 border-b-2 border-white/20 pb-3 mb-2 text-amber-200/80 text-lg font-bold text-center tracking-widest uppercase drop-shadow-sm">
                 <div>提名人</div>
                 <div>被提名人</div>
                 <div>有效票數</div>
@@ -50,26 +52,33 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
                     .map(([uid, _]) => allSeats.find(s => getPlayerInSeat(s)?.uid === uid))
                     .filter(s => s !== undefined)
                     .sort((a, b) => (a as number) - (b as number));
+                  
+                  const isSuccess = record.totalVotes > (seatCount / 2); // Extremely simplified logic for color
 
                   return (
-                    <div key={idx} className="grid grid-cols-5 gap-2 items-center bg-black/40 border-b border-stone-800/50 p-2.5 text-center hover:bg-stone-800/40 transition-all duration-300 group">
-                      <div className="text-amber-500/90 font-bold text-base truncate px-1 drop-shadow-sm group-hover:text-amber-400" title={nominatorName}>
-                        <span className="text-stone-500 text-sm mr-1 font-sans">{record.nominatorSeat}.</span>
+                    <div 
+                      key={idx} 
+                      className={`grid grid-cols-5 gap-2 items-center p-3 rounded-lg border text-center transition-colors ${
+                        isSuccess 
+                          ? 'bg-rose-900/20 border-rose-900/50 hover:bg-rose-900/30 text-rose-100/90' 
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
+                      }`}
+                    >
+                      <div className="font-bold truncate text-blue-300 drop-shadow-sm" title={nominatorName}>
+                        <span className="text-white text-base font-bold mr-1.5 font-sans">{record.nominatorSeat}.</span>
                         {nominatorName}
                       </div>
-                      <div className="text-red-500/90 font-bold text-base truncate px-1 drop-shadow-sm group-hover:text-red-400" title={nomineeName}>
-                        <span className="text-stone-500 text-sm mr-1 font-sans">{record.nomineeSeat}.</span>
+                      <div className="font-bold truncate text-red-400 drop-shadow-sm" title={nomineeName}>
+                        <span className="text-white text-base font-bold mr-1.5 font-sans">{record.nomineeSeat}.</span>
                         {nomineeName}
                       </div>
-                      <div className="text-cyan-600/90 font-bold text-lg font-mono drop-shadow-sm group-hover:text-cyan-400">
+                      <div className={`font-sans text-2xl font-bold ${isSuccess ? 'text-red-400' : 'text-blue-300'}`}>
                         {record.totalVotes}
                       </div>
-                      <div className="text-stone-300/80 font-bold text-base truncate px-1 font-sans tracking-widest group-hover:text-white" title={supporterSeats.join(', ')}>
+                      <div className="text-base px-2 py-1 bg-black/40 rounded border border-white/10 min-h-[2rem] flex items-center justify-center break-all font-sans text-white font-bold tracking-wider">
                         {supporterSeats.length > 0 ? supporterSeats.join(', ') : '-'}
                       </div>
-                      <div className="text-stone-500 text-sm font-mono group-hover:text-stone-400">
-                        {record.time}
-                      </div>
+                      <div className="text-base font-sans tracking-widest">{record.time || '-'}</div>
                     </div>
                   );
                 })}
@@ -78,6 +87,6 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
