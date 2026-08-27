@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useGameState } from '../../hooks/useGameState';
 
 interface VoteHistoryModalProps {
@@ -17,55 +17,64 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-auto">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative bg-stone-900 border-2 border-stone-700 rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
-        <div className="flex justify-between items-center p-4 border-b border-white/10 bg-black/40 rounded-t-xl">
-          <h2 className="text-xl font-bold text-white tracking-widest">投票紀錄</h2>
-          <button onClick={onClose} className="text-white/60 hover:text-white transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+      <div className="absolute inset-0 bg-transparent" onClick={onClose}></div>
+      <div className="relative bg-stone-900/95 backdrop-blur-md border-2 border-stone-600/80 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.9)] w-full max-w-3xl flex flex-col max-h-[80vh] ring-1 ring-black">
+        <div className="flex justify-center items-center p-4 border-b-2 border-stone-700/80 bg-gradient-to-b from-stone-800/50 to-transparent rounded-t-xl shrink-0">
+          <h2 className="text-xl font-bold text-stone-200 tracking-widest font-serif drop-shadow-md">投票紀錄</h2>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           {history.length === 0 ? (
-            <div className="text-center text-white/40 py-8">目前尚無投票紀錄</div>
+            <div className="text-center text-stone-500 font-serif py-10 tracking-widest">目前尚無投票紀錄</div>
           ) : (
-            history.map((record: any, idx: number) => (
-              <div key={idx} className="bg-black/40 border border-white/10 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-blue-400 font-bold text-sm">第 {idx + 1} 次投票</span>
-                  <span className="text-white/40 text-xs">{record.time}</span>
-                </div>
-                
-                <div className="text-white font-bold mb-3 flex items-center gap-2">
-                  <span className="text-amber-400">{record.nominatorSeat}.</span>
-                  <span>{getPlayerInSeat(record.nominatorSeat)?.name || '未知'}</span>
-                  <span className="text-white/50 mx-2 text-sm">提名</span>
-                  <span className="text-amber-400">{record.nomineeSeat}.</span>
-                  <span className="text-red-400">{getPlayerInSeat(record.nomineeSeat)?.name || '未知'}</span>
-                </div>
-                
-                <div className="flex justify-between items-center bg-white/5 rounded p-2 px-3">
-                  <span className="text-white/70 text-sm">有效票數</span>
-                  <span className="text-lg font-bold text-blue-400">{record.totalVotes} 票</span>
-                </div>
-                
-                {record.votes && Object.keys(record.votes).length > 0 && (
-                  <div className="mt-3 text-xs text-white/50">
-                    <span className="mr-2">舉手玩家:</span>
-                    {Object.entries(record.votes)
-                      .filter(([_, voted]) => voted)
-                      .map(([uid, _]) => {
-                        const seats = gameState?.public?.seats || [];
-                        const seat = seats.find((s: number) => getPlayerInSeat(s)?.uid === uid);
-                        const player = getPlayerInSeat(seat);
-                        return seat !== undefined ? `${seat}. ${player?.name || '未知'}` : '未知';
-                      })
-                      .join(' , ')}
-                  </div>
-                )}
+            <div className="flex flex-col min-w-[500px]">
+              {/* Header */}
+              <div className="grid grid-cols-5 gap-2 border-b-2 border-stone-700 pb-3 mb-2 text-stone-400 text-base font-bold text-center tracking-widest font-serif">
+                <div>提名人</div>
+                <div>被提名人</div>
+                <div>有效票數</div>
+                <div>處決玩家</div>
+                <div>時間</div>
               </div>
-            ))
+
+              {/* Rows */}
+              <div className="flex flex-col space-y-1">
+                {history.map((record: any, idx: number) => {
+                  const nominatorName = getPlayerInSeat(record.nominatorSeat)?.name || '未知';
+                  const nomineeName = getPlayerInSeat(record.nomineeSeat)?.name || '未知';
+
+                  const seatCount = gameState?.public?.seatCount || 12;
+                  const allSeats = Array.from({ length: seatCount }, (_, i) => i + 1);
+                  const supporterSeats = Object.entries(record.votes || {})
+                    .filter(([_, voted]) => voted)
+                    .map(([uid, _]) => allSeats.find(s => getPlayerInSeat(s)?.uid === uid))
+                    .filter(s => s !== undefined)
+                    .sort((a, b) => (a as number) - (b as number));
+
+                  return (
+                    <div key={idx} className="grid grid-cols-5 gap-2 items-center bg-black/40 border-b border-stone-800/50 p-2.5 text-center hover:bg-stone-800/40 transition-all duration-300 group">
+                      <div className="text-amber-500/90 font-bold text-base truncate px-1 drop-shadow-sm group-hover:text-amber-400" title={nominatorName}>
+                        <span className="text-stone-500 text-sm mr-1 font-sans">{record.nominatorSeat}.</span>
+                        {nominatorName}
+                      </div>
+                      <div className="text-red-500/90 font-bold text-base truncate px-1 drop-shadow-sm group-hover:text-red-400" title={nomineeName}>
+                        <span className="text-stone-500 text-sm mr-1 font-sans">{record.nomineeSeat}.</span>
+                        {nomineeName}
+                      </div>
+                      <div className="text-cyan-600/90 font-bold text-lg font-mono drop-shadow-sm group-hover:text-cyan-400">
+                        {record.totalVotes}
+                      </div>
+                      <div className="text-stone-300/80 font-bold text-base truncate px-1 font-sans tracking-widest group-hover:text-white" title={supporterSeats.join(', ')}>
+                        {supporterSeats.length > 0 ? supporterSeats.join(', ') : '-'}
+                      </div>
+                      <div className="text-stone-500 text-sm font-mono group-hover:text-stone-400">
+                        {record.time}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
       </div>
