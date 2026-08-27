@@ -1,0 +1,170 @@
+﻿import re
+
+with open('src/components/game/Grimoire.tsx', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# We will just replace everything from `  return (` to the end of the file.
+return_index = content.find('  return (')
+if return_index != -1:
+    top_part = content[:return_index]
+    
+    new_return = """  return (
+    <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+      
+      {/* 右側浮動資訊柱 */}
+      <div className="absolute right-4 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-y-auto no-scrollbar pb-20 w-64 pr-2">
+        
+        {/* 房間資訊 */}
+        <div className="bg-black/60 border-2 border-white/20 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3">
+          <div className="flex justify-between w-full items-center">
+            <span className="text-xs text-white/50 tracking-widest uppercase">Room</span>
+            <span className="font-mono text-white font-bold">{roomId}</span>
+          </div>
+          <button 
+            onClick={onOpenScriptModal}
+            className="w-full py-1.5 bg-black/80 border border-white/30 text-yellow-400 hover:text-white hover:bg-white/10 rounded-lg shadow-md font-bold font-serif transition-colors text-sm"
+          >
+            {script.name}
+          </button>
+          <button onClick={onLeaveRoom} className="w-full text-xs px-3 py-1.5 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
+            離開房間
+          </button>
+        </div>
+
+        {/* 陣營人數 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-3 shadow-lg pointer-events-auto backdrop-blur-md w-full">
+          <div className="flex justify-between text-center px-1">
+            <div><div className="text-[10px] font-bold text-blue-300">村民</div><div className="text-base font-bold text-white">{t}</div></div>
+            <div><div className="text-[10px] font-bold text-blue-300">外來</div><div className="text-base font-bold text-white">{o}</div></div>
+            <div><div className="text-[10px] font-bold text-red-400">爪牙</div><div className="text-base font-bold text-white">{m}</div></div>
+            <div><div className="text-[10px] font-bold text-red-400">惡魔</div><div className="text-base font-bold text-white">{d}</div></div>
+          </div>
+        </div>
+
+        {/* 惡魔的偽裝 */}
+        <div className="flex flex-col items-center space-y-3 pointer-events-auto bg-black/60 border border-rose-900/80 p-3 rounded-xl shadow-lg backdrop-blur-md w-full">
+          <h3 className="text-sm font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
+          <div className="flex space-x-2 justify-center w-full">
+            {[0, 1, 2].map(i => {
+              const roleId = bluffs[i];
+              const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
+              return (
+                <div key={i} className="flex flex-col items-center flex-1">
+                  <div 
+                    onClick={() => openModal("bluff", i)}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative cursor-pointer group overflow-hidden mb-1"
+                  >
+                    {role ? (
+                      <>
+                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                        <button onClick={(e) => { e.stopPropagation(); setGrimoireBluff(roomId, i, null); }} className="absolute inset-0 bg-red-900/80 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs">✕</button>
+                      </>
+                    ) : <span className="text-white/20 text-xs">空</span>}
+                  </div>
+                  <span className="text-[10px] text-white/80 leading-none h-3 truncate w-full text-center">{role ? role.name : ""}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 傳奇角色 */}
+        <div 
+          className="bg-black/60 border border-yellow-500/30 rounded-xl p-3 shadow-lg backdrop-blur-md flex flex-col cursor-pointer hover:border-yellow-500/60 transition-colors pointer-events-auto w-full"
+          onClick={() => openModal("fabled")}
+        >
+          <h3 className="text-[10px] font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色 (點擊新增)</h3>
+          <div className="flex flex-wrap gap-2 justify-center min-h-[40px]">
+            {fabled.length > 0 ? fabled.map(fId => {
+              const role = Object.values(AllRoles).find(r => r.id === fId);
+              if (!role) return null;
+              return (
+                <div key={fId} className="relative w-10 h-10 group cursor-pointer" onClick={(e) => { e.stopPropagation(); onRemoveFabled(fId); }}>
+                  <RoleIcon icon={role.icon} className="w-full h-full rounded-full border border-yellow-500/50 shadow-md bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                  <div className="absolute inset-0 bg-red-900/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs">✕</div>
+                </div>
+              );
+            }) : (
+              <span className="text-white/30 text-xs my-auto">無傳奇角色</span>
+            )}
+          </div>
+        </div>
+        
+        {/* 說書人標誌 */}
+        <div className="bg-black/60 border border-white/20 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex items-center justify-center w-full space-x-3">
+           <div className="w-10 h-10 rounded-full bg-purple-900/50 border border-purple-500/50 flex items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.4)]">
+             <span className="text-white font-serif font-bold">ST</span>
+           </div>
+           <span className="text-xs text-white/70 font-bold tracking-widest">說書人</span>
+        </div>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center w-full min-h-0 py-16">
+        <div className="relative w-full max-w-[90vh] aspect-square rounded-full border-2 border-white/10 shadow-2xl flex items-center justify-center pointer-events-none mx-auto bg-black/40">
+          
+          <div className="absolute inset-8 rounded-full border border-white/5 pointer-events-none" />
+          
+          <div className="text-center pointer-events-none flex flex-col items-center z-0">
+            <h2 className="text-4xl font-serif font-bold text-white/20 mb-2 tracking-widest">{script.name}</h2>
+            <div className="text-white/20 tracking-[0.3em] font-serif uppercase">Grimoire</div>
+          </div>
+
+          {seats.map((seatIndex) => {
+            const player = getPlayerInSeat(seatIndex);
+            const style = getSeatStyle(seatIndex);
+            const roleId = grimoireState?.[seatIndex]?.roleId;
+            const role = roleId ? script.roles.find(r => r.id === roleId) : null;
+            const isEvil = role?.type === 'demon' || role?.type === 'minion';
+            const isDead = grimoireState?.[seatIndex]?.isDead || false;
+
+            return (
+              <div 
+                key={seatIndex} 
+                className="absolute w-24 h-24 pointer-events-auto group cursor-pointer transition-transform hover:scale-105"
+                style={style}
+                onClick={() => openModal("seat", seatIndex)}
+              >
+                <div className={`w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 transition-colors ${roleId ? (isEvil ? 'border-red-900 hover:border-red-500' : 'border-blue-900 hover:border-blue-500') : 'border-white/20 hover:border-white/50'}`}>
+                   {role ? (
+                     <>
+                       <RoleIcon icon={role.icon} className={`w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] ${isDead ? 'opacity-40 grayscale sepia' : ''}`} />
+                       {isDead && (
+                         <div className="absolute inset-0 flex items-center justify-center">
+                           <div className="w-16 h-1 bg-red-600/80 rotate-45 absolute" />
+                           <div className="w-16 h-1 bg-red-600/80 -rotate-45 absolute" />
+                         </div>
+                       )}
+                     </>
+                   ) : (
+                     <span className="text-white/20 text-3xl font-bold">{seatIndex}</span>
+                   )}
+                </div>
+                
+                {/* 玩家名稱標籤 */}
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                   <div className="bg-black/80 px-3 py-1 rounded-full border border-white/20 text-[11px] text-white shadow-md font-bold">
+                     {player ? player.name : `座位 ${seatIndex}`}
+                   </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <RoleSelectionModal 
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSelect={handleRoleSelect}
+        script={script}
+        showFabled={target?.type === 'fabled'}
+        onlyBluffs={target?.type === 'bluff'}
+      />
+    </div>
+  );
+};
+"""
+    with open('src/components/game/Grimoire.tsx', 'w', encoding='utf-8') as f:
+        f.write(top_part + new_return)
+        
+print("Replaced Grimoire return entirely")

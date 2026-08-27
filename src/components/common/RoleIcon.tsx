@@ -4,9 +4,12 @@ interface RoleIconProps {
 }
 
 export const RoleIcon = ({ icon, className = "" }: RoleIconProps) => {
-  if (!icon) return <span className={`leading-none ${className}`}>👤</span>;
-  if (icon.startsWith('/') || icon.startsWith('http')) {
-    return <img src={icon} alt="role icon" className={`object-cover rounded-full ${className}`} />;
+  const isEmoji = !icon?.startsWith('/') && !icon?.startsWith('http');
+  const spanClass = `flex items-center justify-center text-[3rem] leading-none ${className}`;
+
+  if (!icon) return <span className={spanClass}>👤</span>;
+  if (isEmoji) {
+    return <span className={spanClass}>{icon}</span>;
   }
-  return <span className={`leading-none ${className}`}>{icon}</span>;
+  return <img src={icon} alt="role icon" className={`object-cover rounded-full ${className}`} />;
 };

@@ -19,9 +19,24 @@ interface GrimoireProps {
   onLeaveRoom: () => void;
   onOpenScriptModal: () => void;
   hostPlayer?: any;
+  seatStatus?: Record<number, import('../../data/types').SeatStatus>;
 }
 
-export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [null, null, null], distribution, seats, getPlayerInSeat, fabled = [], onLeaveRoom, onOpenScriptModal, hostPlayer }: GrimoireProps) => {
+export const Grimoire = ({ 
+  roomId, 
+  seatCount, 
+  script, 
+  grimoireState = {}, 
+  bluffs = [null, null, null],
+  distribution,
+  seats,
+  getPlayerInSeat,
+  fabled = [],
+  onLeaveRoom,
+  onOpenScriptModal,
+  hostPlayer,
+  seatStatus = {}
+}: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
   const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
@@ -87,14 +102,33 @@ export const Grimoire = ({ roomId, script, seatCount, grimoireState, bluffs = [n
       {/* 右側浮動資訊柱 (佔據 20% 寬度) */}
       <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-visible pb-6 w-[20%] pr-4 pl-4">
         
-        {/* 陣營人數 */}
-        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-1 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0">
-          <div className="flex justify-between items-center text-center divide-x divide-white/20">
+        {/* 陣營人數與生存資訊 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-3 px-2 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0 flex flex-col items-center">
+          <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-3">
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">民</div><div className="text-lg font-bold text-white">{t}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">外</div><div className="text-lg font-bold text-white">{o}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-red-400">爪</div><div className="text-lg font-bold text-white">{m}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-red-400">惡</div><div className="text-lg font-bold text-white">{d}</div></div>
             {v > 0 && <div className="flex-1"><div className="text-lg font-bold text-purple-400">旅</div><div className="text-lg font-bold text-white">{v}</div></div>}
+          </div>
+          
+          <div className="w-[80%] h-px bg-white/20 mb-3" />
+
+          <div className="flex justify-between items-center w-full px-2 text-center">
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="總玩家數">
+              <img src="/assets/images/HumanCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="總數" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
+            </div>
+            <div className="w-px h-10 bg-white/20 mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="存活玩家數">
+              <img src="/assets/images/LiveCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - Object.values(seatStatus).filter(s => s?.isDead).length}</span>
+            </div>
+            <div className="w-px h-10 bg-white/20 mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="擁有死亡票數">
+              <img src="/assets/images/DeathVote.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="死亡票" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{Object.values(seatStatus).filter(s => s?.isDead && s?.hasGhostVote).length}</span>
+            </div>
           </div>
         </div>
 

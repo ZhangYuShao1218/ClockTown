@@ -28,3 +28,18 @@ export interface Script {
   firstNight: NightOrderItem[];
   otherNight: NightOrderItem[];
 }
+
+export interface SeatStatus {
+  isDead?: boolean;
+  hasGhostVote?: boolean;
+  pendingExecution?: boolean;
+}
+
+export interface VotingState {
+  phase: 'idle' | 'selecting_nominee' | 'voting' | 'finished';
+  nominatorSeat: number | null;
+  nomineeSeat: number | null;
+  startTime: number | null;
+  timePerPlayerMs: number;
+  votes: Record<string, boolean>; // map uid to boolean
+}

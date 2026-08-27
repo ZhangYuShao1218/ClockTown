@@ -253,6 +253,9 @@ export const Room = () => {
             fabled={gameState?.public?.fabled || []}
             hostPlayer={hostPlayer}
             privateNotes={user ? gameState?.private?.notes?.[user.uid] : undefined}
+            isHost={isHost}
+            seatStatus={gameState?.public?.seatStatus || {}}
+            votingState={gameState?.public?.votingState}
           />
         ) : (
           isHost ? (
@@ -271,6 +274,7 @@ export const Room = () => {
                 onLeaveRoom={handleLeave}
                 onOpenScriptModal={() => setScriptModalOpen(true)}
                 hostPlayer={hostPlayer}
+                seatStatus={gameState?.public?.seatStatus || {}}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-white/50 h-full"><p>真相仍在迷霧之中...</p></div>
@@ -293,9 +297,8 @@ export const Room = () => {
               <div className="relative">
                 <span className="mb-2 text-lg">☰</span>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-3 -right-2 text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] z-10">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
-                    <span className="absolute top-1 left-1.5 text-[8px] font-bold text-slate-900">{totalUnreadCount > 9 ? '9+' : totalUnreadCount}</span>
+                  <div className="absolute -top-[32px] -right-[28px] text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] z-10">
+                    <svg className="w-7 h-7 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
                   </div>
                 )}
               </div>

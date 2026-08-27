@@ -4,6 +4,8 @@ import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
+import { updateSeatStatus, updateVotingState } from "../../services/roomService";
+import { VotingOverlay } from "./VotingOverlay";
 import { AllRoles } from "../../data/roles";
 
 interface CenterStageProps {
@@ -22,6 +24,9 @@ interface CenterStageProps {
   fabled?: string[];
   hostPlayer?: any;
   privateNotes?: Record<number, string>;
+  isHost?: boolean;
+  seatStatus?: Record<number, import('../../data/types').SeatStatus>;
+  votingState?: import('../../data/types').VotingState;
 }
 
 export const CenterStage = ({ 
@@ -39,12 +44,50 @@ export const CenterStage = ({
   roomId,
   fabled = [],
   hostPlayer,
-  privateNotes
+  privateNotes = {},
+  isHost = false,
+  seatStatus = {},
+  votingState
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [targetSeat, setTargetSeat] = useState<number | null>(null);
   const [seatRoleNotes, setSeatRoleNotes] = useState<Record<number, string>>({});
+
+  const toggleDead = (seatIndex: number) => {
+    const isCurrentlyDead = seatStatus[seatIndex]?.isDead || false;
+    updateSeatStatus(roomId, seatIndex, { 
+      isDead: !isCurrentlyDead, 
+      hasGhostVote: !isCurrentlyDead // Automatically give ghost vote when they die, remove when resurrected
+    });
+    setActiveDropdownSeat(null);
+  };
+
+  const togglePendingExecution = (seatIndex: number) => {
+    const isCurrentlyPending = seatStatus[seatIndex]?.pendingExecution || false;
+    updateSeatStatus(roomId, seatIndex, { pendingExecution: !isCurrentlyPending });
+    setActiveDropdownSeat(null);
+  };
+
+  const initiateNominationAction = (seatIndex: number) => {
+    updateVotingState(roomId, {
+      phase: 'selecting_nominee',
+      nominatorSeat: seatIndex,
+      nomineeSeat: null,
+      startTime: null,
+      votes: {}
+    });
+    setActiveDropdownSeat(null);
+  };
+
+  const selectNomineeAction = (seatIndex: number) => {
+    if (votingState?.phase === 'selecting_nominee') {
+      updateVotingState(roomId, {
+        phase: 'idle', // Host will see "Start Voting" next
+        nomineeSeat: seatIndex
+      });
+    }
+  };
 
   useEffect(() => {
     const handleClear = () => {
@@ -139,14 +182,33 @@ export const CenterStage = ({
       {/* 右側浮動資訊柱 (佔據 20% 寬度) */}
       <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-visible pb-6 w-[20%] pr-4 pl-4">
         
-        {/* 陣營人數 */}
-        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-2 px-1 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0">
-          <div className="flex justify-between items-center text-center divide-x divide-white/20">
+        {/* 陣營人數與生存資訊 */}
+        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-3 px-2 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0 flex flex-col items-center z-30 relative">
+          <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-3">
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">民</div><div className="text-lg font-bold text-white">{t}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">外</div><div className="text-lg font-bold text-white">{o}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-red-400">爪</div><div className="text-lg font-bold text-white">{m}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-red-400">惡</div><div className="text-lg font-bold text-white">{d}</div></div>
             {v > 0 && <div className="flex-1"><div className="text-lg font-bold text-purple-400">旅</div><div className="text-lg font-bold text-white">{v}</div></div>}
+          </div>
+
+          <div className="w-[80%] h-px bg-white/20 mb-3" />
+
+          <div className="flex justify-between items-center w-full px-2 text-center">
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="總玩家數">
+              <img src="/assets/images/HumanCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="總數" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
+            </div>
+            <div className="w-px h-10 bg-white/20 mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="存活玩家數">
+              <img src="/assets/images/LiveCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - seats.filter(s => seatStatus[s]?.isDead).length}</span>
+            </div>
+            <div className="w-px h-10 bg-white/20 mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="擁有死亡票數">
+              <img src="/assets/images/DeathVote.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="死亡票" />
+              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.filter(s => seatStatus[s]?.isDead && seatStatus[s]?.hasGhostVote).length}</span>
+            </div>
           </div>
         </div>
 
@@ -277,6 +339,30 @@ export const CenterStage = ({
       {/* 座位區 (左側 80% 置中計算，保留 5% 邊距，無底盤) */}
       <div className="absolute left-0 top-0 bottom-0 w-[80%] flex items-center justify-center pointer-events-none p-0 pt-6 pb-16">
         <div className="relative w-full h-full max-w-[95vh] max-h-[95vh] aspect-square flex items-center justify-center pointer-events-none">
+          {/* 中央劇本圖示 */}
+          {script?.id && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-80">
+              <img 
+                src={`/drama/Drama_${script.id}.png`} 
+                alt="Script Logo" 
+                className="w-1/3 h-1/3 object-contain drop-shadow-2xl mix-blend-screen"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+              />
+            </div>
+          )}
+          {votingState && (
+            <VotingOverlay 
+              roomId={roomId}
+              isHost={isHost}
+              votingState={votingState}
+              seatStatus={seatStatus}
+              seats={seats}
+              getPlayerInSeat={getPlayerInSeat}
+              userUid={userUid}
+              totalSeats={totalSeats}
+            />
+          )}
+
           {seats.map((seatIndex) => {
             const style = getSeatStyle(seatIndex);
                         
@@ -293,10 +379,13 @@ export const CenterStage = ({
             else if (x > 75) tooltipClass += "right-0";
             else tooltipClass += "left-1/2 -translate-x-1/2";
 
-            const isDead = false;
+            const isDead = seatStatus[seatIndex]?.isDead || false;
+            const hasGhostVote = seatStatus[seatIndex]?.hasGhostVote || false;
+            const pendingExecution = seatStatus[seatIndex]?.pendingExecution || false;
             
             // In CenterStage, we show guesses from seatRoleNotes
-            const guessedRoleId = seatRoleNotes[seatIndex] || null;
+            const playerInSeat = getPlayerInSeat(seatIndex);
+            const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
             const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
             const isEvil = guessedRole?.type === "demon" || guessedRole?.type === "minion";
 
@@ -315,6 +404,10 @@ export const CenterStage = ({
                       : 'border-white/30 bg-black/80 hover:border-white/50'
                   }`}
                   onClick={() => {
+                    if (isHost && votingState?.phase === 'selecting_nominee') {
+                      selectNomineeAction(seatIndex);
+                      return;
+                    }
                     setTargetSeat(seatIndex);
                     setModalOpen(true);
                   }}
@@ -336,23 +429,37 @@ export const CenterStage = ({
                         </div>
                     </div>
                   ) : (
-                    <span className="text-white/20 text-3xl font-bold">{seatIndex}</span>
+                    <div className="w-full h-full relative flex flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
+                      <span className="text-[#503214]/30 text-4xl font-bold">{seatIndex}</span>
+                    </div>
                   )}
                   
                   {isDead && (
                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                      <div className="w-20 h-1 bg-red-600/80 rotate-45 absolute shadow-lg" />
-                      <div className="w-20 h-1 bg-red-600/80 -rotate-45 absolute shadow-lg" />
+                      <img src="/assets/images/DeathMark.png" className="absolute top-[-12%] w-[110%] h-auto object-contain opacity-95 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] z-10" alt="Dead" />
                     </div>
                   )}
                 </div>
+                
+                {isDead && hasGhostVote && (
+                  <div className="absolute -bottom-3 -right-3 w-10 h-10 flex items-center justify-center z-20 pointer-events-none">
+                    <img src="/assets/images/DeathVote.png" className="w-10 h-10 object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
+                  </div>
+                )}
+
+                {pendingExecution && (
+                  <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full border border-red-900/50 flex items-center justify-center z-20 shadow-xl pointer-events-none animate-bounce bg-black/80">
+                    <img src="/assets/images/pending_execution.jpg" className="w-8 h-8 object-contain drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" style={{ mixBlendMode: 'screen' }} alt="Pending Execution" />
+                  </div>
+                )}
               </div>
             );
           })}
 
             {/* Night Order Badges */}
             {seats.map((seatIndex) => {
-              const guessedRoleId = seatRoleNotes[seatIndex] || null;
+              const playerInSeat = getPlayerInSeat(seatIndex);
+              const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
               const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
               if (!guessedRole) return null;
 
@@ -373,12 +480,12 @@ export const CenterStage = ({
                   style={style}
                 >
                   {firstNum && (
-                    <div className={`absolute left-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className={`absolute left-[-15px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
                       {firstNum}
                     </div>
                   )}
                   {otherNum && (
-                    <div className={`absolute right-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className={`absolute right-[-15px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
                       {otherNum}
                     </div>
                   )}
@@ -406,29 +513,61 @@ export const CenterStage = ({
                     }`}
                     onClick={(e) => { e.stopPropagation(); setActiveDropdownSeat(activeDropdownSeat === seatIndex ? null : seatIndex); }}
                   >
-                    {seatIndex}. {player ? player.name : '空座位'}
+                    <span className="text-amber-400 text-lg mr-1 tracking-wider">{seatIndex}.</span>
+                    <span className="text-gray-100 text-lg">{player ? player.name : '空座位'}</span>
                   </div>
                   
                   {activeDropdownSeat === seatIndex && (
-                    <div className={`absolute ${parseInt(style.top as string) > 50 ? 'bottom-full mb-1' : 'top-full mt-1'} w-24 bg-slate-900 border border-slate-600 rounded-md shadow-xl overflow-hidden z-[100]`}>
-                      {player && player.uid === userUid ? (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleLeaveSeat(); setActiveDropdownSeat(null); }}
-                          className="w-full px-4 py-2 text-red-400 hover:bg-red-900/30 hover:text-red-300 text-sm font-bold text-center transition-colors border-none"
-                        >
-                          起身
-                        </button>
-                      ) : !player ? (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleTakeSeat(seatIndex); setActiveDropdownSeat(null); }}
-                          className="w-full px-4 py-2 text-blue-400 hover:bg-blue-900/30 hover:text-blue-300 text-sm font-bold text-center transition-colors border-none"
-                        >
-                          坐下
-                        </button>
+                    <div className={`absolute ${parseInt(style.top as string) > 50 ? 'bottom-full mb-1' : 'top-full mt-1'} w-32 bg-slate-900 border border-slate-600 rounded-md shadow-xl overflow-hidden z-[100]`}>
+                      {isHost ? (
+                        <>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleDead(seatIndex); }}
+                            className="w-full px-4 py-2 text-white hover:bg-slate-800 text-sm font-bold text-center transition-colors border-b border-white/10"
+                          >
+                            {seatStatus[seatIndex]?.isDead ? '取消標記死亡' : '標記死亡'}
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); togglePendingExecution(seatIndex); }}
+                            className="w-full px-4 py-2 text-red-400 hover:bg-slate-800 text-sm font-bold text-center transition-colors border-b border-white/10"
+                          >
+                            {seatStatus[seatIndex]?.pendingExecution ? '取消待處決' : '標記待處決'}
+                          </button>
+                          {seatStatus[seatIndex]?.isDead && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); updateSeatStatus(roomId, seatIndex, { hasGhostVote: !seatStatus[seatIndex]?.hasGhostVote }); setActiveDropdownSeat(null); }}
+                              className="w-full px-4 py-2 text-gray-300 hover:bg-slate-800 text-sm font-bold text-center transition-colors border-b border-white/10"
+                            >
+                              {seatStatus[seatIndex]?.hasGhostVote ? '移除遺言票' : '給予遺言票'}
+                            </button>
+                          )}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); initiateNominationAction(seatIndex); }}
+                            className="w-full px-4 py-2 text-blue-400 hover:bg-slate-800 text-sm font-bold text-center transition-colors border-none"
+                          >
+                            發起提名
+                          </button>
+                        </>
                       ) : (
-                        <button disabled className="w-full px-4 py-2 text-gray-500 bg-gray-800 text-sm font-bold text-center cursor-not-allowed border-none">
-                          已入座
-                        </button>
+                        player && player.uid === userUid ? (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleLeaveSeat(); setActiveDropdownSeat(null); }}
+                            className="w-full px-4 py-2 text-red-400 hover:bg-red-900/30 hover:text-red-300 text-sm font-bold text-center transition-colors border-none"
+                          >
+                            起身
+                          </button>
+                        ) : !player ? (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleTakeSeat(seatIndex); setActiveDropdownSeat(null); }}
+                            className="w-full px-4 py-2 text-blue-400 hover:bg-blue-900/30 hover:text-blue-300 text-sm font-bold text-center transition-colors border-none"
+                          >
+                            坐下
+                          </button>
+                        ) : (
+                          <button disabled className="w-full px-4 py-2 text-gray-500 bg-gray-800 text-sm font-bold text-center cursor-not-allowed border-none">
+                            已入座
+                          </button>
+                        )
                       )}
                     </div>
                   )}

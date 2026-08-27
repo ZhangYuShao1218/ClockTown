@@ -88,13 +88,15 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
   } else {
     if (!script) return null;
     const townsfolk = script.roles.filter(r => r.type === 'townsfolk');
+    const clearRole = { id: '', name: '清除', type: 'townsfolk', icon: '✖', alignment: 'good', ability: '' } as unknown as Role;
+    const townsfolkWithClear = [clearRole, ...townsfolk];
     const outsider = script.roles.filter(r => r.type === 'outsider');
     const minion = script.roles.filter(r => r.type === 'minion');
     const demon = script.roles.filter(r => r.type === 'demon');
 
     content = (
       <>
-        {renderRoleGroup("鎮民", townsfolk, false)}
+        {renderRoleGroup("鎮民", townsfolkWithClear, false)}
         {renderRoleGroup("外來者", outsider, false)}
         {renderRoleGroup("爪牙", minion, true)}
         {renderRoleGroup("惡魔", demon, true)}

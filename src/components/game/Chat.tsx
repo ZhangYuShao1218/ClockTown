@@ -79,7 +79,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     const canPrivateMsg = isHost || settings?.allCanMsg;
     const disabled = isSelf || !canPrivateMsg;
     
-    let nameLabel = p.name;
+    let nameLabel = `旁觀者 - ${p.name}`;
     if (isSelf) nameLabel += ' (你)';
     else if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
     
@@ -211,15 +211,15 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
         <div className="relative flex-1">
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full bg-slate-900 border border-white/20 text-white rounded-md px-4 py-2 text-base outline-none focus:border-blue-500 shadow-inner font-medium flex justify-between items-center transition-colors hover:bg-slate-800"
+            className="w-full relative bg-slate-900 border border-white/20 text-white rounded-md px-4 py-2 text-base outline-none focus:border-blue-500 shadow-inner font-medium flex justify-between items-center transition-colors hover:bg-slate-800"
           >
+            {totalUnread > 0 && !isDropdownOpen && (
+              <div className="absolute -top-[10px] -left-[10px] text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] z-20 scale-x-[-1]">
+                <svg className="w-7 h-7 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
+              </div>
+            )}
             <span className={`truncate flex items-center gap-2 ${availableChannels.find(c => c.id === activeChannel)?.colorClass || ''}`}>
               {availableChannels.find(c => c.id === activeChannel)?.name || '選擇頻道...'}
-              {totalUnread > 0 && !isDropdownOpen && (
-                <div className="text-amber-400 animate-pulse drop-shadow-[0_0_5px_rgba(251,191,36,0.8)] ml-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
-                </div>
-              )}
             </span>
             <svg className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
@@ -247,8 +247,8 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
                       }`}
                     >
                       {!ch.disabled && unreadCount > 0 && ch.id !== activeChannel && (
-                        <div className="absolute top-1 left-1 text-amber-400 animate-pulse drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]">
-                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
+                        <div className="absolute -top-2 left-1 text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] z-20 scale-x-[-1]">
+                          <svg className="w-6 h-6 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
                         </div>
                       )}
                       <span className="truncate flex items-center gap-2">
@@ -273,7 +273,11 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
         ) : (
           messages.map(msg => {
             const isMe = msg.senderUid === userUid;
-            const senderDisplayName = msg.senderUid === hostPlayer?.uid ? '說書人' : msg.senderName;
+            const senderPlayer = players.find(p => p.uid === msg.senderUid);
+            let senderDisplayName = msg.senderUid === hostPlayer?.uid ? '說書人' : msg.senderName;
+            if (msg.senderUid !== hostPlayer?.uid && senderPlayer && (senderPlayer.seat === null || senderPlayer.seat === undefined)) {
+              senderDisplayName = `旁觀者 - ${senderDisplayName}`;
+            }
             return (
               <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                 <span className="text-xs text-white mb-1 px-1 font-medium">{senderDisplayName}</span>

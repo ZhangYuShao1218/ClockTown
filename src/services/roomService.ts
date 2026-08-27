@@ -254,3 +254,21 @@ export const recallRoles = async (roomId: string, players: Record<string, any>) 
   });
   await update(ref(db), updates);
 };
+
+export const updateSeatStatus = async (roomId: string, seatIndex: number, status: Partial<import('../data/types').SeatStatus>) => {
+  const currentRef = ref(db, `rooms/${roomId}/public/seatStatus/${seatIndex}`);
+  const snapshot = await get(currentRef);
+  const current = snapshot.val() || {};
+  await update(ref(db), { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
+};
+
+export const updateVotingState = async (roomId: string, stateUpdate: Partial<import('../data/types').VotingState>) => {
+  const currentRef = ref(db, `rooms/${roomId}/public/votingState`);
+  const snapshot = await get(currentRef);
+  const current = snapshot.val() || {};
+  await update(ref(db), { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
+};
+
+export const updatePlayerVote = async (roomId: string, userUid: string, vote: boolean) => {
+  await update(ref(db), { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
+};
