@@ -51,15 +51,14 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   if (phase === 'voting' && startTime && nomineeSeat !== null) {
     const elapsed = currentTime - startTime;
     const totalTime = totalSeats * timePerPlayerMs;
+    const startAngle = (nomineeSeat / totalSeats) * 360 - 90;
     
     if (elapsed >= totalTime) {
       isVotingFinished = true;
-      currentAngle = (nomineeSeat / totalSeats) * 360 - 90 - (360 / totalSeats); // Stop before nominee again
+      currentAngle = startAngle + 360;
     } else {
-      const progress = elapsed / totalTime;
-      const startAngle = (nomineeSeat / totalSeats) * 360 - 90;
-      // Step animation logic
-      const currentStep = Math.floor(progress * totalSeats);
+      let currentStep = Math.floor(elapsed / timePerPlayerMs) + 1;
+      if (elapsed < 0) currentStep = 0;
       currentAngle = startAngle + (currentStep / totalSeats) * 360;
     }
   }
@@ -170,10 +169,14 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
             
             {/* VS Header Text (Line 1) */}
             <div className="text-3xl sm:text-4xl font-bold drop-shadow-[0_4px_4px_rgba(0,0,0,1)] text-white mb-2 text-center whitespace-nowrap">
-              <span className="text-blue-500">{nominatorSeat}.{getPlayerInSeat(nominatorSeat)?.name || '未知'}</span>
-              <span className="mx-3">提名</span>
+              <span className="text-amber-400">{nominatorSeat}. </span>
+              <span className="text-blue-500">{getPlayerInSeat(nominatorSeat)?.name || '未知'}</span>
+              <span className="mx-3 text-white">提名</span>
               {nomineeSeat !== null ? (
-                <span className="text-red-600">{nomineeSeat}.{getPlayerInSeat(nomineeSeat)?.name || '未知'}!</span>
+                <>
+                  <span className="text-amber-400">{nomineeSeat}. </span>
+                  <span className="text-red-600">{getPlayerInSeat(nomineeSeat)?.name || '未知'}</span>
+                </>
               ) : (
                 <span className="text-red-600">？</span>
               )}
@@ -193,38 +196,40 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 
             {/* Actions */}
             {phase === 'idle' && isHost && (
-              <div className="flex gap-2 w-full justify-center pointer-events-auto">
+              <div className="flex flex-col gap-3 w-full items-center pointer-events-auto">
                 {/* Time Setting (Blue) */}
                 <div className="flex bg-gradient-to-b from-blue-700 to-blue-950 rounded-lg border-2 border-black shadow-[0_4px_10px_rgba(0,0,0,0.8)] overflow-hidden">
-                  <button onClick={() => setTimeSetting(Math.max(1000, timeSetting - 250))} className="px-3 py-2 text-white font-bold hover:bg-blue-600 transition-colors">-</button>
-                  <div className="px-2 py-2 text-white font-bold border-x-2 border-black text-center flex items-center justify-center text-xl whitespace-nowrap bg-blue-800">
-                    倒計時 {(timeSetting / 1000).toFixed(1)}s
+                  <button onClick={() => setTimeSetting(Math.max(1000, timeSetting - 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">-</button>
+                  <div className="w-32 py-2 text-white font-bold border-x-2 border-black text-center flex items-center justify-center text-xl bg-blue-800">
+                    {timeSetting / 1000}s /人
                   </div>
-                  <button onClick={() => setTimeSetting(Math.min(3000, timeSetting + 250))} className="px-3 py-2 text-white font-bold hover:bg-blue-600 transition-colors">+</button>
+                  <button onClick={() => setTimeSetting(Math.min(5000, timeSetting + 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">+</button>
                 </div>
                 
-                {/* Start Button (Dark Gray) */}
-                <button onClick={handleStartVoting} className="px-6 py-2 bg-gradient-to-b from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                  開始投票
-                </button>
-                
-                {/* Cancel Button (Red) */}
-                <button onClick={handleCloseVoting} className="px-6 py-2 bg-gradient-to-b from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
-                  關閉
-                </button>
+                <div className="flex gap-4">
+                  {/* Start Button (Dark Gray) */}
+                  <button onClick={handleStartVoting} className="px-8 py-3 bg-gradient-to-b from-gray-600 to-gray-900 hover:from-gray-500 hover:to-gray-800 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
+                    開始投票
+                  </button>
+                  
+                  {/* Cancel Button (Red) */}
+                  <button onClick={handleCloseVoting} className="px-8 py-3 bg-gradient-to-b from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 text-white font-bold text-xl rounded-lg shadow-[0_4px_10px_rgba(0,0,0,0.8)] border-2 border-black transition-colors">
+                    關閉
+                  </button>
+                </div>
               </div>
             )}
 
-            {phase === 'voting' && !isHost && userSeat !== undefined && (
+            {(phase === 'voting' || phase === 'idle') && !isHost && userSeat !== undefined && nomineeSeat !== null && (
               <button 
                 onClick={toggleVote}
                 disabled={isLocked}
-                className={`w-64 py-4 rounded-full font-bold text-3xl transition-all shadow-[0_6px_15px_rgba(0,0,0,0.9)] border-2 border-black ${
+                className={`w-48 py-3 rounded-full font-bold text-2xl transition-all shadow-[0_6px_15px_rgba(0,0,0,0.9)] border-2 border-black ${
                   isLocked ? 'bg-gradient-to-b from-gray-700 to-gray-900 text-gray-500 cursor-not-allowed' :
                   votes?.[userUid!] ? 'bg-gradient-to-b from-amber-500 to-amber-700 text-white' : 'bg-gradient-to-b from-slate-700 to-slate-900 text-white hover:from-slate-600 hover:to-slate-800'
                 }`}
               >
-                {votes?.[userUid!] ? '放下' : '舉手'}
+                {votes?.[userUid!] ? '放下' : '處決！'}
               </button>
             )}
 

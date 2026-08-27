@@ -272,3 +272,12 @@ export const updateVotingState = async (roomId: string, stateUpdate: Partial<imp
 export const updatePlayerVote = async (roomId: string, userUid: string, vote: boolean) => {
   await update(ref(db), { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
 };
+
+
+export const addVoteRecord = async (roomId: string, record: any) => {
+  const currentRef = ref(db, `rooms/${roomId}/public/voteHistory`);
+  const snapshot = await get(currentRef);
+  const history = snapshot.val() || [];
+  history.push(record);
+  await update(ref(db), { [`rooms/${roomId}/public/voteHistory`]: history });
+};

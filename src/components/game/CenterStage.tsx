@@ -151,11 +151,11 @@ export const CenterStage = ({
 
   const getSeatConfig = () => {
     const count = totalSeats;
-    if (count <= 6) return { size: 170, radius: 36, badgeClass: 'w-11 h-11 text-xl' };
-    if (count <= 8) return { size: 160, radius: 38, badgeClass: 'w-10 h-10 text-lg' };
-    if (count <= 10) return { size: 150, radius: 40, badgeClass: 'w-9 h-9 text-base' };
-    if (count <= 12) return { size: 140, radius: 42, badgeClass: 'w-9 h-9 text-base' };
-    if (count <= 14) return { size: 130, radius: 43.5, badgeClass: 'w-8 h-8 text-sm' };
+    if (count <= 6) return { size: 170, radius: 40, badgeClass: 'w-11 h-11 text-xl' };
+    if (count <= 8) return { size: 160, radius: 41.5, badgeClass: 'w-10 h-10 text-lg' };
+    if (count <= 10) return { size: 150, radius: 42.5, badgeClass: 'w-9 h-9 text-base' };
+    if (count <= 12) return { size: 140, radius: 43.5, badgeClass: 'w-9 h-9 text-base' };
+    if (count <= 14) return { size: 130, radius: 44.5, badgeClass: 'w-8 h-8 text-sm' };
     return { size: 120, radius: 45, badgeClass: 'w-8 h-8 text-sm' };
   };
 
@@ -183,7 +183,7 @@ export const CenterStage = ({
       <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-visible pb-6 w-[20%] pr-4 pl-4">
         
         {/* 陣營人數與生存資訊 */}
-        <div className="bg-black/60 border-2 border-white/40 rounded-xl py-3 px-2 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0 flex flex-col items-center z-30 relative">
+        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl py-3 px-2 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0 flex flex-col items-center z-30 relative">
           <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-3">
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">民</div><div className="text-lg font-bold text-white">{t}</div></div>
             <div className="flex-1"><div className="text-lg font-bold text-blue-300">外</div><div className="text-lg font-bold text-white">{o}</div></div>
@@ -213,7 +213,7 @@ export const CenterStage = ({
         </div>
 
         {/* 惡魔的偽裝 */}
-        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-black/60 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0 relative z-30">
+        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-stone-800/80 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0 relative z-30">
           <h3 className="text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
           <div className="flex justify-center w-full gap-2">
             {[0, 1, 2].map(i => {
@@ -248,7 +248,7 @@ export const CenterStage = ({
 
         {/* 傳奇角色 */}
         {fabled.length > 0 && (
-          <div className="bg-black/60 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0 relative z-20">
+          <div className="bg-stone-800/80 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0 relative z-20">
             <h3 className="text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
             <div className="flex flex-wrap gap-2 justify-center">
               {fabled.map(fId => {
@@ -274,7 +274,7 @@ export const CenterStage = ({
         <div className="flex-1 min-h-[1rem]" />
 
         {/* 說書人 */}
-        <div className="bg-black/60 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
+        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
            <div className="w-14 h-14 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
              <span className="text-2xl font-serif text-blue-200">GM</span>
            </div>
@@ -285,7 +285,7 @@ export const CenterStage = ({
         </div>
 
         {/* 房間資訊 */}
-        <div className="bg-black/60 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
+        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
           <div className="flex justify-start w-full items-center">
             <span className="text-lg text-white/50 tracking-widest uppercase mr-2">Room :</span>
             <span className="font-mono text-white text-lg font-bold">{roomId}</span>
@@ -442,14 +442,14 @@ export const CenterStage = ({
                 </div>
                 
                 {isDead && hasGhostVote && (
-                  <div className="absolute -bottom-3 -right-3 w-10 h-10 flex items-center justify-center z-20 pointer-events-none">
-                    <img src="/assets/images/DeathVote.png" className="w-10 h-10 object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
+                  <div className="absolute -bottom-[5%] -right-[5%] w-[31%] h-[31%] flex items-center justify-center z-20 pointer-events-none">
+                    <img src="/assets/images/DeathVote.png" className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
                   </div>
                 )}
 
                 {pendingExecution && (
-                  <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full border border-red-900/50 flex items-center justify-center z-20 shadow-xl pointer-events-none animate-bounce bg-black/80">
-                    <img src="/assets/images/pending_execution.jpg" className="w-8 h-8 object-contain drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" style={{ mixBlendMode: 'screen' }} alt="Pending Execution" />
+                  <div className="absolute -top-[5%] -left-[5%] w-[31%] h-[31%] rounded-full border border-red-900/50 flex items-center justify-center z-20 shadow-xl pointer-events-none animate-bounce bg-black/80">
+                    <img src="/assets/images/pending_execution.jpg" className="w-[80%] h-[80%] object-contain drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" style={{ mixBlendMode: 'screen' }} alt="Pending Execution" />
                   </div>
                 )}
               </div>
@@ -480,12 +480,12 @@ export const CenterStage = ({
                   style={style}
                 >
                   {firstNum && (
-                    <div className={`absolute left-[-15px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className={`absolute left-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
                       {firstNum}
                     </div>
                   )}
                   {otherNum && (
-                    <div className={`absolute right-[-15px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className={`absolute right-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
                       {otherNum}
                     </div>
                   )}

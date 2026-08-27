@@ -9,6 +9,7 @@ import { GrimoireSettings } from "./GrimoireSettings";
 import { ScriptInfoModal } from "./ScriptInfoModal";
 import { RoleInfoModal } from "./RoleInfoModal";
 import { NightOrderModal } from "./NightOrderModal";
+import { VoteHistoryModal } from "./VoteHistoryModal";
 import { Chat } from "./Chat";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
@@ -29,6 +30,7 @@ export const Room = () => {
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
+  const [isVoteHistoryOpen, setVoteHistoryOpen] = useState(false);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
   
@@ -211,7 +213,7 @@ export const Room = () => {
                   <button onClick={() => { setRoleInfoOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">角色資訊</button>
                   <button onClick={() => { /* setTravelerInfoOpen(true); */ setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-purple-500/30 hover:text-purple-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">旅行者資訊</button>
                   <button onClick={() => { setNightOrderOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">角色順序表</button>
-                  <button className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm transition-colors border-b border-white/10">投票紀錄</button>
+                  <button onClick={() => { setVoteHistoryOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm transition-colors border-b border-white/10">投票紀錄</button>
                   {activeTab !== "truth" && (
                     <button onClick={() => { setClearDataAlertOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-red-400 hover:bg-red-500/30 hover:text-red-200 text-center font-bold tracking-widest text-sm transition-colors">清空資料</button>
                   )}
@@ -415,16 +417,27 @@ export const Room = () => {
 
       <ScriptInfoModal isOpen={isScriptModalOpen} onClose={() => setScriptModalOpen(false)} script={currentScript} />
       
-      <RoleInfoModal 
-        isOpen={isRoleInfoOpen} 
-        onClose={() => setRoleInfoOpen(false)} 
-        script={currentScript}
-      />
+      {isRoleInfoOpen && currentScript && (
+        <RoleInfoModal 
+          isOpen={isRoleInfoOpen}
+          onClose={() => setRoleInfoOpen(false)}
+          script={currentScript}
+        />
+      )}
       
-      <NightOrderModal 
-        isOpen={isNightOrderOpen} 
-        onClose={() => setNightOrderOpen(false)} 
-        script={currentScript}
+      {isNightOrderOpen && currentScript && (
+        <NightOrderModal 
+          isOpen={isNightOrderOpen}
+          onClose={() => setNightOrderOpen(false)}
+          script={currentScript}
+        />
+      )}
+
+      <VoteHistoryModal
+        roomId={id!}
+        isOpen={isVoteHistoryOpen}
+        onClose={() => setVoteHistoryOpen(false)}
+        getPlayerInSeat={getPlayerInSeat}
       />
 
       <AlertDialog 
