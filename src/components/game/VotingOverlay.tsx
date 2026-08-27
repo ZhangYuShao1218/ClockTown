@@ -48,7 +48,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   // Compute pointer angle
   let currentAngle = 0;
   let isVotingFinished = false;
-  if (phase === 'voting' && startTime && nomineeSeat !== null) {
+  if (phase === 'voting' && startTime && typeof nomineeSeat === 'number') {
     const elapsed = currentTime - startTime;
     const totalTime = totalSeats * timePerPlayerMs;
     const startAngle = (nomineeSeat / totalSeats) * 360 - 90;
@@ -91,7 +91,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   };
 
   const markPendingAction = () => {
-    if (nomineeSeat !== null) {
+    if (typeof nomineeSeat === 'number') {
       import('../../services/roomService').then(({ updateSeatStatus }) => {
         updateSeatStatus(roomId, nomineeSeat, { pendingExecution: true });
         handleCloseVoting();
@@ -104,7 +104,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   // Calculate if player's vote is locked
   let isLocked = false;
   if (phase === 'finished') isLocked = true;
-  if (phase === 'voting' && startTime && userSeat !== undefined && nomineeSeat !== null) {
+  if (phase === 'voting' && startTime && userSeat !== undefined && typeof nomineeSeat === 'number') {
     const elapsed = Date.now() - startTime;
     
     // Find distance from nomineeSeat to userSeat (clockwise)
@@ -126,17 +126,32 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 
   const currentVoteCount = Object.values(votes || {}).filter(Boolean).length;
 
-  if (!phase || (phase === 'idle' && !nomineeSeat) || (phase === 'selecting_nominee' && !isHost && !nominatorSeat)) return null;
+  const getSeatRadius = () => {
+    const count = totalSeats;
+    if (count <= 6) return 40;
+    if (count <= 8) return 41.5;
+    if (count <= 10) return 42.5;
+    if (count <= 12) return 43.5;
+    if (count <= 14) return 44.5;
+    return 45;
+  };
+
+  const radius = getSeatRadius();
+  const blueHeight = radius * 1.11;
+  const redHeight = radius * 0.86;
+
+  if (!phase || (phase === 'idle' && typeof nomineeSeat !== 'number') || (phase === 'selecting_nominee' && !isHost && typeof nominatorSeat !== 'number')) return null;
 
   return (
     <div className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none">
       
       {/* Nominator Static Pointer (Blue) */}
-      {nominatorSeat !== null && (
+      {typeof nominatorSeat === 'number' && (
         <img 
           src="/assets/images/Blue_Pointer_clean.png"
-          className="absolute left-1/2 top-1/2 w-auto max-w-none h-[40%] origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]"
+          className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-md"
           style={{ 
+            height: `${blueHeight}%`,
             transform: `translate(-50%, -20%) rotate(${((nominatorSeat / totalSeats) * 360) + 180}deg)`
           }}
           alt="pointer"
@@ -144,12 +159,14 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       )}
 
       {/* Sweeping Pointer (Red) */}
-      {nominatorSeat !== null && (
+      {typeof nominatorSeat === 'number' && (
         <img 
           src="/assets/images/Red_Pointer_clean.png"
-          className="absolute left-1/2 top-1/2 w-auto max-w-none h-[35%] origin-[50%_20%] object-contain z-10 drop-shadow-[0_0_20px_rgba(239,68,68,0.9)]"
+          className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-10 drop-shadow-md"
           style={{ 
-            transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : (((nomineeSeat !== null ? nomineeSeat : nominatorSeat) / totalSeats) * 360 - 90)) + 270}deg)`
+            height: `${redHeight}%`,
+            transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : (((typeof nomineeSeat === 'number' ? nomineeSeat : nominatorSeat) / totalSeats) * 360 - 90)) + 270}deg)`,
+            transition: phase === 'voting' ? 'transform 0.5s ease-in-out' : 'none'
           }}
           alt="pointer"
         />
@@ -164,7 +181,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
           </h2>
         )}
 
-        {nominatorSeat !== null && (
+        {typeof nominatorSeat === 'number' && (
           <div className="w-full flex flex-col items-center">
             
             {/* VS Header Text (Line 1) */}
@@ -172,14 +189,12 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
               <span className="text-amber-400">{nominatorSeat}. </span>
               <span className="text-blue-500">{getPlayerInSeat(nominatorSeat)?.name || '未知'}</span>
               <span className="mx-3 text-white">提名</span>
-              {nomineeSeat !== null ? (
+              {typeof nomineeSeat === 'number' ? (
                 <>
                   <span className="text-amber-400">{nomineeSeat}. </span>
                   <span className="text-red-600">{getPlayerInSeat(nomineeSeat)?.name || '未知'}</span>
                 </>
-              ) : (
-                <span className="text-red-600">？</span>
-              )}
+              ) : null}
             </div>
 
             {/* Voting Stats (Line 2) */}
@@ -200,7 +215,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
                 {/* Time Setting (Blue) */}
                 <div className="flex bg-gradient-to-b from-blue-700 to-blue-950 rounded-lg border-2 border-black shadow-[0_4px_10px_rgba(0,0,0,0.8)] overflow-hidden">
                   <button onClick={() => setTimeSetting(Math.max(1000, timeSetting - 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">-</button>
-                  <div className="w-32 py-2 text-white font-bold border-x-2 border-black text-center flex items-center justify-center text-xl bg-blue-800">
+                  <div className="w-40 py-2 text-white font-bold border-x-2 border-black text-center flex items-center justify-center text-xl bg-blue-800">
                     {timeSetting / 1000}s /人
                   </div>
                   <button onClick={() => setTimeSetting(Math.min(5000, timeSetting + 250))} className="px-4 py-2 text-white font-bold hover:bg-blue-600 transition-colors text-xl">+</button>
@@ -220,7 +235,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
               </div>
             )}
 
-            {(phase === 'voting' || phase === 'idle') && !isHost && userSeat !== undefined && nomineeSeat !== null && (
+            {(phase === 'voting' || phase === 'idle') && !isHost && userSeat !== undefined && typeof nomineeSeat === 'number' && (
               <button 
                 onClick={toggleVote}
                 disabled={isLocked}
