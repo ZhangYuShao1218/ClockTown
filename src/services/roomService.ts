@@ -170,6 +170,18 @@ export const updateFabled = async (roomId: string, fabled: string[]) => {
   await update(ref(db), { [`rooms/${roomId}/public/fabled`]: fabled });
 };
 
+export const updateFabledIndex = async (roomId: string, index: number, roleId: string | null) => {
+  await update(ref(db), { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
+};
+
+export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, seatCount: number, direction: 'cw' | 'ccw') => {
+  const updates: Record<string, any> = {};
+  for (let i = 1; i <= seatCount; i++) {
+    const sourceSeat = direction === 'cw' ? (i === 1 ? seatCount : i - 1) : (i === seatCount ? 1 : i + 1);
+    updates[`rooms/${roomId}/private/grimoire/${i}`] = grimoireState[sourceSeat] || null;
+  }
+  await update(ref(db), updates);
+};
 
 export const distributeRoles = async (roomId: string, players: Record<string, any>, grimoire: any, bluffs: any[], script: any, settings: any) => {
   const updates: Record<string, any> = {};

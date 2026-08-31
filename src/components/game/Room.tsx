@@ -8,8 +8,10 @@ import { Grimoire } from "./Grimoire";
 import { GrimoireSettings } from "./GrimoireSettings";
 import { ScriptInfoModal } from "./ScriptInfoModal";
 import { RoleInfoModal } from "./RoleInfoModal";
+import { TravelerFabledModal } from "./TravelerFabledModal";
 import { NightOrderModal } from "./NightOrderModal";
 import { VoteHistoryModal } from "./VoteHistoryModal";
+import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { Chat } from "./Chat";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
@@ -33,6 +35,9 @@ export const Room = () => {
   const [topMenuTab, setTopMenuTab] = useState<'info' | 'settings'>('info');
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
+  const [isTravelerFabledOpen, setTravelerFabledOpen] = useState(false);
+  const [isScriptOverviewOpen, setIsScriptOverviewOpen] = useState(false);
+  const [overviewScriptId, setOverviewScriptId] = useState<string | null>(null);
   const [isNightOrderOpen, setNightOrderOpen] = useState(false);
   const [isVoteHistoryOpen, setVoteHistoryOpen] = useState(false);
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
@@ -73,16 +78,25 @@ export const Room = () => {
     }
   }, [gameState?.public?.activeSetupId]);
 
+  const hasJoinedRef = useRef(false);
+
   useEffect(() => {
-    if (!user || !id || !gameState) return;
+    if (!user || !id || !gameState || hasJoinedRef.current) return;
     
     // Auto join if not in players list
     const name = localStorage.getItem("botc_player_name");
     if (name && !gameState.players?.[user.uid]) {
+      hasJoinedRef.current = true;
       import("../../services/roomService").then(({ joinRoom }) => {
          joinRoom(id, user.uid, name).catch(console.error);
       });
+    } else if (gameState.players?.[user.uid]) {
+      hasJoinedRef.current = true;
     }
+  }, [id, user, gameState]);
+
+  useEffect(() => {
+    if (!user || !id) return;
 
     import("firebase/database").then(({ onDisconnect, ref, update }) => {
       import("../../services/firebase").then(({ db }) => {
@@ -91,7 +105,7 @@ export const Room = () => {
         onDisconnect(playerOnlineRef).set(false);
       });
     });
-  }, [id, user, gameState]);
+  }, [id, user]);
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center text-white/50 bg-black">讀取房間中...</div>;
@@ -242,9 +256,10 @@ export const Room = () => {
               {topMenuTab === 'info' ? (
                 <>
                   <button onClick={() => { setRoleInfoOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">角色資訊</button>
-                  <button onClick={() => { /* setTravelerInfoOpen(true); */ setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-purple-500/30 hover:text-purple-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">旅行者資訊</button>
                   <button onClick={() => { setNightOrderOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">角色順序表</button>
                   <button onClick={() => { setVoteHistoryOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-blue-500/30 hover:text-blue-200 text-center font-bold tracking-widest text-sm transition-colors border-b border-white/10">投票紀錄</button>
+                  <button onClick={() => { setTravelerFabledOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-purple-500/30 hover:text-purple-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">額外角色</button>
+                  <button onClick={() => { setIsScriptOverviewOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-white/80 hover:bg-emerald-500/30 hover:text-emerald-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">劇本一覽</button>
                   {activeTab !== "truth" && (
                     <button onClick={() => { setClearDataAlertOpen(true); setIsTopMenuOpen(false); }} className="px-4 py-2.5 text-red-400 hover:bg-red-500/30 hover:text-red-200 text-center font-bold tracking-widest text-sm transition-colors">清空資料</button>
                   )}
@@ -282,7 +297,7 @@ export const Room = () => {
             canSeeBluffs={canSeeBluffs}
             distribution={gameState?.public?.distribution || [7,2,2,1]}
             onLeaveRoom={handleLeave}
-            onOpenScriptModal={() => setScriptModalOpen(true)}
+            onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
             fabled={gameState?.public?.fabled || []}
             hostPlayer={hostPlayer}
             privateNotes={user ? gameState?.private?.notes?.[user.uid] : undefined}
@@ -306,7 +321,7 @@ export const Room = () => {
                 getPlayerInSeat={getPlayerInSeat}
                 fabled={gameState?.public?.fabled || []}
                 onLeaveRoom={handleLeave}
-                onOpenScriptModal={() => setScriptModalOpen(true)}
+                onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
                 hostPlayer={hostPlayer}
                 seatStatus={gameState?.public?.seatStatus || {}}
               />
@@ -571,8 +586,8 @@ export const Room = () => {
       {isRoleInfoOpen && currentScript && (
         <RoleInfoModal 
           isOpen={isRoleInfoOpen}
-          onClose={() => setRoleInfoOpen(false)}
-          script={currentScript}
+          onClose={() => { setRoleInfoOpen(false); setOverviewScriptId(null); }}
+          script={overviewScriptId ? AllScripts[overviewScriptId] : currentScript}
         />
       )}
       
@@ -603,6 +618,25 @@ export const Room = () => {
         onClose={() => setRoleAlert(null)} 
         onConfirm={() => setRoleAlert(null)} 
         message={roleAlert || ""} 
+      />
+
+      {isTravelerFabledOpen && currentScript && (
+        <TravelerFabledModal 
+          isOpen={isTravelerFabledOpen} 
+          onClose={() => setTravelerFabledOpen(false)} 
+          script={currentScript} 
+        />
+      )}
+
+      <ScriptSelectionModal 
+        isOpen={isScriptOverviewOpen} 
+        onClose={() => setIsScriptOverviewOpen(false)} 
+        currentScriptId={gameState?.public?.currentScript || 'trouble_brewing'} 
+        readOnly={true} 
+        onViewRoleInfo={(id) => {
+          setOverviewScriptId(id);
+          setRoleInfoOpen(true);
+        }}
       />
     </div>
   );

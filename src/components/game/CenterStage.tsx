@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
@@ -111,7 +110,13 @@ export const CenterStage = ({
 
   useEffect(() => {
     if (privateNotes !== undefined) {
-      setSeatRoleNotes(privateNotes || {});
+      setSeatRoleNotes(prev => {
+        const next = privateNotes || {};
+        if (JSON.stringify(prev) === JSON.stringify(next)) {
+          return prev;
+        }
+        return next;
+      });
       if (roomId && userUid) saveSeatRoleNotes(roomId, userUid, privateNotes || {});
     }
   }, [privateNotes, roomId, userUid]);
@@ -199,17 +204,17 @@ export const CenterStage = ({
 
           <div className="flex justify-between items-center w-full px-2 text-center">
             <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="總玩家數">
-              <img src="/assets/images/HumanCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="總數" />
+              <img src="/assets/ui/HumanCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="總數" />
               <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
             </div>
             <div className="w-px h-10 bg-white/20 mx-2"></div>
             <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="存活玩家數">
-              <img src="/assets/images/LiveCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
+              <img src="/assets/ui/LiveCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
               <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - seats.filter(s => seatStatus[s]?.isDead).length}</span>
             </div>
             <div className="w-px h-10 bg-white/20 mx-2"></div>
             <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="擁有死亡票數">
-              <img src="/assets/images/DeathVote.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="死亡票" />
+              <img src="/assets/ui/DeathVote.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="死亡票" />
               <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.filter(s => seatStatus[s]?.isDead && seatStatus[s]?.hasGhostVote).length}</span>
             </div>
           </div>
@@ -225,7 +230,7 @@ export const CenterStage = ({
               return (
                 <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className="w-full aspect-square max-w-[84px] rounded-full border-2 border-white/60 bg-black/80 flex flex-col items-center justify-center shadow-lg relative overflow-hidden hover:scale-105 hover:border-red-400 transition-all cursor-help"
+                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden hover:scale-105 transition-all cursor-help ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
                     onMouseEnter={(e) => {
                       if (canSeeBluffs && role) {
                         const rect = e.currentTarget.getBoundingClientRect();
@@ -252,20 +257,22 @@ export const CenterStage = ({
         </div>
 
         {/* 傳奇角色 */}
-        {fabled.length > 0 && (
+        {fabled.filter(f => f).length > 0 && (
           <div className="bg-stone-800/80 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0 relative z-20">
             <h3 className="text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
             <div className="flex flex-wrap gap-2 justify-center">
-              {fabled.map(fId => {
+              {fabled.filter(f => f).map(fId => {
                 const role = Object.values(AllRoles).find(r => r.id === fId);
                 if (!role) return null;
                 return (
-                  <div key={fId} className="flex flex-col items-center flex-1 min-w-[30%] group relative hover:z-[9999]">
+                  <div 
+                    key={fId} 
+                    className="flex flex-col items-center flex-1 min-w-[30%] group relative hover:z-[9999]"
+                    onMouseEnter={(e) => { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); }}
+                    onMouseLeave={() => setHoveredRoleTooltip(null)}
+                  >
                     <div className="w-full aspect-square max-w-[84px] rounded-full border-2 border-yellow-500/50 flex items-center justify-center shadow-lg relative overflow-hidden bg-black/80 group-hover:scale-105 group-hover:border-yellow-400 transition-all">
                       <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
-                    </div>
-                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
                     </div>
                     <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>
                   </div>
@@ -279,16 +286,6 @@ export const CenterStage = ({
         <div className="flex-1 min-h-[1rem]" />
 
         {/* 說書人 */}
-        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
-           <div className="w-14 h-14 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
-             <span className="text-2xl font-serif text-blue-200">GM</span>
-           </div>
-           <div className="flex flex-col items-start overflow-hidden w-full">
-             <span className="text-lg text-white/70 font-bold tracking-widest uppercase">說書人</span>
-             <span className="text-lg font-bold text-white truncate w-full">{hostPlayer?.name || "未知"}</span>
-           </div>
-        </div>
-
         {/* 房間資訊 */}
         <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
           <div className="flex justify-start w-full items-center">
@@ -316,23 +313,28 @@ export const CenterStage = ({
           </div>
           <button 
             onClick={onOpenScriptModal}
-            className="w-full py-2 bg-black/80 border border-white/30 text-yellow-400 hover:text-white hover:bg-white/10 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-2 flex items-center justify-center space-x-3"
+            className="w-full py-1 backdrop-blur-md border border-white/40 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-1 flex items-center justify-center space-x-1 overflow-hidden group"
+            style={{ backgroundColor: 'var(--script-bg)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg)')}
           >
             {script?.id && (
               <img 
                 src={`/drama/Drama_${script.id}.png`} 
                 alt="Script" 
-                className="w-14 h-14 object-contain shrink-0 drop-shadow-md" 
+                className="w-24 h-auto max-h-20 object-contain shrink-0 drop-shadow-md py-1" 
                 onError={(e) => { e.currentTarget.style.display = 'none'; }} 
               />
             )}
-            <div className="flex flex-col items-center justify-center">
-              {(script?.name || "").includes('(') ? (
+            <div className="flex flex-col items-center justify-center min-w-0 flex-1">
+              {script?.name ? (
                 <>
-                  <span>{(script?.name || "").split('(')[0].trim()}</span>
-                  <span className="text-lg text-yellow-500/80">({(script?.name || "").split('(')[1]}</span>
+                  <span className="text-base md:text-lg leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ')[0]}</span>
+                  {script.name.split(' ').length > 1 && (
+                    <span className="text-sm md:text-base leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ').slice(1).join(' ')}</span>
+                  )}
                 </>
-              ) : <span>{script?.name || "未知劇本"}</span>}
+              ) : <span className="text-lg" style={{ color: 'var(--script-text-color, #ffffff)' }}>未知劇本</span>}
             </div>
           </button>
           <button onClick={onLeaveRoom} className="w-full text-lg px-4 py-2 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
@@ -445,27 +447,27 @@ export const CenterStage = ({
                   
                   {isDead && (
                     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                      <img src="/assets/images/DeathMark.png" className="absolute top-[-12%] w-[110%] h-auto object-contain opacity-95 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] z-10" alt="Dead" />
+                      <img src="/assets/ui/DeathMark.png" className="absolute top-[-12%] w-[110%] h-auto object-contain opacity-95 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] z-10" alt="Dead" />
                     </div>
                   )}
                 </div>
                 
                 {isDead && hasGhostVote && (
                   <div className="absolute -bottom-[5%] -right-[5%] w-[31%] h-[31%] flex items-center justify-center z-20 pointer-events-none">
-                    <img src="/assets/images/DeathVote.png" className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
+                    <img src="/assets/ui/DeathVote.png" className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
                   </div>
                 )}
 
                 {pendingExecution && (
                   <div className="absolute inset-0 flex items-center justify-center z-[900] pointer-events-none opacity-80">
-                    <img src="/assets/images/WaitExecute.png" className="w-[70%] h-[70%] object-contain" alt="Pending Execution" />
+                    <img src="/assets/ui/WaitExecute.png" className="w-[70%] h-[70%] object-contain" alt="Pending Execution" />
                   </div>
                 )}
 
                 {votingState?.votes?.[playerInSeat?.uid] === true && (
                   <div className="absolute inset-0 flex items-center justify-center z-[999] pointer-events-none">
                     <img 
-                      src="/assets/images/Execute.png" 
+                      src="/assets/ui/Execute.png" 
                       className="w-[90%] h-[90%] object-contain" 
                       alt="Voted Execute" 
                       style={{ filter: 'brightness(0) saturate(100%) invert(17%) sepia(45%) saturate(3000%) hue-rotate(345deg) brightness(75%) contrast(95%)' }}
@@ -477,16 +479,29 @@ export const CenterStage = ({
           })}
 
             {/* Night Order Badges */}
-            {seats.map((seatIndex) => {
-              const playerInSeat = getPlayerInSeat(seatIndex);
-              const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
-              const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
-              if (!guessedRole) return null;
+            {(() => {
+              const firstWeights = new Set<number>();
+              const otherWeights = new Set<number>();
+              seats.forEach(i => {
+                const p = getPlayerInSeat(i);
+                const rId = seatRoleNotes[i] || (isHost && p?.roleId ? p.roleId : null) || null;
+                if (rId) {
+                  const r = Object.values(AllRoles).find(x => x.id === rId);
+                  if (r && r.firstNight && r.firstNight > 0) firstWeights.add(r.firstNight);
+                  if (r && r.otherNight && r.otherNight > 0) otherWeights.add(r.otherNight);
+                }
+              });
+              const sortedFirst = Array.from(firstWeights).sort((a, b) => a - b);
+              const sortedOther = Array.from(otherWeights).sort((a, b) => a - b);
 
-              const fIdx = script?.firstNight?.findIndex(x => x.id === guessedRole.id);
-              const oIdx = script?.otherNight?.findIndex(x => x.id === guessedRole.id);
-              const firstNum = fIdx !== undefined && fIdx !== -1 ? fIdx + 1 : null;
-              const otherNum = oIdx !== undefined && oIdx !== -1 ? oIdx + 1 : null;
+              return seats.map((seatIndex) => {
+                const playerInSeat = getPlayerInSeat(seatIndex);
+                const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
+                const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
+                if (!guessedRole) return null;
+
+                const firstNum = guessedRole.firstNight && guessedRole.firstNight > 0 ? sortedFirst.indexOf(guessedRole.firstNight) + 1 : null;
+                const otherNum = guessedRole.otherNight && guessedRole.otherNight > 0 ? sortedOther.indexOf(guessedRole.otherNight) + 1 : null;
 
               if (!firstNum && !otherNum) return null;
 
@@ -511,7 +526,7 @@ export const CenterStage = ({
                   )}
                 </div>
               );
-            })}
+            }); })()}
 
           {/* Render seat text independently so it stays on top of all circles */}
           {seats.map((seatIndex) => {
@@ -596,6 +611,19 @@ export const CenterStage = ({
             );
           })}
           </div> {/* End of Moonlight Wrapper */}
+        </div>
+      </div>
+
+      {/* 左下角說書人資訊 */}
+      <div className="absolute left-[36px] bottom-[1px] z-20 w-[220px] pointer-events-none pb-6 flex flex-col justify-end">
+        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
+           <div className="w-12 h-12 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
+             <span className="text-xl font-serif text-blue-200">GM</span>
+           </div>
+           <div className="flex flex-col items-start overflow-hidden w-full">
+             <span className="text-base text-[#d7b87c] font-bold tracking-widest uppercase">說書人</span>
+             <span className="text-base font-bold text-white truncate w-full">{hostPlayer?.name || "未知"}</span>
+           </div>
         </div>
       </div>
 
