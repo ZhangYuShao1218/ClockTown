@@ -12,12 +12,10 @@ export interface Role {
   description?: string;
   abilityHTML?: string;
   flavor?: string;
-}
-
-export interface NightOrderItem {
-  id: string;
-  name: string;
-  type: RoleType | 'info';
+  firstNight?: number;
+  otherNight?: number;
+  firstNightReminder?: string;
+  otherNightReminder?: string;
 }
 
 export interface Script {
@@ -25,8 +23,10 @@ export interface Script {
   name: string;
   description: string;
   roles: Role[];
-  firstNight: NightOrderItem[];
-  otherNight: NightOrderItem[];
+  jinxes?: Array<{ role1: string; role2: string; reason: string }>;
+  author?: string;
+  playerCount?: string;
+  category?: string;
 }
 
 export interface SeatStatus {

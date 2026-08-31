@@ -7,9 +7,13 @@ export const Butler: Role = {
   name: '管家',
   alignment: 'good',
   type: 'outsider',
-  icon: '/icons/butler.png',
+  icon: '/character/character_butler_outsider.png',
   ability: '每個夜晚，你要選擇除你以外的一名玩家：明天白天，只有他投票時你才能投票。',
-  abilityHTML: '每個夜晚，你要選擇除你以外的一名玩家：明天白天，只有<span class="highlight-good">他投票時你才能投票。</span>'
+  abilityHTML: '每個夜晚，你要選擇除你以外的一名玩家：明天白天，只有<span class="highlight-good">他投票時你才能投票。</span>',
+  firstNight: 8100,
+  otherNight: 11200,
+  firstNightReminder: '讓管家選擇一名玩家。標記那名玩家為他的主人。',
+  otherNightReminder: '讓管家選擇一名玩家。標記那名玩家為他的主人。'
 };
 
 export const Drunk: Role = {
@@ -18,9 +22,13 @@ export const Drunk: Role = {
   name: '酒鬼',
   alignment: 'good',
   type: 'outsider',
-  icon: '/icons/drunk.png',
+  icon: '/character/character_drunk_outsider.png',
   ability: '你不知道你是酒鬼。你以為你是一個鎮民角色，但其實你不是。',
-  abilityHTML: '你不知道你是酒鬼。你以為你是一個<span class="highlight-good">鎮民角色，但其實你不是。</span>'
+  abilityHTML: '你不知道你是酒鬼。你以為你是一個<span class="highlight-good">鎮民角色，但其實你不是。</span>',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 export const Recluse: Role = {
@@ -29,9 +37,13 @@ export const Recluse: Role = {
   name: '陌客',
   alignment: 'good',
   type: 'outsider',
-  icon: '/icons/recluse.png',
+  icon: '/character/character_recluse_outsider.png',
   ability: '你可能會被當作邪惡陣營、爪牙角色或惡魔角色，即使你已死亡。',
-  abilityHTML: '你可能會被當作<span class="highlight-evil">邪惡陣營、</span><span class="highlight-evil">爪牙角色或</span><span class="highlight-evil">惡魔角色，即使你已</span><span class="highlight-evil">死亡。</span>'
+  abilityHTML: '你可能會被當作<span class="highlight-evil">邪惡陣營、</span><span class="highlight-evil">爪牙角色或</span><span class="highlight-evil">惡魔角色，即使你已</span><span class="highlight-evil">死亡。</span>',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 export const Saint: Role = {
@@ -40,9 +52,13 @@ export const Saint: Role = {
   name: '聖徒',
   alignment: 'good',
   type: 'outsider',
-  icon: '/icons/saint.png',
+  icon: '/character/character_saint_outsider.png',
   ability: '如果你死於處決，你的陣營落敗。',
-  abilityHTML: '如果你死於處決，你的陣營<span class="highlight-evil">落敗。</span>'
+  abilityHTML: '如果你死於處決，你的陣營<span class="highlight-evil">落敗。</span>',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 

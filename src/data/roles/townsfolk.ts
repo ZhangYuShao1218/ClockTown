@@ -7,9 +7,13 @@ export const Washerwoman: Role = {
   name: '洗衣婦',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/washerwoman.png',
+  icon: '/character/character_washerwoman_townsfolk.png',
   ability: '在你的首個夜晚，你會得知兩名玩家和一個鎮民角色：這兩名玩家之一是該角色。',
-  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-good">鎮民角色：這兩名玩家之一是該角色。</span>'
+  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-good">鎮民角色：這兩名玩家之一是該角色。</span>',
+  firstNight: 7500,
+  otherNight: 0,
+  firstNightReminder: '展示那個鎮民角色標記。指向被你標記“鎮民”和“錯誤”的兩名玩家。',
+  otherNightReminder: ''
 };
 
 export const Librarian: Role = {
@@ -18,9 +22,13 @@ export const Librarian: Role = {
   name: '圖書管理員',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/librarian.png',
+  icon: '/character/character_librarian_townsfolk.png',
   ability: '在你的首個夜晚，你會得知兩名玩家和一個外來者角色：這兩名玩家之一是該角色（或者你會得知沒有外來者在場）。',
-  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-good">外來者角色：這兩名玩家之一是該角色（或者你會得知沒有</span><span class="highlight-good">外來者在場）。</span>'
+  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-good">外來者角色：這兩名玩家之一是該角色（或者你會得知沒有</span><span class="highlight-good">外來者在場）。</span>',
+  firstNight: 7600,
+  otherNight: 0,
+  firstNightReminder: '展示那個外來者角色標記。指向被你標記“外來者”和“錯誤”的兩名玩家。',
+  otherNightReminder: ''
 };
 
 export const Investigator: Role = {
@@ -29,9 +37,13 @@ export const Investigator: Role = {
   name: '調查員',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/investigator.png',
+  icon: '/character/character_investigator_townsfolk.png',
   ability: '在你的首個夜晚，你會得知兩名玩家和一個爪牙角色：這兩名玩家之一是該角色（或者你會得知沒有爪牙在場）。',
-  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-evil">爪牙角色：這兩名玩家之一是該角色（或者你會得知沒有</span><span class="highlight-evil">爪牙在場）。</span>'
+  abilityHTML: '在你的首個夜晚，你會得知<span class="highlight-evil">兩名玩家和一個</span><span class="highlight-evil">爪牙角色：這兩名玩家之一是該角色（或者你會得知沒有</span><span class="highlight-evil">爪牙在場）。</span>',
+  firstNight: 7700,
+  otherNight: 0,
+  firstNightReminder: '展示那個爪牙角色標記。指向被你標記“爪牙”和“錯誤”的兩名玩家。',
+  otherNightReminder: ''
 };
 
 export const Chef: Role = {
@@ -40,9 +52,13 @@ export const Chef: Role = {
   name: '廚師',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/chef.png',
+  icon: '/character/character_chef_townsfolk.png',
   ability: '在你的首個夜晚，你會得知場上鄰座的邪惡玩家有多少對。',
-  abilityHTML: '在你的首個夜晚，你會得知場上<span class="highlight-good">鄰座的</span><span class="highlight-evil">邪惡玩家有多少對。</span>'
+  abilityHTML: '在你的首個夜晚，你會得知場上<span class="highlight-good">鄰座的</span><span class="highlight-evil">邪惡玩家有多少對。</span>',
+  firstNight: 7800,
+  otherNight: 0,
+  firstNightReminder: '給他展示數字手勢來告訴他場上鄰座邪惡玩家有多少對。',
+  otherNightReminder: ''
 };
 
 export const Empath: Role = {
@@ -51,9 +67,13 @@ export const Empath: Role = {
   name: '共情者',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/empath.png',
+  icon: '/character/character_empath_townsfolk.png',
   ability: '每個夜晚，你會得知與你鄰近的兩名存活的玩家中邪惡玩家的數量。',
-  abilityHTML: '每個夜晚，你會得知與你<span class="highlight-good">鄰近的兩名</span><span class="highlight-good">存活的玩家中</span><span class="highlight-evil">邪惡玩家的數量。</span>'
+  abilityHTML: '每個夜晚，你會得知與你<span class="highlight-good">鄰近的兩名</span><span class="highlight-good">存活的玩家中</span><span class="highlight-evil">邪惡玩家的數量。</span>',
+  firstNight: 7900,
+  otherNight: 11000,
+  firstNightReminder: '給他展示數字手勢來告訴他與他鄰近的存活玩家有幾人是邪惡的。',
+  otherNightReminder: '給他展示數字手勢來告訴他與他鄰近的存活玩家有幾人是邪惡的。'
 };
 
 export const FortuneTeller: Role = {
@@ -62,9 +82,13 @@ export const FortuneTeller: Role = {
   name: '占卜師',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/fortuneteller.png',
+  icon: '/character/character_fortune_teller_townsfolk.png',
   ability: '每個夜晚，你要選擇兩名玩家：你會得知他們之中是否有惡魔。會有一名善良玩家始終被你的能力當作惡魔。',
-  abilityHTML: '每個夜晚，你要選擇兩名玩家：你會得知他們之中是否有<span class="highlight-evil">惡魔。會有一名</span><span class="highlight-good">善良玩家始終被你的能力當作</span><span class="highlight-evil">惡魔。</span>'
+  abilityHTML: '每個夜晚，你要選擇兩名玩家：你會得知他們之中是否有<span class="highlight-evil">惡魔。會有一名</span><span class="highlight-good">善良玩家始終被你的能力當作</span><span class="highlight-evil">惡魔。</span>',
+  firstNight: 8000,
+  otherNight: 11100,
+  firstNightReminder: '讓占卜師選擇兩名玩家。如果其中有惡魔或“干擾項”，點頭示意，否則搖頭。',
+  otherNightReminder: '讓占卜師選擇兩名玩家。如果其中有惡魔或“干擾項”，點頭示意，否則搖頭。'
 };
 
 export const Undertaker: Role = {
@@ -73,9 +97,13 @@ export const Undertaker: Role = {
   name: '送葬者',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/undertaker.png',
+  icon: '/character/character_undertaker_townsfolk.png',
   ability: '每個夜晚*，你會得知今天白天死於處決的玩家的角色。',
-  abilityHTML: '每個夜晚*，你會得知今天<span class="highlight-evil">白天死於處決的玩家的角色。</span>'
+  abilityHTML: '每個夜晚*，你會得知今天<span class="highlight-evil">白天死於處決的玩家的角色。</span>',
+  firstNight: 0,
+  otherNight: 11300,
+  firstNightReminder: '',
+  otherNightReminder: '如果有玩家今天白天死於處決，喚醒送葬者並對他展示那名玩家的角色標記。'
 };
 
 export const Monk: Role = {
@@ -84,9 +112,13 @@ export const Monk: Role = {
   name: '僧侶',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/monk.png',
+  icon: '/character/character_monk_townsfolk.png',
   ability: '每個夜晚*，你要選擇除你以外的一名玩家：當晚惡魔的負面能力對他無效。',
-  abilityHTML: '每個夜晚*，你要選擇除你以外的一名玩家：當晚<span class="highlight-evil">惡魔的負面能力對他無效。</span>'
+  abilityHTML: '每個夜晚*，你要選擇除你以外的一名玩家：當晚<span class="highlight-evil">惡魔的負面能力對他無效。</span>',
+  firstNight: 0,
+  otherNight: 2200,
+  firstNightReminder: '',
+  otherNightReminder: '讓僧侶選擇除自己外的一名玩家。標記那名玩家被保護。'
 };
 
 export const Ravenkeeper: Role = {
@@ -95,9 +127,13 @@ export const Ravenkeeper: Role = {
   name: '守鴉人',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/ravenkeeper.png',
+  icon: '/character/character_ravenkeeper_townsfolk.png',
   ability: '如果你在夜晚死亡，你會被喚醒，然後你要選擇一名玩家：你會得知他的角色。',
-  abilityHTML: '如果你在<span class="highlight-evil">夜晚死亡，你會被喚醒，然後你要選擇一名玩家：你會</span><span class="highlight-good">得知他的角色。</span>'
+  abilityHTML: '如果你在<span class="highlight-evil">夜晚死亡，你會被喚醒，然後你要選擇一名玩家：你會</span><span class="highlight-good">得知他的角色。</span>',
+  firstNight: 0,
+  otherNight: 9800,
+  firstNightReminder: '',
+  otherNightReminder: '如果守鴉人今晚死亡，喚醒他並讓他選擇一名玩家。對他展示那名玩家的角色標記。'
 };
 
 export const Virgin: Role = {
@@ -106,9 +142,13 @@ export const Virgin: Role = {
   name: '貞潔者',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/virgin.png',
+  icon: '/character/character_virgin_townsfolk.png',
   ability: '當你首次被提名時，如果提名你的玩家是鎮民，他立刻被處決。',
-  abilityHTML: '當你<span class="highlight-evil">首次被提名時，如果提名你的玩家是</span><span class="highlight-good">鎮民，他立刻被</span><span class="highlight-evil">處決。</span>'
+  abilityHTML: '當你<span class="highlight-evil">首次被提名時，如果提名你的玩家是</span><span class="highlight-good">鎮民，他立刻被</span><span class="highlight-evil">處決。</span>',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 export const Slayer: Role = {
@@ -117,9 +157,13 @@ export const Slayer: Role = {
   name: '獵手',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/slayer.png',
+  icon: '/character/character_slayer_townsfolk.png',
   ability: '一局遊戲僅限一次。在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為惡魔，則該玩家死亡；否則無事發生。',
-  abilityHTML: '<span class="highlight-good">一局遊戲僅限一次。</span>在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為<span class="highlight-evil">惡魔</span>，則該玩家<span class="highlight-evil">死亡</span>；否則無事發生。'
+  abilityHTML: '<span class="highlight-good">一局遊戲僅限一次。</span>在白天任意時間，你可以選擇公開對場上存活的任意一名玩家發動技能；如果該名玩家為<span class="highlight-evil">惡魔</span>，則該玩家<span class="highlight-evil">死亡</span>；否則無事發生。',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 export const Soldier: Role = {
@@ -128,9 +172,13 @@ export const Soldier: Role = {
   name: '士兵',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/soldier.png',
+  icon: '/character/character_soldier_townsfolk.png',
   ability: '惡魔的負面能力對你無效。',
-  abilityHTML: '<span class="highlight-evil">惡魔的負面能力對你無效。</span>'
+  abilityHTML: '<span class="highlight-evil">惡魔的負面能力對你無效。</span>',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };
 
 export const Mayor: Role = {
@@ -139,7 +187,11 @@ export const Mayor: Role = {
   name: '鎮長',
   alignment: 'good',
   type: 'townsfolk',
-  icon: '/icons/mayor.png',
+  icon: '/character/character_mayor_townsfolk.png',
   ability: '如果只有三名玩家存活且白天没有人被處决，你的陣營獲勝。如果你在夜晚即將死亡，可能會有一名其他玩家代替你死亡。',
-  abilityHTML: '如果只有<span class="highlight-good">三名玩家存活</span>且白天<span class="highlight-good">没有人被處决，你的陣營獲勝</span>。如果你在夜晚即將<span class="highlight-evil">死亡</span>，可能會有一名其他玩家<span class="highlight-evil">代替你死亡</span>。'
+  abilityHTML: '如果只有<span class="highlight-good">三名玩家存活</span>且白天<span class="highlight-good">没有人被處决，你的陣營獲勝</span>。如果你在夜晚即將<span class="highlight-evil">死亡</span>，可能會有一名其他玩家<span class="highlight-evil">代替你死亡</span>。',
+  firstNight: 0,
+  otherNight: 0,
+  firstNightReminder: '',
+  otherNightReminder: ''
 };

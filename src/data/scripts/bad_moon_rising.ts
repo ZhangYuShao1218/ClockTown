@@ -1,0 +1,40 @@
+import type { Script } from '../types';
+import { AllRoles } from '../roles';
+
+export const BadMoonRising: Script = {
+  id: 'bad_moon_rising',
+    name: '黯月初升 Bad Moon Rising',
+  description: '《黯月初升》是一場死亡盛宴。<br><br>惡魔每晚能多次殺人，爪牙也會參與其中。善良玩家能冒著巨大風險來獲得可靠的信息，但在這過程中也可能會意外殺死自己的朋友。幸運的是，遊戲中有著多種方式能讓命數已盡的玩家保持存活。然而，如果善良陣營無法確定有哪些爪牙和惡魔在場，那麼一切都將邁向毀滅的深淵。<br><br>難度：中等。推薦給積極主動、善於合作、不懼死亡的玩家遊玩。<br><br>在玩《黯月初升》時……<br><br>善良玩家如果消極被動，幾乎無法獲取信息。某些鎮民的能力需要善良陣營來處決玩家以獲得信息（例如茶藝師和和平主義者），而其他的能力則鼓勵善良玩家冒著死亡的風險來確定玩家的身份（例如賭徒和造謠者）。只要善良玩家行動起來，他們就會得知相應的信息。<br><br>善良陣營也需要高度關注誰在夜晚死去了，以及死亡的原因。如果善良玩家忽略了這一點，就很有可能在還有四名、五名甚至六名玩家存活的情況下，意外落敗。不過，如果他們能夠釐清在夜晚死亡的每名玩家都是因何而死，就能弄清有哪些邪惡角色在場，以避免因為可怕的主謀或是駭人的珀而輸掉遊戲。同時，他們還能獲得有用的線索來確定哪些善良角色意外殺死了哪些玩家（例如月之子和修補匠）。<br><br>邪惡玩家可能一開始覺得己方所向披靡，但是為了獲勝，他們需要精準且謹慎地使用自己的能力。惡魔可能需要說服善良陣營相信場上是另一種類的惡魔，來避開某些能對自己造成毀滅性打擊的善良角色（例如驅魔人和侍臣）。並且惡魔可能需要通過故意不殺人來佐證自己的觀點。但是如果惡魔能確定應該攻擊誰、不應該攻擊誰（例如茶藝師的鄰近玩家，以及弄臣），那善良陣營就有大麻煩了。<br><br>爪牙需要把握好使用能力的時機。發動了適時刺殺的刺客，沉得住氣的魔鬼代言人，或是看透人心的主謀，都足以讓邪惡陣營反敗為勝。',
+  roles: [
+    AllRoles['grandmother'],
+    AllRoles['sailor'],
+    AllRoles['chambermaid'],
+    AllRoles['exorcist'],
+    AllRoles['innkeeper'],
+    AllRoles['gambler'],
+    AllRoles['gossip'],
+    AllRoles['courtier'],
+    AllRoles['professor'],
+    AllRoles['minstrel'],
+    AllRoles['tea_lady'],
+    AllRoles['pacifist'],
+    AllRoles['fool'],
+    AllRoles['tinker'],
+    AllRoles['moonchild'],
+    AllRoles['goon'],
+    AllRoles['lunatic'],
+    AllRoles['godfather'],
+    AllRoles['devils_advocate'],
+    AllRoles['assassin'],
+    AllRoles['mastermind'],
+    AllRoles['zombuul'],
+    AllRoles['pukka'],
+    AllRoles['shabaloth'],
+    AllRoles['po'],
+    AllRoles['voudon'],
+    AllRoles['bishop'],
+    AllRoles['judge'],
+    AllRoles['matron'],
+    AllRoles['apprentice'],
+  ]
+};

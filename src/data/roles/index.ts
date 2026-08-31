@@ -4,6 +4,7 @@ import * as outsiders from './outsiders';
 import * as minions from './minions';
 import * as demons from './demons';
 import * as travelers from './travelers';
+import { NewRoles } from './new_roles';
 
 export const AllRoles: Record<string, Role> = {
   washerwoman: townsfolk.Washerwoman,
@@ -30,5 +31,6 @@ export const AllRoles: Record<string, Role> = {
   imp: demons.Imp,
   scapegoat: travelers.Scapegoat,
   sentinel: demons.Sentinel,
-  angel: demons.Angel
+  angel: demons.Angel,
+  ...NewRoles
 };
