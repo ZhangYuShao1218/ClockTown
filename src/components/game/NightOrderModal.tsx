@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Modal } from "../common/Modal";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { AllRoles } from "../../data/roles";
+import { RoleTooltip } from "../common/RoleTooltip";
 
 interface NightOrderModalProps {
   isOpen: boolean;
@@ -11,7 +13,7 @@ interface NightOrderModalProps {
 
 
 
-const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
+const RolePill = ({ item, isBottom, setHoveredRoleTooltip }: { item: any; isBottom?: boolean; setHoveredRoleTooltip: any }) => {
   const role = AllRoles[item.id as keyof typeof AllRoles];
   
   const pillStyles: Record<string, { outer: string, inner: string }> = {
@@ -25,22 +27,27 @@ const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
   const type = role?.type || item.type || 'info';
   const style = pillStyles[type] || pillStyles['info'];
 
-  let abilityHTML = role?.abilityHTML || role?.ability || '';
-  if (item.id === 'minion_info') {
-    abilityHTML = '如果場上有爪牙玩家，你得知<span class="highlight-evil">惡魔</span>以及其他爪牙偽裝的身分。';
-  } else if (item.id === 'demon_info') {
-    abilityHTML = '如果場上有爪牙玩家，惡魔會得知<span class="highlight-evil">爪牙</span>，並得知三個不在場的<span class="highlight-good">善良陣營</span>角色。';
+  let reminderHTML = isBottom 
+    ? (role?.otherNightReminder || item.otherNightReminder || '') 
+    : (role?.firstNightReminder || item.firstNightReminder || '');
+    
+  if (!reminderHTML) {
+    reminderHTML = role?.abilityHTML || role?.ability || item.abilityHTML || item.ability || '';
   }
 
+  const tooltipRole = {
+    ...(role || item),
+    abilityHTML: reminderHTML
+  };
+
   return (
-    <div className={`p-[2px] rounded-lg w-[80px] shrink-0 shadow-lg group hover:-translate-y-1 transition-transform relative ${style.outer}`}>
+    <div 
+      className={`p-[2px] rounded-lg w-[80px] shrink-0 shadow-lg group hover:-translate-y-1 transition-transform relative ${style.outer}`}
+      onMouseEnter={(e) => { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: tooltipRole, x: rect.left + rect.width / 2, y: rect.bottom }); }}
+      onMouseLeave={() => setHoveredRoleTooltip(null)}
+    >
       <div className={`flex flex-col items-center px-[3px] pt-[3px] pb-2 rounded-[6px] w-full h-full ${style.inner}`}>
         
-        {/* Tooltip */}
-        <div className={`absolute ${isBottom ? 'top-full mt-2' : 'bottom-full mb-2'} left-1/2 -translate-x-1/2 w-48 bg-slate-800/95 border-2 border-slate-500 text-white text-xs leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none`}>
-          <div dangerouslySetInnerHTML={{ __html: abilityHTML }} />
-        </div>
-
         {!isBottom && <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/20"></div>}
         {isBottom && <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/20"></div>}
 
@@ -61,49 +68,72 @@ const RolePill = ({ item, isBottom }: { item: any; isBottom?: boolean }) => {
 };
 
 export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProps) => {
+  const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
+
   if (!isOpen || !script) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={true} title={`${script.name} - 角色順序表`}>
-      <div className="w-full py-6">
-        <div className="flex flex-col items-center">
-          
-          {/* 上方：首夜 */}
-          <div className="flex items-end gap-3 mb-6">
-            {script.firstNight?.map((item, idx) => (
-              <div key={`first-${idx}`} className="flex flex-col items-center">
-                <span className="text-[14pt] text-white/60 mb-2 font-bold">{idx + 1}</span>
-                <RolePill item={item} />
-              </div>
-            ))}
-          </div>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[90vw]" noOverlay={true} title={""}>
+      <div className="relative w-full h-auto max-h-[85vh] flex flex-col">
+        {/* Floating Title */}
+        <div className="absolute -top-[30px] right-2 z-50 pointer-events-none drop-shadow-xl text-right">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#ff6b6b] opacity-90 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+            {script.name} - 角色順序表
+          </h2>
+        </div>
 
-          {/* 中央：時間軸箭頭 */}
-          <div className="flex items-center w-full my-6 relative px-8">
-            <span className="text-3xl font-bold text-indigo-400 tracking-widest mr-6 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">黑夜</span>
-            <div className="flex-1 h-2 bg-gradient-to-r from-indigo-600 via-purple-500 to-yellow-500 relative flex justify-center items-center rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-               
-               <span className="absolute -top-10 text-2xl font-bold text-indigo-300 tracking-widest drop-shadow-md">首夜</span>
-               <span className="absolute -bottom-10 text-2xl font-bold text-indigo-300 tracking-widest drop-shadow-md">其他夜晚</span>
-               
-               {/* 箭頭頭部 */}
-               <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-6 h-6 border-t-4 border-r-4 border-yellow-400 transform rotate-45 translate-x-2"></div>
+        <div className="w-full py-4 mt-6 flex flex-col overflow-hidden">
+          <div className="flex flex-col items-center w-full px-4 pb-4">
+            
+            {/* 上方：首夜 */}
+            <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar mb-2 relative pb-2 pt-1" onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}>
+              <div className="flex items-end gap-3 w-max mx-auto px-4">
+                {[
+                  { id: 'minion_info', name: '爪牙資訊', type: 'info', firstNight: 2000, firstNightReminder: '如果場上有7名或更多玩家：喚醒所有爪牙。向他們展示「這是惡魔」資訊標記，然後指出惡魔玩家。讓爪牙重新閉眼。' },
+                  { id: 'demon_info', name: '惡魔資訊', type: 'info', firstNight: 3000, firstNightReminder: '如果場上有7名或更多玩家：喚醒惡魔。向其展示「這些是你的爪牙」資訊標記，然後指出所有爪牙玩家。向其展示「這些角色不在場」資訊標記，然後向其展示3個不在場的善良角色標記。讓惡魔重新閉眼。' },
+                  ...[...script.roles]
+                ]
+                  .filter(r => (r.firstNight ?? 0) > 0)
+                  .sort((a, b) => (a.firstNight!) - (b.firstNight!))
+                  .map((item, idx) => (
+                  <div key={`first-${item.id}-${idx}`} className="flex flex-col items-center">
+                    <span className="text-[14pt] text-white/60 mb-2 font-bold">{idx + 1}</span>
+                    <RolePill item={item} setHoveredRoleTooltip={setHoveredRoleTooltip} />
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="text-3xl font-bold text-yellow-500 tracking-widest ml-8 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">白天</span>
-          </div>
 
-          {/* 下方：其他夜晚 */}
-          <div className="flex items-start gap-3 mt-6">
-            {script.otherNight?.map((item, idx) => (
-              <div key={`other-${idx}`} className="flex flex-col items-center">
-                <RolePill item={item} isBottom={true} />
-                <span className="text-[14pt] text-white/60 mt-2 font-bold">{idx + 1}</span>
+            {/* 中央：時間軸箭頭 */}
+            <div className="flex items-center w-full my-6 relative px-8 shrink-0 max-w-5xl">
+              <span className="text-2xl font-bold text-indigo-400 tracking-widest mr-6 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)] whitespace-nowrap">黑夜</span>
+              <div className="flex-1 h-2 bg-gradient-to-r from-indigo-600 via-purple-500 to-yellow-500 relative flex justify-center items-center rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                 
+                 <span className="absolute -top-8 text-xl font-bold text-indigo-300 tracking-widest drop-shadow-md">首夜</span>
+                 <span className="absolute -bottom-8 text-xl font-bold text-indigo-300 tracking-widest drop-shadow-md">其他夜晚</span>
+                 
+                 {/* 箭頭頭部 */}
+                 <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-6 h-6 border-t-4 border-r-4 border-yellow-400 transform rotate-45 translate-x-2"></div>
               </div>
-            ))}
-          </div>
+              <span className="text-2xl font-bold text-yellow-500 tracking-widest ml-8 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)] whitespace-nowrap">白天</span>
+            </div>
 
+            {/* 下方：其他夜晚 */}
+            <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar mt-2 relative pt-2 pb-1" onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}>
+              <div className="flex items-start gap-3 w-max mx-auto px-4">
+                {[...script.roles].filter(r => (r.otherNight ?? 0) > 0).sort((a, b) => (a.otherNight!) - (b.otherNight!))
+                  .map((item, idx) => (
+                  <div key={`other-${item.id}-${idx}`} className="flex flex-col items-center">
+                    <RolePill item={item} isBottom={true} setHoveredRoleTooltip={setHoveredRoleTooltip} />
+                    <span className="text-[14pt] text-white/60 mt-2 font-bold">{idx + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <RoleTooltip hoveredRole={hoveredRoleTooltip} />
     </Modal>
   );
 };

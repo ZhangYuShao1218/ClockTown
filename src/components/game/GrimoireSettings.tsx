@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles } from "../../services/roomService";
+import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles, rotateGrimoireRoles } from "../../services/roomService";
 import { AlertDialog } from "../common/AlertDialog";
+import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { AllScripts } from "../../data/scripts";
 import type { Script } from "../../data/types";
 
@@ -43,7 +44,7 @@ export const GrimoireSettings = ({
 }: GrimoireSettingsProps) => {
   const [localScripts, setLocalScripts] = useState<any[]>([]);
   const [newScriptName, setNewScriptName] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isScriptSelectionOpen, setScriptSelectionOpen] = useState(false);
   const [missingSeatAlert, setMissingSeatAlert] = useState<string | null>(null);
 
   const handleDistribute = async () => {
@@ -217,20 +218,29 @@ export const GrimoireSettings = ({
           </div>
           
           <div className="space-y-2">
-            {localScripts.map(s => (
+            {localScripts.map(s => {
+              const baseScript = AllScripts[s.data?.scriptId];
+              const baseName = baseScript ? baseScript.name : '未知劇本 Unknown';
+              return (
               <div 
                 key={s.id} 
                 onClick={() => handleSelectScript(s)} 
                 className="p-3 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg cursor-pointer flex justify-between items-center group transition-colors"
               >
-                <span className="text-white/90 font-bold tracking-wide text-base">{s.name}</span>
+                <div className="flex flex-col min-w-0 pr-2">
+                  <span className="text-white/90 font-bold tracking-wide text-base truncate">{s.name}</span>
+                  <div className="flex space-x-2 mt-1">
+                    <span className="text-xs bg-purple-900/50 border border-purple-500/30 text-purple-200 px-2 py-0.5 rounded truncate">{baseName}</span>
+                    <span className="text-xs bg-blue-900/50 border border-blue-500/30 text-blue-200 px-2 py-0.5 rounded shrink-0">{s.data?.seatCount || 0}人</span>
+                  </div>
+                </div>
                 <button 
                   onClick={(e) => handleDeleteScript(s.id, e)} 
-                  className="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1 rounded text-base font-bold transition-all shadow-md"
+                  className="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1 rounded text-base font-bold transition-all shadow-md shrink-0"
                   title="刪除"
                 >刪除</button>
               </div>
-            ))}
+            );})}
             {localScripts.length === 0 && (
               <p className="text-base text-white/40 text-center py-6 border border-dashed border-white/10 rounded-lg">
                 尚無自訂劇本，請先新增。
@@ -289,25 +299,19 @@ export const GrimoireSettings = ({
             <span className="text-base font-bold text-slate-300 pr-4 shrink-0">劇本種類</span>
             <div className="relative w-full max-w-[180px]">
               <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setScriptSelectionOpen(true)}
                 className="bg-slate-950 border border-slate-600 hover:border-slate-400 rounded px-3 py-1.5 text-base font-bold text-white w-full flex justify-between items-center transition-colors"
               >
                 <span className="truncate">{AllScripts[scriptId]?.name || "未知劇本"}</span>
                 <svg className="w-4 h-4 ml-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
-              {isDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-full bg-slate-900 border border-slate-600 rounded-lg shadow-xl z-50 py-1">
-                  {Object.keys(AllScripts).map(key => (
-                    <div 
-                      key={key} 
-                      onClick={() => { handleScriptTypeChange(key); setIsDropdownOpen(false); }}
-                      className="px-4 py-2 text-base text-slate-200 hover:bg-slate-700 hover:text-white cursor-pointer font-medium truncate"
-                    >
-                      {AllScripts[key].name}
-                    </div>
-                  ))}
-                </div>
-              )}
+              
+              <ScriptSelectionModal
+                isOpen={isScriptSelectionOpen}
+                onClose={() => setScriptSelectionOpen(false)}
+                currentScriptId={scriptId}
+                onSelect={(id) => { handleScriptTypeChange(id); setScriptSelectionOpen(false); }}
+              />
             </div>
           </div>
           
@@ -357,6 +361,24 @@ export const GrimoireSettings = ({
         </div>
 
         {renderSettingsBlock()}
+
+        <div className="flex space-x-3 mt-4">
+          <button 
+            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'cw')}
+            className="flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2"
+          >
+            <span>順時針旋轉</span>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-1.5m1.5 0a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8 8 8 0 01-8-8z" /></svg>
+          </button>
+          
+          <button 
+            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'ccw')}
+            className="flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2"
+          >
+            <svg className="w-5 h-5 -scale-x-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-1.5m1.5 0a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8 8 8 0 01-8-8z" /></svg>
+            <span>逆時針旋轉</span>
+          </button>
+        </div>
 
         <div className="flex space-x-3 mt-2">
           <button 

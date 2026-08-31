@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleTooltip } from '../common/RoleTooltip';
@@ -17,6 +16,7 @@ interface RoleSelectionModalProps {
 }
 
 export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterType = 'normal', selectedFabled = [], noOverlay = true }: RoleSelectionModalProps) => {
+  const [activeTab, setActiveTab] = useState<"script" | "traveler">("script");
   const [hoveredRole, setHoveredRole] = useState<{role: Role, x: number, y: number} | null>(null);
 
   if (!isOpen) return null;
@@ -87,27 +87,33 @@ export const RoleSelectionModal = ({ isOpen, onClose, onSelect, script, filterTy
     content = renderRoleGroup("傳奇角色", fabledRoles as Role[], false, true);
   } else {
     if (!script) return null;
-    const townsfolk = script.roles.filter(r => r.type === 'townsfolk');
-    const clearRole = { id: '', name: '清除', type: 'townsfolk', icon: 'X', alignment: 'good', ability: '清除資訊' } as unknown as Role;
-    const townsfolkWithClear = [clearRole, ...townsfolk];
-    const outsider = script.roles.filter(r => r.type === 'outsider');
-    const minion = script.roles.filter(r => r.type === 'minion');
-    const demon = script.roles.filter(r => r.type === 'demon');
+    
+    if (activeTab === 'traveler') {
+      const travelerRoles = Object.values(AllRoles).filter(r => r.type === 'traveler');
+      content = renderRoleGroup("旅行者", travelerRoles as Role[], false, false);
+    } else {
+      const townsfolk = script.roles.filter(r => r.type === 'townsfolk');
+      const clearRole = { id: '', name: '清除', type: 'townsfolk', icon: 'X', alignment: 'good', ability: '清除資訊' } as unknown as Role;
+      const townsfolkWithClear = [clearRole, ...townsfolk];
+      const outsider = script.roles.filter(r => r.type === 'outsider');
+      const minion = script.roles.filter(r => r.type === 'minion');
+      const demon = script.roles.filter(r => r.type === 'demon');
 
-    content = (
-      <>
-        {renderRoleGroup("鎮民", townsfolkWithClear, false)}
-        {renderRoleGroup("外來者", outsider, false)}
-        {renderRoleGroup("爪牙", minion, true)}
-        {renderRoleGroup("惡魔", demon, true)}
-      </>
-    );
+      content = (
+        <>
+          {renderRoleGroup("鎮民", townsfolkWithClear, false)}
+          {renderRoleGroup("外來者", outsider, false)}
+          {renderRoleGroup("爪牙", minion, true)}
+          {renderRoleGroup("惡魔", demon, true)}
+        </>
+      );
+    }
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={noOverlay} title={filterType === 'fabled' ? "選擇傳奇角色" : "選擇角色"}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[80vw]" noOverlay={noOverlay} title={filterType === 'fabled' ? "選擇傳奇角色" : <div className="flex flex-1 justify-between items-center w-full min-w-[300px] md:min-w-[400px]"><span>選擇角色</span><div className="flex gap-2 ml-auto tracking-normal"><button onClick={() => setActiveTab("script")} className={`px-4 py-1 text-base font-bold rounded-lg border-2 transition-colors ${activeTab === "script" ? "bg-indigo-600/60 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "bg-slate-800/60 border-slate-600 text-slate-400 hover:text-white"}`}>劇本</button><button onClick={() => setActiveTab("traveler")} className={`px-4 py-1 text-base font-bold rounded-lg border-2 transition-colors ${activeTab === "traveler" ? "bg-indigo-600/60 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]" : "bg-slate-800/60 border-slate-600 text-slate-400 hover:text-white"}`}>旅行者</button></div></div>}>
       <div className="relative">
-        <div className="max-h-[70vh] overflow-y-auto px-2 pb-8 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="h-[60vh] md:h-[65vh] overflow-y-auto px-2 pb-4 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {content}
         </div>
       </div>

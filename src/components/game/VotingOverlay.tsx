@@ -178,7 +178,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       {/* Nominator Static Pointer (Blue) */}
       {typeof nominatorSeat === 'number' && (
         <img 
-          src="/assets/images/Blue_Pointer_clean.png"
+          src="/assets/ui/Blue_Pointer_clean.png"
           className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-md"
           style={{ 
             height: `${blueHeight}%`,
@@ -191,7 +191,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       {/* Sweeping Pointer (Red) */}
       {typeof nominatorSeat === 'number' && (
         <img 
-          src="/assets/images/Red_Pointer_clean.png"
+          src="/assets/ui/Red_Pointer_clean.png"
           className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-10 drop-shadow-md"
           style={{ 
             height: `${redHeight}%`,

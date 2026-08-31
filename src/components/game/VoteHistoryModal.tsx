@@ -20,7 +20,7 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={<span className="text-amber-500 drop-shadow-sm">投票紀錄</span>} 
+      title={<span className="text-amber-500 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]">投票紀錄</span>} 
       maxWidth="max-w-3xl"
       noOverlay={true}
     >
@@ -31,7 +31,7 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
           ) : (
             <div className="flex flex-col min-w-[500px]">
               {/* Header */}
-              <div className="grid grid-cols-5 gap-2 border-b-2 border-white/20 pb-3 mb-2 text-amber-200/80 text-lg font-bold text-center tracking-widest uppercase drop-shadow-sm">
+              <div className="grid grid-cols-5 gap-2 border-b-2 border-white/20 pb-3 mb-2 text-amber-200/80 text-lg font-bold text-center tracking-widest uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]">
                 <div>提名人</div>
                 <div>被提名人</div>
                 <div>有效票數</div>
@@ -64,11 +64,11 @@ export const VoteHistoryModal: React.FC<VoteHistoryModalProps> = ({ roomId, isOp
                           : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/80'
                       }`}
                     >
-                      <div className="font-bold truncate text-blue-300 drop-shadow-sm" title={nominatorName}>
+                      <div className="font-bold truncate text-blue-300 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]" title={nominatorName}>
                         <span className="text-white text-base font-bold mr-1.5 font-sans">{record.nominatorSeat}.</span>
                         {nominatorName}
                       </div>
-                      <div className="font-bold truncate text-red-400 drop-shadow-sm" title={nomineeName}>
+                      <div className="font-bold truncate text-red-400 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]" title={nomineeName}>
                         <span className="text-white text-base font-bold mr-1.5 font-sans">{record.nomineeSeat}.</span>
                         {nomineeName}
                       </div>

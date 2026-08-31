@@ -1,37 +1,25 @@
-import { useState } from "react";
 import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
+import { AllRoles } from "../../data/roles";
 
-interface RoleInfoModalProps {
+interface TravelerFabledModalProps {
   isOpen: boolean;
   onClose: () => void;
   script: Script | undefined;
 }
 
-export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
-  const [activeTab, setActiveTab] = useState<'good'|'evil'|'traveler'|'fabled'>('good');
+export const TravelerFabledModal = ({ isOpen, onClose, script }: TravelerFabledModalProps) => {
   if (!isOpen || !script) return null;
 
-  const validRoles = script.roles.filter(Boolean);
-  const townsfolk = validRoles.filter(r => r.type === 'townsfolk');
-  const outsider = validRoles.filter(r => r.type === 'outsider');
-  const minion = validRoles.filter(r => r.type === 'minion');
-  const demon = validRoles.filter(r => r.type === 'demon');
+  const allRolesList = Object.values(AllRoles) as Role[];
+  const travelers = allRolesList.filter(r => r.type === 'traveler');
+  const fabled = allRolesList.filter(r => r.type === 'fabled');
 
-  let renderGroups: { title: string, roles: Role[], color: string, bg: string, border: string, titleBorder: string }[] = [];
-
-  if (activeTab === 'good') {
-    renderGroups = [
-      { title: "鎮民", roles: townsfolk, color: "text-blue-300", bg: "bg-blue-900/20", border: "border-blue-900/50", titleBorder: "border-blue-500/80" },
-      { title: "外來者", roles: outsider, color: "text-blue-200", bg: "bg-blue-800/20", border: "border-blue-800/50", titleBorder: "border-blue-400/80" }
-    ];
-  } else if (activeTab === 'evil') {
-    renderGroups = [
-      { title: "爪牙", roles: minion, color: "text-red-400", bg: "bg-red-900/20", border: "border-red-900/50", titleBorder: "border-red-500/80" },
-      { title: "惡魔", roles: demon, color: "text-red-500", bg: "bg-rose-900/20", border: "border-rose-900/50", titleBorder: "border-red-600/80" }
-    ];
-  }
+  const renderGroups = [
+    { title: "旅行者", roles: travelers, color: "text-purple-400", bg: "bg-purple-900/20", border: "border-purple-900/50", titleBorder: "border-purple-500/80" },
+    { title: "傳奇角色", roles: fabled, color: "text-amber-400", bg: "bg-amber-900/20", border: "border-amber-900/50", titleBorder: "border-amber-500/80" }
+  ];
 
   return (
     <Modal 
@@ -46,17 +34,11 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
         {/* Floating Title */}
         <div className="absolute -top-[15px] right-2 z-50 pointer-events-none drop-shadow-xl text-right">
           <h2 className="text-2xl md:text-3xl font-bold text-[#ff6b6b] opacity-90 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
-            {script.name} - 角色資訊
+            旅行者 & 傳奇角色
           </h2>
         </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-3 mt-1 mb-4">
-          <button onClick={() => setActiveTab('good')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
-          <button onClick={() => setActiveTab('evil')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
-        </div>
-
-        <div className="w-full space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-4">
+        <div className="w-full space-y-4 mt-8 overflow-y-auto custom-scrollbar flex-1 pb-4">
           {renderGroups.map((group, idx) => {
             if (group.roles.length === 0) return null;
             return (
