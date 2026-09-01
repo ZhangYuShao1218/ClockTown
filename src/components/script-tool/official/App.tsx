@@ -14,6 +14,8 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Drawer,
+  IconButton,
 } from '@mui/material';
 import {
   Print as PrintIcon,
@@ -21,6 +23,8 @@ import {
   InfoOutlined as InfoIcon,
   Image as ImageIcon,
   OpenInNew as OpenInNewIcon,
+  Tune as TuneIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { observer } from 'mobx-react-lite';
 import type { Script, Character } from './types';
@@ -264,6 +268,7 @@ const App = observer(() => {
   const [searchParams] = useSearchParams();
   const { t, language } = useTranslation();
   const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
+  const [inputDrawerOpen, setInputDrawerOpen] = useState<boolean>(false);
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [libraryCardOpen, setLibraryCardOpen] = useState<boolean>(false);
@@ -283,6 +288,7 @@ const App = observer(() => {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [addCustomRuleDialogOpen, setAddCustomRuleDialogOpen] = useState<boolean>(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState<boolean>(false);
+  const [thanksDialogOpen, setThanksDialogOpen] = useState<boolean>(false);
   const [jsonParseError, setJsonParseError] = useState<string>(''); // JSON parse error state
   const [customJinxDialogOpen, setCustomJinxDialogOpen] = useState<boolean>(false);
   const [printDialogOpen, setPrintDialogOpen] = useState<boolean>(false); // Print dialog state
@@ -1077,26 +1083,114 @@ const App = observer(() => {
           backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
-          minHeight: '100vh'
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <Container maxWidth="xl">
-          {/* Input panel */}
-          <InputPanel
-            onGenerate={handleGenerate}
-            onExportPDF={handleExportPDF}
-            onExportImage={handleExportImage}
-            onExportJson={handleExportJson}
-            onShare={() => setShareDialogOpen(true)}
-            onClear={handleClear}
-            onOpenUISettings={() => setUiSettingsOpen(true)}
-            onAddCustomRule={handleAddCustomRule}
-            onOpenAboutDialog={() => setAboutDialogOpen(true)}
-            onJsonChange={handleJsonChange}
-            hasScript={script !== null}
-            currentJson={originalJson}
-            jsonParseError={jsonParseError}
-          />
+        {/* 頂部 Header: 典雅高質感鐘樓工坊風格 (列印時自動隱藏) */}
+        <Box
+          className="no-print"
+          sx={{
+            width: '100%',
+            background: 'linear-gradient(180deg, #ffffff 0%, #faf8f5 60%, #f4eee3 100%)',
+            borderTop: '4px solid #b45309',
+            borderBottom: '1.5px solid #d5c8b6',
+            py: { xs: 2.5, sm: 3.25 },
+            px: { xs: 3, sm: 6 },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 2,
+            zIndex: 100,
+            position: 'sticky',
+            top: 0,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          {/* 左側：大標題與典雅副標題 */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
+            <Typography
+              sx={{
+                fontWeight: 900,
+                color: '#1c1917',
+                fontSize: { xs: '1.55rem', sm: '2.15rem' },
+                letterSpacing: '0.04em',
+                lineHeight: 1.15,
+                userSelect: 'none',
+              }}
+            >
+              血染鐘樓 - 劇本工具
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                color: '#78716c',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}
+            >
+              BLOOD ON THE CLOCKTOWER · 劇本排版與製作工坊
+            </Typography>
+          </Box>
+
+          {/* 右側：致謝按鈕與淺色前往魔典按鈕 */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setThanksDialogOpen(true)}
+              sx={{
+                borderColor: '#cbd5e1',
+                color: '#475569',
+                backgroundColor: '#ffffff',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                textTransform: 'none',
+                borderRadius: '8px',
+                px: 2.25,
+                py: 0.75,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                '&:hover': {
+                  borderColor: '#94a3b8',
+                  backgroundColor: '#f8fafc',
+                  color: '#0f172a',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              致謝與來源
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/')}
+              sx={{
+                borderColor: '#f59e0b',
+                color: '#b45309',
+                backgroundColor: '#fffbeb',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                textTransform: 'none',
+                borderRadius: '8px',
+                px: 2.75,
+                py: 0.75,
+                boxShadow: '0 1px 4px rgba(180, 83, 9, 0.12)',
+                '&:hover': {
+                  borderColor: '#d97706',
+                  backgroundColor: '#fef3c7',
+                  color: '#92400e',
+                  boxShadow: '0 2px 8px rgba(180, 83, 9, 0.2)',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              前往魔典
+            </Button>
+          </Box>
+        </Box>
+
+        <Container maxWidth="xl" sx={{ pt: 3, pb: 14 }}>
           {exportJsonDialogOpen && (
             <ExportJsonDialog
               key="export-json"
@@ -1161,8 +1255,145 @@ const App = observer(() => {
               </Typography>
             </Paper>
           )}
-        </Container >
-      </Box >
+        </Container>
+
+        {/* 底部附著式滑入設定面板 (書籤標籤緊密黏著在視窗上方，隨視窗一同上下滑動) */}
+        <Box
+          className="no-print"
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: '1440px',
+              position: 'relative',
+              transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: inputDrawerOpen ? 'translateY(0)' : 'translateY(calc(100% - 46px))',
+              pointerEvents: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            {/* 書籤頁籤按鈕 (46px 高，永遠可見於底部邊緣) */}
+            <Button
+              variant="contained"
+              onClick={() => setInputDrawerOpen(!inputDrawerOpen)}
+              sx={{
+                backgroundColor: '#ffffff',
+                color: '#1e293b',
+                border: '1.5px solid #cbd5e1',
+                borderBottom: 'none',
+                boxShadow: '0 -6px 20px rgba(0, 0, 0, 0.15)',
+                borderRadius: '12px 12px 0 0',
+                px: 4.5,
+                py: 1,
+                height: '46px',
+                fontSize: '0.95rem',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                textTransform: 'none',
+                mb: '-1px',
+                zIndex: 10,
+                '&:hover': {
+                  backgroundColor: '#f8fafc',
+                  color: '#0f172a',
+                  borderColor: '#94a3b8',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              {inputDrawerOpen ? '▼ 收起設定' : '▲ 劇本設定 / JSON'}
+            </Button>
+
+            {/* 純白視窗主體 (不壓黑背景、無多餘外框、無右上 X 按鈕) */}
+            <Box
+              sx={{
+                width: '100%',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                p: { xs: 1, sm: 2 },
+                pb: 3,
+                boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.18)',
+                borderRadius: '16px 16px 0 0',
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(10px)',
+                border: '1.5px solid #cbd5e1',
+                borderBottom: 'none',
+              }}
+            >
+              <InputPanel
+                onGenerate={(json, title, author) => {
+                  handleGenerate(json, title, author);
+                  setInputDrawerOpen(false);
+                }}
+                onExportPDF={handleExportPDF}
+                onExportImage={handleExportImage}
+                onExportJson={handleExportJson}
+                onShare={() => setShareDialogOpen(true)}
+                onClear={handleClear}
+                onOpenUISettings={() => setUiSettingsOpen(true)}
+                onAddCustomRule={handleAddCustomRule}
+                onOpenAboutDialog={() => setAboutDialogOpen(true)}
+                onJsonChange={handleJsonChange}
+                hasScript={script !== null}
+                currentJson={originalJson}
+                jsonParseError={jsonParseError}
+              />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 開源專案致謝與來源彈窗 (點擊遮罩直接關閉) */}
+      <Dialog
+        open={thanksDialogOpen}
+        onClose={() => setThanksDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span>💖</span>
+          <span>開源專案來源與致謝</span>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body1" paragraph sx={{ fontWeight: 600, color: '#1e293b' }}>
+            本劇本工具改編自開源社群優秀專案，專為血染鐘樓玩家與說書人提供高品質的劇本排版與導出體驗。
+          </Typography>
+
+          <Box sx={{ backgroundColor: '#f8fafc', p: 2.5, borderRadius: 2, border: '1px solid #e2e8f0' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1e293b', mb: 1 }}>
+              📜 原開源專案資訊
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#475569', mb: 0.75 }}>
+              • 專案名稱：<strong>botc-script-tool (血染鐘樓劇本製作工具)</strong>
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#475569', mb: 0.75 }}>
+              • 開源作者：<strong>LiWeny16</strong>
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#2563eb' }}>
+              • GitHub 儲存庫：
+              <a
+                href="https://github.com/LiWeny16/botc-script-tool"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#2563eb', textDecoration: 'underline', marginLeft: 4, wordBreak: 'break-all' }}
+              >
+                https://github.com/LiWeny16/botc-script-tool
+              </a>
+            </Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       <AnimatePresence>
       {shareDialogOpen && (
@@ -1476,9 +1707,9 @@ const App = observer(() => {
       )}
       </AnimatePresence>
 
-      {/* AI Agent */}
-      <AgentFAB />
-      <AgentDialog />
+      {/* AI Agent (暫時隱藏不實作) */}
+      {/* <AgentFAB /> */}
+      {/* <AgentDialog /> */}
     </ThemeProvider >
     </AppErrorBoundary>
   );

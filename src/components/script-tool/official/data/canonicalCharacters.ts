@@ -21,6 +21,7 @@ import { normalizeCharacterId, toOfficialEnCharacterId, toZhCanonicalCharacterId
 import { getCustomCharacters } from './extras/custom';
 import { getFabledCharacters } from './extras/fabled';
 import { getLoricCharacters } from './extras/loric';
+import { AllRoles } from '../../../../data/roles';
 
 function partialLocaleFromRole(role: Record<string, unknown>): Partial<CharacterLocale> {
   return {
@@ -93,11 +94,50 @@ function getCoreBases(): CanonicalCharacterBase[] {
   return coreBasesCache;
 }
 
+import { toTraditionalChinese } from '../utils/traditionalChinese';
+
+function getProjectRolesRecord(): Record<string, Character> {
+  const record: Record<string, Character> = {};
+  for (const [key, r] of Object.entries(AllRoles)) {
+    const roleId = r.id || key;
+    const cleanId = roleId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const team = r.type || 'townsfolk';
+    const char: Character = {
+      id: roleId,
+      name: toTraditionalChinese(r.name),
+      team: team as any,
+      ability: toTraditionalChinese(r.ability || r.description || ''),
+      image: r.icon || r.image || `/character/${roleId}.png`,
+      firstNight: r.firstNight || 0,
+      otherNight: r.otherNight || 0,
+      firstNightReminder: toTraditionalChinese(r.firstNightReminder || ''),
+      otherNightReminder: toTraditionalChinese(r.otherNightReminder || ''),
+      reminders: [],
+      remindersGlobal: [],
+      setup: false,
+    };
+    record[roleId] = char;
+    record[cleanId] = char;
+    if (r.name) {
+      record[r.name] = char;
+      record[toTraditionalChinese(r.name)] = char;
+    }
+  }
+  return record;
+}
+
 /** Expansion characters: Spanish UI still uses English text (consistent with old charactersEs) */
 function extrasCharacterRecord(language: Language): Record<string, Character> {
   const extraLang: string = language === 'es' ? 'en' : language;
   const toDict = (chars: Character[]) =>
     chars.reduce<Record<string, Character>>((acc, c) => {
+      if (language === 'cn') {
+        c.name = toTraditionalChinese(c.name);
+        c.ability = toTraditionalChinese(c.ability);
+        if (c.firstNightReminder) c.firstNightReminder = toTraditionalChinese(c.firstNightReminder);
+        if (c.otherNightReminder) c.otherNightReminder = toTraditionalChinese(c.otherNightReminder);
+        if (Array.isArray(c.reminders)) c.reminders = c.reminders.map(toTraditionalChinese);
+      }
       acc[c.id] = c;
       return acc;
     }, {});
@@ -113,9 +153,25 @@ const mergedDictCache: Partial<Record<Language, Record<string, Character>>> = {}
 export function getMergedCharacterDictionary(language: Language): Record<string, Character> {
   if (mergedDictCache[language]) return mergedDictCache[language]!;
 
+  const core = buildDictionary(getCoreBases(), language);
+  // Ensure core dictionary Chinese texts are 100% Traditional Chinese
+  if (language === 'cn') {
+    for (const c of Object.values(core)) {
+      c.name = toTraditionalChinese(c.name);
+      c.ability = toTraditionalChinese(c.ability);
+      if (c.firstNightReminder) c.firstNightReminder = toTraditionalChinese(c.firstNightReminder);
+      if (c.otherNightReminder) c.otherNightReminder = toTraditionalChinese(c.otherNightReminder);
+      if (Array.isArray(c.reminders)) c.reminders = c.reminders.map(toTraditionalChinese);
+    }
+  }
+
+  const extras = extrasCharacterRecord(language);
+  const projectRoles = getProjectRolesRecord();
+
   mergedDictCache[language] = {
-    ...buildDictionary(getCoreBases(), language),
-    ...extrasCharacterRecord(language),
+    ...core,
+    ...extras,
+    ...projectRoles, // 本專案所有角色具備最高覆蓋優先權
   };
   return mergedDictCache[language]!;
 }

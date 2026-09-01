@@ -497,7 +497,7 @@ const ScriptRenderer = observer(({
                     </>})()}
 
                     {/* 美术设计 + 作者 头像盒子 - 仅在非只读模式下显示 */}
-                    {!readOnly && (
+                    {!readOnly && uiConfigStore.config.showAuthor && (
                         <Box sx={{
                             position: 'absolute',
                             top: { xs: 12, sm: 16, md: 95 },
@@ -509,85 +509,7 @@ const ScriptRenderer = observer(({
                             gap: { xs: 0.5, sm: 0.8, md: 1 },
                             pointerEvents: 'none',
                         }}>
-                            {/* A 列：Onion（Design） */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                                <Box
-                                    component="img"
-                                    src="/imgs/icons/fabled/onion.webp"
-                                    alt="Onion Avatar"
-                                    sx={{
-                                        width: { xs: 50, sm: 60, md: 70 },
-                                        height: { xs: 50, sm: 60, md: 70 },
-                                        borderRadius: '50%',
-                                        border: '2px solid #d4af37',
-                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                                        objectFit: 'cover',
-                                        position: 'relative',
-                                        zIndex: 2,
-                                    }}
-                                />
-                                <Box sx={{
-                                    pt: { xs: 0.75, sm: 1, md: 1.25 },
-                                    pb: { xs: 0.5, sm: 0.75, md: 1 },
-                                    minWidth: { xs: '80px', sm: '90px', md: '100px' },
-                                }}>
-                                    {script.authorImage ? (
-                                        <>
-                                            <Typography sx={{
-                                                fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' },
-                                                color: '#404040ff',
-                                                fontWeight: 700,
-                                                textAlign: 'center',
-                                                whiteSpace: 'nowrap',
-                                            }}>
-                                                {t('credits.designers')}
-                                            </Typography>
-                                            <Typography sx={{
-                                                fontSize: { xs: '0.6rem', sm: '0.68rem', md: '0.75rem' },
-                                                color: '#666',
-                                                textAlign: 'center',
-                                                whiteSpace: 'nowrap',
-                                            }}>
-                                                {t('credits.designTitle')}
-                                            </Typography>
-                                        </>
-                                    ) : (
-                                        <Typography sx={{
-                                            fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' },
-                                            color: '#404040ff',
-                                            fontWeight: 700,
-                                            textAlign: 'center',
-                                            whiteSpace: 'nowrap',
-                                        }}>
-                                            {t('credits.designTitle')}: {t('credits.designers')}
-                                        </Typography>
-                                    )}
-                                </Box>
-                            </Box>
-
-                            {/* × 符号 (A × B) — 与头像圆心平齐，无图时隐藏 */}
-                            <Box sx={{
-                                display: script.authorImage ? 'flex' : 'none',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                zIndex: 2,
-                                flexShrink: 0,
-                                // 头像高 50/60/70，× 字号 1.2/1.5/1.8rem(≈19/24/29px 高)，
-                                // 圆心 ≈ 25/30/35 → pt = 圆心 - 半字高
-                                pt: { xs: '16px', sm: '18px', md: '21px' },
-                                '@media print': { display: script.authorImage ? 'flex' : 'none' },
-                            }}>
-                                <Typography sx={{
-                                    fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
-                                    fontWeight: 300,
-                                    color: '#404040ff',
-                                    userSelect: 'none',
-                                }}>
-                                    ×
-                                </Typography>
-                            </Box>
-
-                            {/* B 列：作者头像（Author）- 默认灰圆+加号，点击上传；无图时打印隐藏 */}
+                            {/* 作者頭像 (Author) - 點擊上傳 */}
                             <Box sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -947,47 +869,12 @@ const ScriptRenderer = observer(({
                                         {t('allChars.description')}
                                       </Typography>
                                     </Box>
-
-                                    {/* Right: author + icon */}
-                                    <Box sx={{
-                                      position: 'absolute',
-                                      right: '3%',
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      zIndex: 1,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 0.8,
-                                    }}>
-                                      <Box
-                                        component="img"
-                                        src="/imgs/icons/fabled/onion.webp"
-                                        alt="Onion"
-                                        sx={{
-                                          width: { xs: 24, sm: 28, md: 32 },
-                                          height: { xs: 24, sm: 28, md: 32 },
-                                          borderRadius: '50%',
-                                          border: '2px solid #d4af37',
-                                          objectFit: 'cover',
-                                          flexShrink: 0,
-                                        }}
-                                      />
-                                      <Typography sx={{
-                                        fontFamily: uiConfigStore.scriptTitleFont,
-                                        fontWeight: 700,
-                                        color: '#000',
-                                        fontSize: { xs: '0.55rem', sm: '0.6rem', md: '0.65rem' },
-                                        whiteSpace: 'nowrap',
-                                      }}>
-                                        Author &amp; Design: Onion
-                                      </Typography>
-                                    </Box>
                                   </>
                                 )}
                             </Box>
 
-                            {/* 标题下方作者与支持人数 */}
-                            {(script?.author || script?.playerCount) && (
+                            {/* 標題下方作者與支援人數 (依據 showAuthor 設定) */}
+                            {((uiConfigStore.config.showAuthor && script?.author) || script?.playerCount) && (
                                 <Typography
                                     sx={{
                                         color: THEME_COLORS.paper.secondary,
@@ -996,15 +883,15 @@ const ScriptRenderer = observer(({
                                         textAlign: (script as any).authorAlignment || 'center',
                                     }}
                                 >
-                                    {script.author ? `${t('script.author2')}：${script.author}` : ''}
-                                    {script.author && script.playerCount ? ' · ' : ''}
+                                    {uiConfigStore.config.showAuthor && script.author ? `${t('script.author2')}：${script.author}` : ''}
+                                    {uiConfigStore.config.showAuthor && script.author && script.playerCount ? ' · ' : ''}
                                     {script.playerCount ? `${t('script.playerCount')}：${script.playerCount}` : ''}
                                 </Typography>
                             )}
                         </Box>
 
-                        {/* 角色区域 */}
-                        <Box sx={{ width: "100%" }}>
+                        {/* 角色區域 (保持充足間距避免與標題線重疊) */}
+                        <Box sx={{ width: "100%", mt: compact ? 0 : { xs: 2, sm: 2.5, md: 3.5 } }}>
                             <Box sx={{ px: compact ? 0.5 : 3 }}>
                                 {/* 按固定顺序显示标准团队 */}
                                 {['townsfolk', 'outsider', 'minion', 'demon'].map(team => (

@@ -75,39 +75,82 @@ function SortableActionItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isSpecialNightIcon = () => {
+    const url = normalizeImageUrl(action?.image) || '';
+    return url.includes('75px-Mi') || url.includes('75px-Di') || url.includes('75px-Dusk') || url.includes('75px-Dawn') || url.includes('75px-');
+  };
+
+  const isSpecial = isSpecialNightIcon();
+
   return (
-    <Box
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...(!disabled ? listeners : {})}
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        cursor: disabled ? 'default' : 'grab',
-        touchAction: disabled ? 'auto' : 'pan-y',
-        '&:active': {
-          cursor: disabled ? 'default' : 'grabbing',
-        },
-      }}
-    >
-      <CharacterImage
-        src={normalizeImageUrl(action.image)}
-        alt={getImageAlt(action.image)}
+      <Box
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...(!disabled ? listeners : {})}
         sx={{
-          width: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
-          height: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
-          transition: 'all 0.2s',
-          '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.15)',
-            filter: 'brightness(1.1)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          cursor: disabled ? 'default' : 'grab',
+          touchAction: disabled ? 'auto' : 'pan-y',
+          my: 0.35,
+          '&:active': {
+            cursor: disabled ? 'default' : 'grabbing',
           },
         }}
-      />
-    </Box>
-  );
-}
+      >
+        {isSpecial ? (
+          <CharacterImage
+            src={normalizeImageUrl(action.image)}
+            alt={getImageAlt(action.image)}
+            sx={{
+              width: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 50 * COMPACT_SCALE },
+              height: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 50 * COMPACT_SCALE },
+              transition: 'all 0.2s',
+              filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.4))',
+              '&:hover': {
+                transform: 'scale(1.08)',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.6)) brightness(1.05)',
+              },
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: { xs: 36 * COMPACT_SCALE, sm: 40 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
+              height: { xs: 36 * COMPACT_SCALE, sm: 40 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(240, 230, 210, 0.16) 100%)',
+              border: '1.5px solid rgba(255, 255, 255, 0.65)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(3px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 100%)',
+                borderColor: '#ffffff',
+                transform: 'scale(1.08)',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
+              },
+            }}
+          >
+            <CharacterImage
+              src={normalizeImageUrl(action.image)}
+              alt={getImageAlt(action.image)}
+              sx={{
+                width: '95%',
+                height: '95%',
+                objectFit: 'contain',
+              }}
+            />
+          </Box>
+        )}
+      </Box>
+    );
+  }
 
 export default function NightOrder({ title, actions, isMobile = false, disabled = false, onReorder, compact = false }: NightOrderProps) {
   const safeActions = Array.isArray(actions)
@@ -159,7 +202,7 @@ export default function NightOrder({ title, actions, isMobile = false, disabled 
         boxShadow: 'none',
       }}
     >
-      {/* 标题 */}
+      {/* 標題 (具備半透明邊框與底板以強化背景對比度) */}
       {compact && !isMobile ? (
         <Box sx={{ textAlign: 'center', mt: 0.5, mb: 0.3 }}>
           <Box sx={{
@@ -169,48 +212,72 @@ export default function NightOrder({ title, actions, isMobile = false, disabled 
             width: 28 * COMPACT_SCALE,
             height: 28 * COMPACT_SCALE,
             borderRadius: '50%',
-            border: '1.5px solid',
-            borderColor: '#fefefe',
+            border: '1.5px solid #ffffff',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
             color: '#fefefe',
             fontSize: `${0.85 * COMPACT_SCALE}rem`,
             fontWeight: 'bold',
-            fontFamily: 'jicao, Dumbledor, serif',
           }}>
             {compactTitleChar}
           </Box>
         </Box>
       ) : (
-        <Typography
-          variant="h4"
+        <Box
           sx={{
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontFamily: 'jicao, Dumbledor, serif',
-            fontSize: { xs: `${1 * COMPACT_SCALE}rem`, sm: `${1.1 * COMPACT_SCALE}rem`, md: `${1.5 * COMPACT_SCALE}rem` },
+            display: 'flex',
+            justifyContent: 'center',
             mb: isMobile ? 1 : 1.5,
             mt: 0.5,
-            color: isMobile ? '#fefefe' : 'inherit',
           }}
         >
-          {isMobile ? (
-            safeTitle
-          ) : (
-            safeTitle.split('').map((char, index) => (
-              <Box
-                key={index}
-                component="span"
-                sx={{
-                  display: 'block',
-                  lineHeight: char === '晚' ? 1.3 : 1,
-                  mt: char === '晚' ? 0.3 : 0,
-                  minHeight: char === ' ' ? '0.5em' : 'auto',
-                }}
-              >
-                {char === ' ' ? ' ' : char}
-              </Box>
-            ))
-          )}
-        </Typography>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              flexDirection: isMobile ? 'row' : 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1.5px solid rgba(255, 255, 255, 0.75)',
+              backgroundColor: 'rgba(0, 0, 0, 0.42)',
+              backdropFilter: 'blur(3px)',
+              borderRadius: 2,
+              px: isMobile ? 1.5 : 0.8,
+              py: isMobile ? 0.4 : 0.8,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 6px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                textAlign: 'center',
+                fontWeight: 'bold',
+                fontSize: { xs: `${0.95 * COMPACT_SCALE}rem`, sm: `${1.05 * COMPACT_SCALE}rem`, md: `${1.3 * COMPACT_SCALE}rem` },
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.9)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {isMobile ? (
+                safeTitle
+              ) : (
+                safeTitle.split('').map((char, index) => (
+                  <Box
+                    key={index}
+                    component="span"
+                    sx={{
+                      display: 'block',
+                      lineHeight: char === '晚' ? 1.3 : 1.1,
+                      mt: char === '晚' ? 0.3 : 0,
+                      minHeight: char === ' ' ? '0.5em' : 'auto',
+                    }}
+                  >
+                    {char === ' ' ? ' ' : char}
+                  </Box>
+                ))
+              )}
+            </Typography>
+          </Box>
+        </Box>
       )}
 
       {/* 行动图标列表 */}
