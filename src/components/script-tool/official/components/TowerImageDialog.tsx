@@ -68,7 +68,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
   };
 
   const handleRestoreDefaults = () => {
-    if (window.confirm('Restore default tower images? This will remove all custom images.')) {
+    if (window.confirm('要還原預設鐘樓圖片嗎？這會移除所有自訂圖片。')) {
       uiConfigStore.resetTowerImages();
     }
   };
@@ -109,7 +109,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
           <ImageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
         </Box>
         <Typography variant="h6" component="span" sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-          Tower Images
+          鐘樓圖片
         </Typography>
       </DialogTitle>
 
@@ -122,7 +122,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
             startIcon={<AddIcon />}
             fullWidth
           >
-            Add Image
+            新增圖片
             <input
               ref={fileInputRef}
               type="file"
@@ -137,7 +137,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
           {/* Empty state */}
           {images.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-              No tower images. Add one above or restore defaults.
+              目前沒有鐘樓圖片，請在上方新增或還原預設。
             </Typography>
           )}
 
@@ -169,7 +169,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
                 />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="caption" sx={{ display: 'block', fontWeight: 'medium' }}>
-                    {img.isDefault ? 'Default' : 'Custom'}
+                    {img.isDefault ? '預設' : '自訂'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
                     {img.id.length > 25 ? img.id.substring(0, 25) + '...' : img.id}
@@ -186,7 +186,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
 
               <Box>
                 <Typography variant="caption" gutterBottom>
-                  Position X: {img.x}%
+                  水平位置：{img.x}%
                 </Typography>
                 <Slider
                   value={img.x}
@@ -201,7 +201,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
 
               <Box>
                 <Typography variant="caption" gutterBottom>
-                  Opacity: {img.opacity.toFixed(2)}
+                  透明度：{img.opacity.toFixed(2)}
                 </Typography>
                 <Slider
                   value={img.opacity}
@@ -216,7 +216,7 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
 
               <Box>
                 <Typography variant="caption" gutterBottom>
-                  Scale: {img.scale.toFixed(2)}
+                  縮放：{img.scale.toFixed(2)}
                 </Typography>
                 <Slider
                   value={img.scale}
@@ -240,10 +240,10 @@ const TowerImageDialog = observer(({ open, onClose }: TowerImageDialogProps) => 
           startIcon={<RestartAltIcon />}
           onClick={handleRestoreDefaults}
         >
-          Restore Defaults
+          還原預設
         </Button>
         <Button onClick={onClose}>
-          Close
+          關閉
         </Button>
       </DialogActions>
     </Dialog>
