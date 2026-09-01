@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
@@ -6,7 +6,9 @@ import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../
 import { updateSeatStatus, updateVotingState } from "../../services/roomService";
 import { VotingOverlay } from "./VotingOverlay";
 import { RoleTooltip } from "../common/RoleTooltip";
-import { AllRoles } from "../../data/roles";
+import { SeatTokenModal } from './SeatTokenModal';
+import type { SeatToken } from './SeatTokenModal';
+import { AllRoles } from '../../data/roles';
 
 interface CenterStageProps {
   seats: number[];
@@ -28,6 +30,7 @@ interface CenterStageProps {
   seatStatus?: Record<number, import('../../data/types').SeatStatus>;
   votingState?: import('../../data/types').VotingState;
   dayNumber?: number;
+  seatTokens?: Record<number, SeatToken[]>;
 }
 
 export const CenterStage = ({ 
@@ -49,12 +52,39 @@ export const CenterStage = ({
   isHost = false,
   seatStatus = {},
   votingState,
-  dayNumber = 1
+  dayNumber = 1,
+  seatTokens = {}
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [targetSeat, setTargetSeat] = useState<number | null>(null);
   const [seatRoleNotes, setSeatRoleNotes] = useState<Record<number, string>>({});
+
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
+
+  const handleSaveSeatToken = async (token: SeatToken) => {
+    if (tokenTargetSeat === null || !userUid || !roomId) return;
+    try {
+      const currentTokens = (seatTokens || {})[tokenTargetSeat] || [];
+      if (currentTokens.length >= 3) return;
+      const newTokens = [...currentTokens, token];
+      const { update, ref } = await import("firebase/database");
+      const { db } = await import("../../services/firebase");
+      await update(ref(db), { [`rooms/${roomId}/private/seatTokens/${userUid}/${tokenTargetSeat}`]: newTokens });
+    } catch (e) { console.error(e); }
+  };
+
+  const handleRemoveSeatToken = async (seatIdx: number, tokenId: string) => {
+    if (!userUid || !roomId) return;
+    try {
+      const currentTokens = (seatTokens || {})[seatIdx] || [];
+      const newTokens = currentTokens.filter(t => t.id !== tokenId);
+      const { update, ref } = await import("firebase/database");
+      const { db } = await import("../../services/firebase");
+      await update(ref(db), { [`rooms/${roomId}/private/seatTokens/${userUid}/${seatIdx}`]: newTokens });
+    } catch (e) { console.error(e); }
+  };
 
   const toggleDead = (seatIndex: number) => {
     const isCurrentlyDead = seatStatus[seatIndex]?.isDead || false;
@@ -230,25 +260,23 @@ export const CenterStage = ({
               return (
                 <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden hover:scale-105 transition-all cursor-help ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
-                    onMouseEnter={(e) => {
-                      if (canSeeBluffs && role) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setHoveredRoleTooltip({ role: role, x: rect.left + rect.width / 2, y: rect.bottom });
-                      }
-                    }}
-                    onMouseLeave={() => setHoveredRoleTooltip(null)}
+                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
                   >
                     {canSeeBluffs ? (
                       role ? (
-                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] group-hover:scale-105 transition-transform" />
                       ) : (
-                        <span className="text-white/20 text-xs">空</span>
+                        <span className="text-red-500/60 text-lg font-bold group-hover:text-red-400">空</span>
                       )
                     ) : (
-                      <span className="text-white/20 text-xl font-bold">?</span>
+                      <span className="text-white/20 text-xl font-bold group-hover:scale-110 transition-transform">?</span>
                     )}
                   </div>
+                  {canSeeBluffs && role && (
+                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
+                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                    </div>
+                  )}
                   {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
                 </div>
               );
@@ -285,7 +313,6 @@ export const CenterStage = ({
         {/* Spacer to push the rest to bottom */}
         <div className="flex-1 min-h-[1rem]" />
 
-        {/* 說書人 */}
         {/* 房間資訊 */}
         <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
           <div className="flex justify-start w-full items-center">
@@ -313,10 +340,7 @@ export const CenterStage = ({
           </div>
           <button 
             onClick={onOpenScriptModal}
-            className="w-full py-1 backdrop-blur-md border border-white/40 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-1 flex items-center justify-center space-x-1 overflow-hidden group"
-            style={{ backgroundColor: 'var(--script-bg)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg)')}
+            className="w-full py-2 bg-[rgba(68,64,60,0.8)] border border-white/30 text-[#ff6b6b] hover:text-[#ff8b8b] hover:bg-[rgba(68,64,60,0.9)] rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-2 flex items-center justify-center space-x-2 overflow-hidden group"
           >
             {script?.id && (
               <img 
@@ -329,12 +353,14 @@ export const CenterStage = ({
             <div className="flex flex-col items-center justify-center min-w-0 flex-1">
               {script?.name ? (
                 <>
-                  <span className="text-base md:text-lg leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ')[0]}</span>
+                  <span className="text-base md:text-lg leading-tight w-full text-center break-words">{script.name.split(' ')[0]}</span>
                   {script.name.split(' ').length > 1 && (
-                    <span className="text-sm md:text-base leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ').slice(1).join(' ')}</span>
+                    <span className="text-sm md:text-base leading-tight w-full text-center break-words opacity-80">{script.name.split(' ').slice(1).join(' ')}</span>
                   )}
                 </>
-              ) : <span className="text-lg" style={{ color: 'var(--script-text-color, #ffffff)' }}>未知劇本</span>}
+              ) : (
+                <span className="text-lg text-center leading-tight truncate w-full">未知劇本</span>
+              )}
             </div>
           </button>
           <button onClick={onLeaveRoom} className="w-full text-lg px-4 py-2 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
@@ -477,6 +503,79 @@ export const CenterStage = ({
               </div>
             );
           })}
+
+            {/* Tokens */}
+            {seats.map((seatIndex) => {
+              const { radius, size } = getSeatConfig();
+              const tokenSize = size * 0.5;
+              const angleDeg = (seatIndex / totalSeats) * 360 - 90;
+              const angleRad = (angleDeg * Math.PI) / 180;
+              
+              const currentTokens = (seatTokens || {})[seatIndex] || [];
+              const elements = [];
+              const seatRadiusPx = size / 2;
+              const tokenRadiusPx = tokenSize / 2;
+              
+              const getPosition = (i: number) => {
+                const distPx = seatRadiusPx + 5 + tokenRadiusPx + (i * (tokenSize + 1));
+                const baseX = 50 + radius * Math.cos(angleRad);
+                const baseY = 50 + radius * Math.sin(angleRad);
+                const offsetX = distPx * Math.cos(angleRad);
+                const offsetY = distPx * Math.sin(angleRad);
+                return { left: `calc(${baseX}% - ${offsetX}px)`, top: `calc(${baseY}% - ${offsetY}px)` };
+              };
+
+              for(let i = 0; i < currentTokens.length; i++) {
+                const pos = getPosition(i);
+                elements.push(
+                  <div 
+                    key={`token-${seatIndex}-${currentTokens[i].id}`}
+                    onClick={(e) => { e.stopPropagation(); handleRemoveSeatToken(seatIndex, currentTokens[i].id); }}
+                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 shadow-[0_2px_6px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:bg-red-900/90 hover:border-red-500 hover:text-white transition-all z-20 pointer-events-auto group/token overflow-hidden"
+                    style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
+                    title={currentTokens[i].text || currentTokens[i].content || "移除標記"}
+                  >
+                    {currentTokens[i].type === 'image' && currentTokens[i].image ? (
+                      <div className="relative w-full h-full flex flex-col items-center justify-center group-hover/token:opacity-0 transition-opacity">
+                        <img src={currentTokens[i].image} alt={currentTokens[i].text} className="w-[85%] h-[85%] object-contain -mt-[16%]" />
+                        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md">
+                          <path id={`cs-curve-${seatIndex}-${i}`} d="M 12 55 A 38 38 0 0 0 88 55" fill="transparent" />
+                          <text className="fill-amber-200 font-bold tracking-[4px]" style={{ fontSize: '21px', filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.8))' }}>
+                            <textPath href={`#cs-curve-${seatIndex}-${i}`} startOffset="50%" textAnchor="middle">
+                              {currentTokens[i].text}
+                            </textPath>
+                          </text>
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center group-hover/token:hidden absolute inset-0">
+                        <span className="text-center font-extrabold leading-none w-[90%] break-all" style={{ fontSize: `${tokenSize * 0.24}px`, color: '#ffffff', WebkitTextStroke: '0.3px #000000', textShadow: '0 1px 3px rgba(0,0,0,0.8)', lineHeight: '1.2' }}>
+                          {currentTokens[i].content}
+                        </span>
+                      </div>
+                    )}
+                    <span className="absolute inset-0 hidden group-hover/token:flex items-center justify-center font-bold text-white bg-transparent rounded-full" style={{ fontSize: `${tokenSize * 0.4}px` }}>X</span>
+                  </div>
+                );
+              }
+              if (currentTokens.length < 3) {
+                const pos = getPosition(currentTokens.length);
+                elements.push(
+                  <div 
+                    key={`plus-${seatIndex}`}
+                    onClick={(e) => { e.stopPropagation(); setTokenTargetSeat(seatIndex); setTokenModalOpen(true); }}
+                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 border-solid flex items-center justify-center text-slate-500 font-bold cursor-pointer hover:bg-indigo-600 hover:border-indigo-400 hover:text-white hover:scale-110 shadow-[0_2px_6px_rgba(0,0,0,0.6)] opacity-50 hover:opacity-100 transition-all z-20 pointer-events-auto"
+                    style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
+                    title="新增筆記標記"
+                  >
+                    <svg className="w-1/2 h-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                );
+              }
+              return <Fragment key={`cs-tokens-${seatIndex}`}>{elements}</Fragment>;
+            })}
 
             {/* Night Order Badges */}
             {(() => {
@@ -634,6 +733,11 @@ export const CenterStage = ({
         onSelect={handleModalSelect}
         script={script || null}
         noOverlay={true}
+      />
+      <SeatTokenModal
+        isOpen={tokenModalOpen}
+        onClose={() => setTokenModalOpen(false)}
+        onSave={handleSaveSeatToken}
       />
     </div>
   );

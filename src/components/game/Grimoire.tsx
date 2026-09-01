@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { setGrimoireRole, setGrimoireBluff, updateFabledIndex } from "../../services/roomService";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
 import { RoleSelectionModal } from "./RoleSelectionModal";
+import { SeatTokenModal } from './SeatTokenModal';
+import type { SeatToken } from './SeatTokenModal';
 
 interface GrimoireProps {
   roomId: string;
@@ -20,6 +22,8 @@ interface GrimoireProps {
   onOpenScriptModal: () => void;
   hostPlayer?: any;
   seatStatus?: Record<number, import('../../data/types').SeatStatus>;
+  userUid: string | undefined;
+  seatTokens?: Record<number, SeatToken[]>;
 }
 
 export const Grimoire = ({ 
@@ -35,11 +39,15 @@ export const Grimoire = ({
   onLeaveRoom,
   onOpenScriptModal,
   hostPlayer,
-  seatStatus = {}
+  seatStatus = {},
+  userUid,
+  seatTokens = {}
 }: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
   const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
 
   if (!script) return null;
 
@@ -60,7 +68,28 @@ export const Grimoire = ({
     setModalOpen(false);
   };
 
+  const handleSaveSeatToken = async (token: SeatToken) => {
+    if (tokenTargetSeat === null || !userUid || !roomId) return;
+    try {
+      const currentTokens = (seatTokens || {})[tokenTargetSeat] || [];
+      if (currentTokens.length >= 3) return;
+      const newTokens = [...currentTokens, token];
+      const { update, ref } = await import("firebase/database");
+      const { db } = await import("../../services/firebase");
+      await update(ref(db), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${tokenTargetSeat}`]: newTokens });
+    } catch (e) { console.error(e); }
+  };
 
+  const handleRemoveSeatToken = async (seatIdx: number, tokenId: string) => {
+    if (!userUid || !roomId) return;
+    try {
+      const currentTokens = (seatTokens || {})[seatIdx] || [];
+      const newTokens = currentTokens.filter(t => t.id !== tokenId);
+      const { update, ref } = await import("firebase/database");
+      const { db } = await import("../../services/firebase");
+      await update(ref(db), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${seatIdx}`]: newTokens });
+    } catch (e) { console.error(e); }
+  };
 
   const getSeatConfig = () => {
     const count = seatCount;
@@ -219,10 +248,7 @@ export const Grimoire = ({
           </div>
           <button 
             onClick={onOpenScriptModal}
-            className="w-full py-1 backdrop-blur-md border border-white/40 rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-1 flex items-center justify-center space-x-1 overflow-hidden group"
-            style={{ backgroundColor: 'var(--script-bg)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--script-bg)')}
+            className="w-full py-2 bg-[rgba(68,64,60,0.8)] border border-white/30 text-[#ff6b6b] hover:text-[#ff8b8b] hover:bg-[rgba(68,64,60,0.9)] rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-2 flex items-center justify-center space-x-2 overflow-hidden group"
           >
             {script?.id && (
               <img 
@@ -235,12 +261,14 @@ export const Grimoire = ({
             <div className="flex flex-col items-center justify-center min-w-0 flex-1">
               {script?.name ? (
                 <>
-                  <span className="text-base md:text-lg leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ')[0]}</span>
+                  <span className="text-base md:text-lg leading-tight w-full text-center break-words">{script.name.split(' ')[0]}</span>
                   {script.name.split(' ').length > 1 && (
-                    <span className="text-sm md:text-base leading-tight truncate w-full text-center" style={{ color: 'var(--script-text-color, #ffffff)' }}>{script.name.split(' ').slice(1).join(' ')}</span>
+                    <span className="text-sm md:text-base leading-tight w-full text-center break-words opacity-80">{script.name.split(' ').slice(1).join(' ')}</span>
                   )}
                 </>
-              ) : <span className="text-lg" style={{ color: 'var(--script-text-color, #ffffff)' }}>未知劇本</span>}
+              ) : (
+                <span className="text-lg text-center leading-tight truncate w-full">未知劇本</span>
+              )}
             </div>
           </button>
           <button onClick={onLeaveRoom} className="w-full text-lg px-4 py-2 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
@@ -331,6 +359,80 @@ export const Grimoire = ({
               </div>
             );
           })}
+
+          {/* Grimoire Seat Tokens Render */}
+            {seats.map((seatIndex) => {
+              const { radius, size } = getSeatConfig();
+              const tokenSize = size * 0.5; // 50% of seat size
+              const angleDeg = (seatIndex / seatCount) * 360 - 90;
+              const angleRad = (angleDeg * Math.PI) / 180;
+              
+              const currentTokens = (seatTokens || {})[seatIndex] || [];
+              const elements = [];
+              const seatRadiusPx = size / 2;
+              const tokenRadiusPx = tokenSize / 2;
+              
+              const getPosition = (i: number) => {
+                const distPx = seatRadiusPx + 5 + tokenRadiusPx + (i * (tokenSize + 1));
+                const baseX = 50 + radius * Math.cos(angleRad);
+                const baseY = 50 + radius * Math.sin(angleRad);
+                const offsetX = distPx * Math.cos(angleRad);
+                const offsetY = distPx * Math.sin(angleRad);
+                return { left: `calc(${baseX}% - ${offsetX}px)`, top: `calc(${baseY}% - ${offsetY}px)` };
+              };
+
+              for(let i = 0; i < currentTokens.length; i++) {
+                const pos = getPosition(i);
+                elements.push(
+                  <div 
+                    key={`token-${seatIndex}-${currentTokens[i].id}`}
+                    onClick={(e) => { e.stopPropagation(); handleRemoveSeatToken(seatIndex, currentTokens[i].id); }}
+                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 shadow-[0_2px_6px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:bg-red-900/90 hover:border-red-500 hover:text-white transition-all z-20 pointer-events-auto group/token overflow-hidden"
+                    style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
+                    title={currentTokens[i].text || currentTokens[i].content || "移除標記"}
+                  >
+                    {currentTokens[i].type === 'image' && currentTokens[i].image ? (
+                      <div className="relative w-full h-full flex flex-col items-center justify-center group-hover/token:opacity-0 transition-opacity">
+                        <img src={currentTokens[i].image} alt={currentTokens[i].text} className="w-[85%] h-[85%] object-contain -mt-[16%]" />
+                        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md">
+                          <path id={`grim-curve-${seatIndex}-${i}`} d="M 12 55 A 38 38 0 0 0 88 55" fill="transparent" />
+                          <text className="fill-amber-200 font-bold tracking-[4px]" style={{ fontSize: '21px', filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.8))' }}>
+                            <textPath href={`#grim-curve-${seatIndex}-${i}`} startOffset="50%" textAnchor="middle">
+                              {currentTokens[i].text}
+                            </textPath>
+                          </text>
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center group-hover/token:hidden absolute inset-0">
+                        <span className="text-center font-extrabold leading-none w-[90%] break-all" style={{ fontSize: `${tokenSize * 0.24}px`, color: '#ffffff', WebkitTextStroke: '0.3px #000000', textShadow: '0 1px 3px rgba(0,0,0,0.8)', lineHeight: '1.2' }}>
+                          {currentTokens[i].content}
+                        </span>
+                      </div>
+                    )}
+                    <span className="absolute inset-0 hidden group-hover/token:flex items-center justify-center font-bold text-white bg-transparent rounded-full" style={{ fontSize: `${tokenSize * 0.4}px` }}>X</span>
+                  </div>
+                );
+              }
+              if (currentTokens.length < 3) {
+                const pos = getPosition(currentTokens.length);
+                elements.push(
+                  <div 
+                    key={`plus-${seatIndex}`}
+                    onClick={(e) => { e.stopPropagation(); setTokenTargetSeat(seatIndex); setTokenModalOpen(true); }}
+                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 border-solid flex items-center justify-center text-slate-500 font-bold cursor-pointer hover:bg-indigo-600 hover:border-indigo-400 hover:text-white hover:scale-110 shadow-[0_2px_6px_rgba(0,0,0,0.6)] opacity-50 hover:opacity-100 transition-all z-20 pointer-events-auto"
+                    style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
+                    title="新增筆記標記"
+                  >
+                    <svg className="w-1/2 h-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                );
+              }
+              return <Fragment key={`grim-tokens-${seatIndex}`}>{elements}</Fragment>;
+            })}
+
 
           {/* Night Order Badges */}
           {(() => {
@@ -425,6 +527,11 @@ export const Grimoire = ({
         script={script}
         filterType={target?.type === 'fabled' ? 'fabled' : 'normal'}
         selectedFabled={fabled}
+      />
+      <SeatTokenModal
+        isOpen={tokenModalOpen}
+        onClose={() => setTokenModalOpen(false)}
+        onSave={handleSaveSeatToken}
       />
     </div>
   );

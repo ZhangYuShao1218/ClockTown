@@ -24,11 +24,11 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
           return (
             <div 
               key={key} 
-              className="relative group/card w-[280px] h-[310px] z-10 hover:z-50"
+              className="relative group/card w-[280px] h-[300px] z-10 hover:z-50"
             >
               {/* Base Card (Front) */}
               <div 
-                className={`absolute inset-0 z-30 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all shadow-xl bg-slate-900 ${!readOnly ? 'cursor-pointer' : 'cursor-default'} ${
+                className={`absolute inset-0 z-30 flex flex-col items-center justify-center px-4 py-[11px] rounded-2xl border-2 transition-all shadow-xl bg-slate-900 ${!readOnly ? 'cursor-pointer' : 'cursor-default'} ${
                   isSelected 
                     ? 'border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.5)]' 
                     : 'border-slate-500 hover:border-slate-300'
@@ -44,7 +44,7 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
                 <img 
                   src={`/drama/Drama_${key}.png`} 
                   alt={script.name} 
-                  className="w-full max-h-[160px] object-contain mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover/card:scale-105 transition-transform duration-300"
+                  className="w-full flex-1 min-h-0 object-contain mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all duration-300"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -59,17 +59,17 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
                   <h3 className="text-lg font-bold text-[#ff6b6b] leading-tight drop-shadow-md text-center mb-2">{script.name}</h3>
                   <div className="flex gap-2">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-sky-900/60 border border-sky-700/50 text-sky-200 shadow-inner whitespace-nowrap">
-                      難易度: {script.category || '基礎'}
+                      難易度: {script.difficulty || '基礎'}
                     </span>
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-900/60 border border-amber-700/50 text-amber-200 shadow-inner whitespace-nowrap">
-                      {script.playerCount || '5~15人'}
+                      {script.recommendedPlayers || '5-15人'}
                     </span>
                   </div>
                 </div>
 
                 {/* Description (Shows on hover) */}
-                <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover/card:max-h-[100px] group-hover/card:opacity-100 w-full px-2 group-hover/card:mt-2">
-                  <p className="text-xs text-slate-300 line-clamp-4 leading-relaxed text-center w-full">
+                <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover/card:max-h-[250px] group-hover/card:opacity-100 w-full px-2 group-hover/card:mt-2">
+                  <p className="text-xs text-slate-300 leading-relaxed text-center w-full">
                     {script.description}
                   </p>
                 </div>
@@ -78,7 +78,8 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
               {/* Single Drawer (Roles Slider) */}
               <div className="absolute inset-0 z-20 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover/card:translate-x-[calc(100%-16px)] rounded-2xl pointer-events-none group-hover/card:pointer-events-auto">
                 <div className="absolute inset-0 bg-slate-900 border-2 border-slate-600 rounded-2xl p-5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 shadow-[20px_0_30px_rgba(0,0,0,0.5)] flex flex-col pt-6 pl-8">
-                  <h4 className="text-lg font-bold text-amber-500 mb-3 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]">出場角色</h4>
+                  <h4 className="text-lg font-bold text-amber-500 mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)]">出場角色</h4>
+                  <hr className="border-amber-500/30 mb-3" />
                   <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 content-start">
                     <div className="flex gap-2 flex-wrap">
                       {script.roles.filter(Boolean).map((r, idx) => (

@@ -11,6 +11,7 @@ interface RoleInfoModalProps {
 
 export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
   const [activeTab, setActiveTab] = useState<'good'|'evil'|'traveler'|'fabled'>('good');
+  const [isImageViewOpen, setIsImageViewOpen] = useState(false);
   if (!isOpen || !script) return null;
 
   const validRoles = script.roles.filter(Boolean);
@@ -50,10 +51,18 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           </h2>
         </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-3 mt-1 mb-4">
-          <button onClick={() => setActiveTab('good')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
-          <button onClick={() => setActiveTab('evil')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
+        {/* Tabs and Image Button */}
+        <div className="flex items-center mt-1 mb-4">
+          <div className="flex space-x-3">
+            <button onClick={() => setActiveTab('good')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
+            <button onClick={() => setActiveTab('evil')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
+          </div>
+          <button onClick={() => setIsImageViewOpen(true)} className="ml-[30px] px-4 py-2 text-base rounded-lg font-bold transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-2 border border-emerald-400/30">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            圖片版
+          </button>
         </div>
 
         <div className="w-full space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-4">
@@ -85,6 +94,29 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
             );
           })}
         </div>
+      
+        {/* Image Modal */}
+        {isImageViewOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm" onClick={() => setIsImageViewOpen(false)}>
+            <div className="relative max-w-[95vw] max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
+              <img 
+                src={`/drama/Drama_${script.id}_info.png`} 
+                alt={`${script.name} 劇本圖片`} 
+                className="max-w-full max-h-[95vh] object-contain rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+                onError={(e) => { 
+                  // If info image doesn't exist, fallback to regular logo or a placeholder
+                  e.currentTarget.src = `/drama/Drama_${script.id}.png`; 
+                }}
+              />
+              <button 
+                onClick={() => setIsImageViewOpen(false)}
+                className="absolute -top-5 -right-5 w-10 h-10 bg-red-900/90 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-700 transition-colors border-2 border-red-400/50 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );
