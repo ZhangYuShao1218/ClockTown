@@ -262,16 +262,16 @@ export const CenterStage = ({
               return (
                 <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
+                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-slate-900 hover:border-red-400' : 'border-red-900 bg-slate-900 hover:border-red-500'}`}
                   >
                     {canSeeBluffs ? (
                       role ? (
                         <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] group-hover:scale-105 transition-transform" />
                       ) : (
-                        <span className="text-red-500/60 text-lg font-bold group-hover:text-red-400">空</span>
+                        <span className="text-red-400/80 text-lg font-bold group-hover:text-red-300">空</span>
                       )
                     ) : (
-                      <span className="text-white/20 text-xl font-bold group-hover:scale-110 transition-transform">?</span>
+                      <span className="text-white text-4xl font-black leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform">?</span>
                     )}
                   </div>
                   {canSeeBluffs && role && (

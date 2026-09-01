@@ -469,9 +469,9 @@ export const Room = () => {
                           <span className="text-base text-white/40">陣營：???</span>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <div className="w-16 h-16 rounded-full border-2 border-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.3)] flex items-center justify-center bg-black/60 overflow-hidden shrink-0">
+                          <div className="w-16 h-16 rounded-full border-2 border-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.3)] flex items-center justify-center bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] overflow-hidden shrink-0">
                             <img src={`/icons/storyteller.png`} alt="說書人" className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
-                            <span className="hidden text-white/30 text-2xl font-bold">?</span>
+                            <span className="hidden text-[#503214]/40 text-2xl font-bold">?</span>
                           </div>
                           <div className="flex-1 p-2 bg-black/40 rounded border border-white/10 text-sm text-yellow-100/80 leading-relaxed">
                             你是說書人，掌控全域。
@@ -491,11 +491,11 @@ export const Room = () => {
                           </div>
                         )}
                         <div className="flex items-center space-x-4">
-                          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-slate-700 shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
+                          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
                             {myRoleInfo ? (
                                <img src={myRoleInfo.icon || `/icons/${myRoleInfo.id}.png`} alt={myRoleInfo.name} className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
                             ) : null}
-                            <span className={`${myRoleInfo ? 'hidden' : ''} text-white/30 text-2xl font-bold`}>?</span>
+                            <span className={`${myRoleInfo ? 'hidden' : ''} text-[#503214]/40 text-2xl font-bold`}>?</span>
                           </div>
                           <div className="flex flex-col flex-1 justify-center">
                             {!myRoleInfo && (
