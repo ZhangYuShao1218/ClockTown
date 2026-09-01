@@ -31,6 +31,7 @@ interface CenterStageProps {
   votingState?: import('../../data/types').VotingState;
   dayNumber?: number;
   seatTokens?: Record<number, SeatToken[]>;
+  highlightedSeats?: number[];
 }
 
 export const CenterStage = ({ 
@@ -53,7 +54,8 @@ export const CenterStage = ({
   seatStatus = {},
   votingState,
   dayNumber = 1,
-  seatTokens = {}
+  seatTokens = {},
+  highlightedSeats = []
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -419,6 +421,7 @@ export const CenterStage = ({
             const isDead = seatStatus[seatIndex]?.isDead || false;
             const hasGhostVote = seatStatus[seatIndex]?.hasGhostVote || false;
             const pendingExecution = seatStatus[seatIndex]?.pendingExecution || false;
+            const isHighlighted = highlightedSeats?.includes(seatIndex);
             
             // In CenterStage, we show guesses from seatRoleNotes
             const playerInSeat = getPlayerInSeat(seatIndex);
@@ -432,10 +435,18 @@ export const CenterStage = ({
                 className="absolute group z-10"
                 style={style}
               >
+                {/* Seat Highlighting Badge */}
+                {isHighlighted && (
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
+                    ⚡ 行動目標
+                  </div>
+                )}
                 
                 <div 
                   onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
+                    isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
+                  }${
                     guessedRole 
                       ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
                       : 'border-amber-600/80 bg-black/80 hover:border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.3)]'
@@ -512,7 +523,7 @@ export const CenterStage = ({
               const angleRad = (angleDeg * Math.PI) / 180;
               
               const currentTokens = (seatTokens || {})[seatIndex] || [];
-              const elements = [];
+              const elements: React.ReactNode[] = [];
               const seatRadiusPx = size / 2;
               const tokenRadiusPx = tokenSize / 2;
               

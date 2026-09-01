@@ -24,6 +24,7 @@ interface GrimoireProps {
   seatStatus?: Record<number, import('../../data/types').SeatStatus>;
   userUid: string | undefined;
   seatTokens?: Record<number, SeatToken[]>;
+  highlightedSeats?: number[];
 }
 
 export const Grimoire = ({ 
@@ -41,7 +42,8 @@ export const Grimoire = ({
   hostPlayer,
   seatStatus = {},
   userUid,
-  seatTokens = {}
+  seatTokens = {},
+  highlightedSeats = []
 }: GrimoireProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
@@ -301,29 +303,25 @@ export const Grimoire = ({
             const role = roleId ? script.roles.find(r => r.id === roleId) : null;
             const isEvil = role?.type === "demon" || role?.type === "minion";
 
-            const angleDeg = (seatIndex / seatCount) * 360 - 90;
-            const angleRad = (angleDeg * Math.PI) / 180;
-              const { radius } = getSeatConfig();
-              const x = 50 + radius * Math.cos(angleRad);
-              const y = 50 + radius * Math.sin(angleRad);
-            
-            let tooltipClass = "top-[110%] mt-2 ";
-            if (y > 75) tooltipClass = "bottom-[110%] mb-2 ";
-            
-            if (x < 25) tooltipClass += "left-0";
-            else if (x > 75) tooltipClass += "right-0";
-            else tooltipClass += "left-1/2 -translate-x-1/2";
-
+            const isHighlighted = highlightedSeats?.includes(seatIndex);
             return (
               <div 
-                key={seatIndex} 
+                key={seatIndex}
                 className="absolute pointer-events-auto cursor-pointer group z-10"
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
               >
+                {/* Seat Highlighting Badge */}
+                {isHighlighted && (
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
+                    ⚡ 行動目標
+                  </div>
+                )}
                 
                 <div onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: role, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                     className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
+                      isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
+                    }${
                       role 
                         ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
                         : 'border-amber-600/80 bg-black/80 hover:border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.3)]'
@@ -368,7 +366,7 @@ export const Grimoire = ({
               const angleRad = (angleDeg * Math.PI) / 180;
               
               const currentTokens = (seatTokens || {})[seatIndex] || [];
-              const elements = [];
+              const elements: React.ReactNode[] = [];
               const seatRadiusPx = size / 2;
               const tokenRadiusPx = tokenSize / 2;
               

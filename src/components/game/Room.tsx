@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGameState } from "../../hooks/useGameState";
 import { useAuth } from "../../hooks/useAuth";
-import { leaveRoom, setPlayerSeat, updateGameTime } from "../../services/roomService";
+import { leaveRoom, setPlayerSeat } from "../../services/roomService";
 import { CenterStage } from "./CenterStage";
 import { Grimoire } from "./Grimoire";
 import { GrimoireSettings } from "./GrimoireSettings";
@@ -13,8 +13,10 @@ import { NightOrderModal } from "./NightOrderModal";
 import { VoteHistoryModal } from "./VoteHistoryModal";
 import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { Chat } from "./Chat";
+import { GameTimelineLogger } from "./GameTimelineLogger";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
+import { stopRoomReplay } from "../../services/replayService";
 
 export const Room = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,10 +30,10 @@ export const Room = () => {
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
   const [isViewingList, setIsViewingList] = useState(false);
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
-  const [testBlur, setTestBlur] = useState<number>(0);
-  const [testFilterOpacity, setTestFilterOpacity] = useState<number>(50);
-  const [testFilterColor, setTestFilterColor] = useState<string>('#A14B12');
-  const [testBlendMode, setTestBlendMode] = useState<string>('overlay');
+  const testBlur = 0;
+  const testFilterOpacity = 50;
+  const testFilterColor = '#A14B12';
+  const testBlendMode = 'overlay';
   const [topMenuTab, setTopMenuTab] = useState<'info' | 'settings'>('info');
   
   const [isRoleInfoOpen, setRoleInfoOpen] = useState(false);
@@ -43,12 +45,16 @@ export const Room = () => {
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
   const [hostDrawerTab, setHostDrawerTab] = useState<'chat' | 'controls'>('chat');
-  
+
   const myPlayerRaw = user && gameState?.players ? gameState.players[user.uid] : null;
   const isHostRaw = gameState?.public?.hostId === user?.uid;
   const previousRoleRef = useRef<string | undefined | null>(undefined);
   const isInitialLoad = useRef(true);
   const [roleAlert, setRoleAlert] = useState<string | null>(null);
+
+  const replayMode = gameState?.public?.replayMode;
+  const isReplayActive = !!replayMode?.isActive;
+  const replaySnapshot = replayMode?.snapshot;
 
   useEffect(() => {
     if (loading) return; // Wait for Firebase data to load initially
@@ -163,7 +169,13 @@ export const Room = () => {
 
   const dayNumber = gameState?.public?.dayNumber || 1;
   const timePhase = gameState?.public?.timePhase || (gameState?.public?.isNight ? 'night' : 'day');
-  const isNight = timePhase === 'night';
+  const currentDayNumber = isReplayActive ? (replayMode?.dayNumber || 1) : dayNumber;
+  const currentTimePhase = isReplayActive ? (replayMode?.timePhase || 'day') : timePhase;
+  const currentIsNight = currentTimePhase === 'night';
+
+  const replayGrimoireState = replaySnapshot?.seatRoles ? Object.fromEntries(
+    Object.entries(replaySnapshot.seatRoles).map(([s, roleId]) => [s, { roleId }])
+  ) : undefined;
 
   return (
     <div className="flex flex-col h-screen p-0 bg-black overflow-hidden relative">
@@ -175,7 +187,7 @@ export const Room = () => {
       {/* Background Image - Night (Fades in over the day image if the file exists) */}
       <div 
         className={`absolute inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-[3000ms] ease-in-out ${
-          isNight ? 'opacity-80' : 'opacity-0'
+          currentIsNight ? 'opacity-80' : 'opacity-0'
         }`}
         style={{ backgroundImage: "url('/BackgroundNight.jpg')" }}
       />
@@ -183,11 +195,11 @@ export const Room = () => {
       {/* 淺灰藍濾鏡 (僅作用於背景圖，黑夜時顯示) */}
       <div 
         className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-[3000ms] ease-in-out ${
-          isNight ? 'opacity-100' : 'opacity-0'
+          currentIsNight ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           backgroundColor: testFilterColor,
-          opacity: isNight ? (testFilterOpacity / 100) : 0,
+          opacity: currentIsNight ? (testFilterOpacity / 100) : 0,
           mixBlendMode: testBlendMode as any
         }}
       />
@@ -197,6 +209,27 @@ export const Room = () => {
         className="absolute inset-0 z-0 bg-transparent pointer-events-none transition-all duration-300"
         style={{ backdropFilter: `blur(${testBlur}px)` }}
       />
+
+      {/* 全場同步復盤提示 (所有人可見) */}
+      {isReplayActive && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-black/85 border border-red-500/60 text-white px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+            </span>
+            <span className="font-bold text-white text-sm tracking-wider">復盤中</span>
+          </div>
+          {isHost && (
+            <button
+              onClick={() => stopRoomReplay(id!)}
+              className="ml-1 px-2.5 py-0.5 bg-red-900/80 hover:bg-red-800 border border-red-500/50 text-red-200 hover:text-white font-bold rounded-full text-xs transition-colors shadow"
+            >
+              結束復盤
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Top Left Nav */}
       <div className="absolute top-4 left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
@@ -266,9 +299,10 @@ export const Room = () => {
                 </>
               ) : (
                 <>
-                  <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
-                  <a href="https://script.bloodontheclocktower.com/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">腳本工具</a>
-                  <a href="https://anispace.zhangyushao.dev/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-white/80 hover:bg-slate-700/50 text-center font-bold tracking-widest text-sm transition-colors">AniSpace</a>
+                  <a href="/script-tool" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-purple-950/60 hover:text-purple-100 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">章魚燒腳本工具</a>
+                  <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
+                  <a href="https://clocktower.gstonegames.com/script_tool/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方腳本工具</a>
+                  <a href="https://anispace.zhangyushao.dev/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-amber-400 hover:bg-amber-950/60 hover:text-amber-200 text-center font-bold tracking-widest text-sm transition-colors">AniSpace</a>
                 </>
               )}
             </div>
@@ -300,12 +334,13 @@ export const Room = () => {
             onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
             fabled={gameState?.public?.fabled || []}
             hostPlayer={hostPlayer}
-            privateNotes={user ? gameState?.private?.notes?.[user.uid] : undefined}
-            seatTokens={user ? gameState?.private?.seatTokens?.[user.uid] : undefined}
+            privateNotes={isReplayActive ? (replaySnapshot?.seatRoles || {}) : (user ? gameState?.private?.notes?.[user.uid] : undefined)}
+            seatTokens={isReplayActive ? (replaySnapshot?.seatTokens || {}) : (user ? gameState?.private?.seatTokens?.[user.uid] : undefined)}
             isHost={isHost}
-            seatStatus={gameState?.public?.seatStatus || {}}
+            seatStatus={isReplayActive ? (replaySnapshot?.seatStatus || {}) : (gameState?.public?.seatStatus || {})}
             votingState={gameState?.public?.votingState}
-            dayNumber={dayNumber}
+            dayNumber={currentDayNumber}
+            highlightedSeats={replayMode?.highlightedSeats || []}
           />
         ) : (
           isHost ? (
@@ -315,7 +350,7 @@ export const Room = () => {
                 seatCount={seatCount}
                 script={currentScript}
                 
-                grimoireState={gameState.private?.grimoire}
+                grimoireState={isReplayActive ? replayGrimoireState : gameState.private?.grimoire}
                 bluffs={bluffs}
                 distribution={gameState?.public?.distribution || [7,2,2,1]}
                 seats={seats}
@@ -324,9 +359,10 @@ export const Room = () => {
                 onLeaveRoom={handleLeave}
                 onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
                 hostPlayer={hostPlayer}
-                seatStatus={gameState?.public?.seatStatus || {}}
+                seatStatus={isReplayActive ? (replaySnapshot?.seatStatus || {}) : (gameState?.public?.seatStatus || {})}
                 userUid={user?.uid}
-                seatTokens={user ? gameState?.private?.grimoireTokens?.[user.uid] : undefined}
+                seatTokens={isReplayActive ? (replaySnapshot?.seatTokens || {}) : (user ? gameState?.private?.grimoireTokens?.[user.uid] : undefined)}
+                highlightedSeats={replayMode?.highlightedSeats || []}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-white/50 h-full"><p>真相仍在迷霧之中...</p></div>
@@ -478,104 +514,16 @@ export const Room = () => {
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex flex-col">
-                  <div className="p-4 bg-white/5 border-b border-white/10 shrink-0 flex flex-col items-center justify-center">
-                    <div className="text-2xl font-bold tracking-widest text-stone-300 drop-shadow-sm flex items-center mb-5 mt-2">
-                      第 <span className="font-sans mx-2 text-3xl text-white">{dayNumber}</span> 天 - 
-                      <span className={`ml-2 ${isNight ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]' : 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'}`}>
-                        {isNight ? '黑夜' : '白天'}
-                      </span>
-                    </div>
-                    
-                    <div className="w-full flex gap-4">
-                      <button 
-                        onClick={() => {
-                          if (dayNumber === 1 && timePhase === 'day') return;
-                          if (timePhase === 'night') updateGameTime(id!, dayNumber, 'day');
-                          else updateGameTime(id!, Math.max(1, dayNumber - 1), 'night');
-                        }}
-                        disabled={dayNumber === 1 && timePhase === 'day'}
-                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white font-bold tracking-widest transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
-                      >
-                        上一個
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (timePhase === 'day') updateGameTime(id!, dayNumber, 'night');
-                          else updateGameTime(id!, dayNumber + 1, 'day');
-                        }}
-                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white font-bold tracking-widest transition-colors shadow-sm"
-                      >
-                        下一個
-                      </button>
-                    </div>
-                    
-                    {/* TEST PANELS */}
-                    {import.meta.env.DEV && (
-                      <div className="w-full mt-6 p-4 bg-white/5 border border-white/10 rounded-lg flex flex-col gap-4">
-                        <h4 className="text-amber-500 font-bold tracking-widest text-center border-b border-white/10 pb-2">測試工具 (開發環境)</h4>
-                        
-                        {/* Blur Slider */}
-                      <div>
-                        <label className="text-white/80 text-sm font-bold flex justify-between">
-                          背景模糊 (0-5px): <span className="text-amber-400">{testBlur}px</span>
-                        </label>
-                        <input 
-                          type="range" 
-                          min="0" max="5" step="1" 
-                          value={testBlur} 
-                          onChange={(e) => setTestBlur(parseInt(e.target.value))}
-                          className="w-full mt-2 cursor-pointer"
-                        />
-                      </div>
-
-                      {/* Filter Opacity */}
-                      <div>
-                        <label className="text-white/80 text-sm font-bold flex justify-between">
-                          黑夜濾鏡不透明度: <span className="text-amber-400">{testFilterOpacity}%</span>
-                        </label>
-                        <input 
-                          type="range" 
-                          min="0" max="100" step="5" 
-                          value={testFilterOpacity} 
-                          onChange={(e) => setTestFilterOpacity(parseInt(e.target.value))}
-                          className="w-full mt-2 cursor-pointer"
-                        />
-                      </div>
-
-                      {/* Filter Color and Blend Mode */}
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <label className="text-white/80 text-sm font-bold mb-2 block">濾鏡顏色</label>
-                          <input 
-                            type="color" 
-                            value={testFilterColor} 
-                            onChange={(e) => setTestFilterColor(e.target.value)}
-                            className="w-full h-8 cursor-pointer rounded bg-black/40 border border-white/20"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="text-white/80 text-sm font-bold mb-2 block">混合模式</label>
-                          <select 
-                            value={testBlendMode}
-                            onChange={(e) => setTestBlendMode(e.target.value)}
-                            className="w-full h-8 bg-black/60 text-white/80 border border-white/20 rounded text-sm px-1 cursor-pointer"
-                          >
-                            <option value="normal">正常 (Normal)</option>
-                            <option value="multiply">色彩增值 (Multiply)</option>
-                            <option value="overlay">覆蓋 (Overlay)</option>
-                            <option value="screen">濾色 (Screen)</option>
-                            <option value="color-burn">加深 (Color Burn)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                    </div>
-                    )}
-
-                  </div>
-                  <div className="flex-1 min-h-0 shadow-inner bg-black/20"></div>
-                </div>
+                <GameTimelineLogger
+                  roomId={id!}
+                  dayNumber={dayNumber}
+                  timePhase={timePhase}
+                  seats={seats}
+                  players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))}
+                  grimoireState={gameState.private?.grimoire}
+                  isReplayActive={isReplayActive}
+                  replayMode={replayMode}
+                />
               )}
             </div>
           )}

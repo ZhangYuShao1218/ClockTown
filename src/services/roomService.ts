@@ -254,8 +254,35 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
       updates[`rooms/${roomId}/players/${uid}/roleId`] = null;
     }
   });
+
+  // 如果有說書人，將鐘樓真相的角色與筆記帶入說書人的舞台中央
+  if (hostId) {
+    const hostNotes: Record<number, string> = {};
+    Object.entries(grimoire || {}).forEach(([seat, g]: [string, any]) => {
+      if (g?.roleId) {
+        hostNotes[Number(seat)] = g.roleId;
+      }
+    });
+    updates[`rooms/${roomId}/private/notes/${hostId}`] = hostNotes;
+
+    // 複製說書人在真相的筆記標記到舞台中央
+    const grimoireTokensSnapshot = await get(ref(db, `rooms/${roomId}/private/grimoireTokens/${hostId}`));
+    const hostGrimoireTokens = grimoireTokensSnapshot.val() || null;
+    updates[`rooms/${roomId}/private/seatTokens/${hostId}`] = hostGrimoireTokens;
+  }
   
   await update(ref(db), updates);
+
+  // 記錄復盤事件
+  import("./replayService").then(({ recordReplayEvent }) => {
+    recordReplayEvent(roomId, {
+      dayNumber: 1,
+      timePhase: 'day',
+      type: 'ROLE_ASSIGNED',
+      title: '說書人分配角色',
+      description: '說書人已完成全場座位角色與身分資訊發放。'
+    }).catch(console.error);
+  });
 };
 
 export const recallRoles = async (roomId: string, players: Record<string, any>) => {
@@ -272,6 +299,19 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
   const snapshot = await get(currentRef);
   const current = snapshot.val() || {};
   await update(ref(db), { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
+
+  // 記錄復盤事件 (若生死狀態改變)
+  if (status.isDead !== undefined) {
+    import("./replayService").then(({ recordReplayEvent }) => {
+      recordReplayEvent(roomId, {
+        dayNumber: 1,
+        timePhase: 'day',
+        type: 'DEATH_TOGGLE',
+        title: `座位 #${seatIndex} 狀態更新`,
+        description: `說書人將 #${seatIndex} 號座位標記為 ${status.isDead ? '死亡' : '存活'}。`
+      }).catch(console.error);
+    });
+  }
 };
 
 export const updateVotingState = async (roomId: string, stateUpdate: Partial<import('../data/types').VotingState>) => {
@@ -292,6 +332,17 @@ export const addVoteRecord = async (roomId: string, record: any) => {
   const history = snapshot.val() || [];
   history.push(record);
   await update(ref(db), { [`rooms/${roomId}/public/voteHistory`]: history });
+
+  // 記錄復盤事件
+  import("./replayService").then(({ recordReplayEvent }) => {
+    recordReplayEvent(roomId, {
+      dayNumber: record.dayNumber || 1,
+      timePhase: 'day',
+      type: 'VOTE_RESULT',
+      title: `投票結果：${record.nomineeName} (${record.totalVotes} 票)`,
+      description: `${record.nominatorName} 提名 ${record.nomineeName}，得票數：${record.totalVotes} 票。`
+    }).catch(console.error);
+  });
 };
 
 export const updateGameTime = async (roomId: string, dayNumber: number, timePhase: 'day' | 'night') => {
@@ -299,5 +350,16 @@ export const updateGameTime = async (roomId: string, dayNumber: number, timePhas
     [`rooms/${roomId}/public/dayNumber`]: dayNumber,
     [`rooms/${roomId}/public/timePhase`]: timePhase,
     [`rooms/${roomId}/public/isNight`]: timePhase === 'night' 
+  });
+
+  // 記錄復盤事件
+  import("./replayService").then(({ recordReplayEvent }) => {
+    recordReplayEvent(roomId, {
+      dayNumber,
+      timePhase,
+      type: 'PHASE_CHANGE',
+      title: `進入第 ${dayNumber} 天 - ${timePhase === 'night' ? '黑夜' : '白天'}`,
+      description: `時間推進至第 ${dayNumber} 天 (${timePhase === 'night' ? '黑夜行動' : '白天公聊'})。`
+    }).catch(console.error);
   });
 };
