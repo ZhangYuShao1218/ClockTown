@@ -75,12 +75,16 @@ function SortableActionItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const isSpecialNightIcon = () => {
-    const url = normalizeImageUrl(action?.image) || '';
-    return url.includes('75px-Mi') || url.includes('75px-Di') || url.includes('75px-Dusk') || url.includes('75px-Dawn') || url.includes('75px-');
-  };
-
-  const isSpecial = isSpecialNightIcon();
+  // 只有這些特殊夜晚標誌圖本身已有圓形底板，不需額外套用
+  const isSpecial = (() => {
+    const url = (normalizeImageUrl(action?.image) || '').toLowerCase();
+    return (
+      url.includes('75px-mi') ||
+      url.includes('75px-di') ||
+      url.includes('75px-dusk') ||
+      url.includes('75px-dawn')
+    );
+  })();
 
   return (
       <Box

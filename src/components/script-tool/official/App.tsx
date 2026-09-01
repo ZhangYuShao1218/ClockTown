@@ -1093,10 +1093,10 @@ const App = observer(() => {
           className="no-print"
           sx={{
             width: '100%',
-            background: 'linear-gradient(180deg, #ffffff 0%, #faf8f5 60%, #f4eee3 100%)',
+            background: 'linear-gradient(160deg, #fffcf6 0%, #fdf8ee 40%, #f7efe0 100%)',
             borderTop: '4px solid #b45309',
             borderBottom: '1.5px solid #d5c8b6',
-            py: { xs: 2.5, sm: 3.25 },
+            py: { xs: 3, sm: 4 },
             px: { xs: 3, sm: 6 },
             display: 'flex',
             alignItems: 'center',
@@ -1106,37 +1106,59 @@ const App = observer(() => {
             zIndex: 100,
             position: 'sticky',
             top: 0,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+            // 底部裝飾線
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: '-1px',
+              left: '5%',
+              right: '5%',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent, #b45309 20%, #f59e0b 50%, #b45309 80%, transparent)',
+              opacity: 0.35,
+            },
           }}
         >
-          {/* 左側：大標題與典雅副標題 */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
-            <Typography
-              sx={{
-                fontWeight: 900,
-                color: '#1c1917',
-                fontSize: { xs: '1.55rem', sm: '2.15rem' },
-                letterSpacing: '0.04em',
-                lineHeight: 1.15,
-                userSelect: 'none',
-              }}
-            >
-              血染鐘樓 - 劇本工具
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                color: '#78716c',
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-              }}
-            >
-              BLOOD ON THE CLOCKTOWER · 劇本排版與製作工坊
-            </Typography>
+          {/* 左側：裝飾線 + 大標題 + 副標題 */}
+          <Box sx={{ display: 'flex', alignItems: 'stretch', gap: 2.5 }}>
+            {/* 左側琥珀金竪條裝飾 */}
+            <Box sx={{
+              width: '4px',
+              borderRadius: '2px',
+              background: 'linear-gradient(180deg, #f59e0b 0%, #b45309 50%, #f59e0b 100%)',
+              flexShrink: 0,
+            }} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  color: '#1c1917',
+                  fontSize: { xs: '1.65rem', sm: '2.35rem' },
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.1,
+                  userSelect: 'none',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                }}
+              >
+                血染鐘樓 - 劇本工具
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: '0.72rem', sm: '0.82rem' },
+                  color: '#92400e',
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  opacity: 0.85,
+                }}
+              >
+                Blood on the Clocktower · 劇本排版與製作工坊
+              </Typography>
+            </Box>
           </Box>
 
-          {/* 右側：致謝按鈕與淺色前往魔典按鈕 */}
+          {/* 右側：致謝按鈕與淺藍色前往魔典按鈕 */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Button
               variant="outlined"
@@ -1150,7 +1172,7 @@ const App = observer(() => {
                 textTransform: 'none',
                 borderRadius: '8px',
                 px: 2.25,
-                py: 0.75,
+                py: 0.85,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 '&:hover': {
                   borderColor: '#94a3b8',
@@ -1166,21 +1188,21 @@ const App = observer(() => {
               variant="outlined"
               onClick={() => navigate('/')}
               sx={{
-                borderColor: '#f59e0b',
-                color: '#b45309',
-                backgroundColor: '#fffbeb',
+                borderColor: '#93c5fd',
+                color: '#1d4ed8',
+                backgroundColor: '#eff6ff',
                 fontWeight: 'bold',
                 fontSize: '0.9rem',
                 textTransform: 'none',
                 borderRadius: '8px',
                 px: 2.75,
-                py: 0.75,
-                boxShadow: '0 1px 4px rgba(180, 83, 9, 0.12)',
+                py: 0.85,
+                boxShadow: '0 1px 4px rgba(37, 99, 235, 0.1)',
                 '&:hover': {
-                  borderColor: '#d97706',
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
-                  boxShadow: '0 2px 8px rgba(180, 83, 9, 0.2)',
+                  borderColor: '#60a5fa',
+                  backgroundColor: '#dbeafe',
+                  color: '#1e40af',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.18)',
                 },
                 transition: 'all 0.2s ease-in-out',
               }}
@@ -1266,7 +1288,7 @@ const App = observer(() => {
             left: 0,
             width: '100%',
             zIndex: 9999,
-            pointerEvents: 'none',
+            pointerEvents: 'none', // 整體不擋點擊
             display: 'flex',
             justifyContent: 'center',
           }}
@@ -1278,10 +1300,10 @@ const App = observer(() => {
               position: 'relative',
               transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
               transform: inputDrawerOpen ? 'translateY(0)' : 'translateY(calc(100% - 46px))',
-              pointerEvents: 'auto',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
+              pointerEvents: 'auto', // 讓整個容器可接受滑鼠事件
             }}
           >
             {/* 書籤頁籤按鈕 (46px 高，永遠可見於底部邊緣) */}
@@ -1304,6 +1326,7 @@ const App = observer(() => {
                 textTransform: 'none',
                 mb: '-1px',
                 zIndex: 10,
+                pointerEvents: 'auto',
                 '&:hover': {
                   backgroundColor: '#f8fafc',
                   color: '#0f172a',

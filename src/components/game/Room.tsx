@@ -299,9 +299,9 @@ export const Room = () => {
                 </>
               ) : (
                 <>
-                  <a href="/script-tool" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-purple-950/60 hover:text-purple-100 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">章魚燒腳本工具</a>
-                  <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
-                  <a href="https://clocktower.gstonegames.com/script_tool/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-300 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方腳本工具</a>
+                  <a href="/script-tool" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-purple-950/60 hover:text-purple-100 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">章魚燒腳本工具</a>
+                  <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
+                  <a href="https://clocktower.gstonegames.com/script_tool/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方腳本工具</a>
                   <a href="https://anispace.zhangyushao.dev/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-amber-400 hover:bg-amber-950/60 hover:text-amber-200 text-center font-bold tracking-widest text-sm transition-colors">AniSpace</a>
                 </>
               )}
@@ -400,7 +400,12 @@ export const Room = () => {
 
         <div className="flex justify-between items-center p-4 border-b border-white/10 bg-black/40">
           <h2 className="text-lg font-bold text-white tracking-widest">
-            {isHost && activeTab === 'truth' ? '說書人面版' : `${myPlayer?.name || user?.displayName || '未知玩家'} - 玩家面板`}
+            {isHost && activeTab === 'truth' ? '說書人面版' : (
+              <>
+                <span className="text-amber-400">{myPlayer?.name || user?.displayName || '未知玩家'}</span>
+                <span className="text-white"> - 玩家面板</span>
+              </>
+            )}
           </h2>
           {isHost && activeTab === 'truth' && activeScriptId && !isViewingList && (
             <button 
@@ -486,7 +491,7 @@ export const Room = () => {
                           </div>
                         )}
                         <div className="flex items-center space-x-4">
-                          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-black/60 shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
+                          <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-slate-700 shadow-lg overflow-hidden shrink-0 ${myRoleInfo ? (isEvil ? 'border-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-blue-500/80 shadow-[0_0_10px_rgba(59,130,246,0.3)]') : 'border-white/20'}`}>
                             {myRoleInfo ? (
                                <img src={myRoleInfo.icon || `/icons/${myRoleInfo.id}.png`} alt={myRoleInfo.name} className="w-full h-full object-contain scale-[1.15]" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
                             ) : null}
