@@ -51,9 +51,12 @@ interface SettingCategory {
   keywords: string[]; // 用于搜索的关键词（中英文）
 }
 
-const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UISettingsDrawerProps) => {
+interface UISettingsContentProps {
+  onOpenTowerImageDialog?: () => void;
+}
+
+export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISettingsContentProps) => {
   const { t } = useTranslation();
-  const [isPinned, setIsPinned] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [fontUploaderOpen, setFontUploaderOpen] = useState(false);
 
@@ -61,7 +64,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
   const categories: SettingCategory[] = [
     {
       id: 'towerImages',
-      title: 'Tower Images',
+      title: t('ui.category.towerImages'),
       keywords: [
         'tower', 'image', 'background', 'decoration', 'upload', 'opacity', 'scale', 'position',
       ],
@@ -118,20 +121,10 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
     },
   ];
 
-  const handleClose = () => {
-    if (!isPinned) {
-      onClose();
-    }
-  };
-
   const handleReset = () => {
     if (window.confirm(t('dialog.resetUIMessage'))) {
       uiConfigStore.resetToDefault();
     }
-  };
-
-  const handlePinToggle = () => {
-    setIsPinned(!isPinned);
   };
 
   // 搜索过滤逻辑
@@ -176,72 +169,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
 
   return (
     <>
-      <Drawer
-        anchor="left"
-        open={open}
-        onClose={handleClose}
-        hideBackdrop={isPinned} // 固定时隐藏背景，未固定时显示背景
-      disableScrollLock={true} // 禁用滚动锁定，不隐藏页面滚动条
-      ModalProps={{
-        disableEnforceFocus: true, // 允许焦点离开抽屉
-        disableAutoFocus: true, // 不自动聚焦
-        disableScrollLock: true, // 禁用滚动锁定
-      }}
-      sx={{
-        // 固定时让整个 Drawer 容器不阻止交互
-        pointerEvents: isPinned ? 'none' : 'auto',
-        '& .MuiDrawer-paper': {
-          width: { xs: '90%', sm: 420 },
-          maxWidth: 420,
-          boxShadow: 3,
-          // 但抽屉本身可以交互
-          pointerEvents: 'auto',
-        },
-        // 未固定时显示半透明背景
-        ...(!isPinned && {
-          '& .MuiBackdrop-root': {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          },
-        }),
-      }}
-    >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* 头部 */}
-        <Box sx={{ 
-          p: 2, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          backgroundColor: isPinned ? 'primary.light' : 'background.paper',
-          transition: 'background-color 0.3s',
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: isPinned ? 'primary.contrastText' : 'text.primary' }}>
-            {t('ui.settings')}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title={isPinned ? (t('ui.unpinDrawer')) : (t('ui.pinDrawer'))}>
-              <IconButton 
-                onClick={handlePinToggle} 
-                size="small" 
-                color={isPinned ? 'inherit' : 'default'}
-                sx={{
-                  backgroundColor: isPinned ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: isPinned ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.04)',
-                  },
-                }}
-              >
-                {isPinned ? <LockIcon /> : <LockOpenIcon />}
-              </IconButton>
-            </Tooltip>
-            <IconButton onClick={onClose} size="small" sx={{ color: isPinned ? 'primary.contrastText' : 'text.primary' }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </Box>
-
-        <Divider />
-
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {/* 搜索框 */}
         <Box sx={{ p: 2, pb: 1 }}>
           <TextField
@@ -265,7 +193,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
           <Stack spacing={2}>
             {/* 0. 背景设置 */}
             {filteredCategories.find(c => c.id === 'backgroundSettings')?.show && (
-            <Accordion defaultExpanded={!searchQuery}>
+            <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
                   {t('ui.category.backgroundSettings')}
@@ -279,10 +207,11 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                     <RadioGroup
                       row
                       value={uiConfigStore.config.theme}
-                      onChange={(e) => uiConfigStore.updateConfig({ theme: e.target.value as 'none' | 'sakura' })}
+                      onChange={(e) => uiConfigStore.updateConfig({ theme: e.target.value as 'none' | 'sakura' | 'custom' })}
                     >
                       <FormControlLabel value="none" control={<Radio size="small" />} label={t('ui.themeNone')} />
                       <FormControlLabel value="sakura" control={<Radio size="small" />} label={t('ui.themeSakura')} />
+                      <FormControlLabel value="custom" control={<Radio size="small" />} label={t('ui.themeCustom')} />
                     </RadioGroup>
                   </FormControl>
 
@@ -305,30 +234,34 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                       {t('ui.nightOrderBackgroundLabel')}
                     </FormLabel>
                     
-                    {/* 背景模式选择 */}
+                    {/* 背景模式選擇 */}
                     <RadioGroup
                       value={uiConfigStore.config.nightOrderBackgroundMode}
                       onChange={(e) => {
-                        uiConfigStore.updateConfig({ 
-                          nightOrderBackgroundMode: e.target.value as 'official' | 'custom' 
+                        uiConfigStore.updateConfig({
+                          nightOrderBackgroundMode: e.target.value as 'official' | 'custom',
+                          theme: 'custom',
                         });
                       }}
                     >
-                      {/* 官方背景选项 */}
-                      <FormControlLabel 
-                        value="official" 
-                        control={<Radio size="small" />} 
-                        label={t('ui.backgroundMode.official')} 
+                      {/* 官方背景選項 */}
+                      <FormControlLabel
+                        value="official"
+                        control={<Radio size="small" />}
+                        label={t('ui.backgroundMode.official')}
                       />
-                      
-                      {/* 官方背景的子选项（四种颜色） */}
+
+                      {/* 官方背景的子選項（三個一列） */}
                       {uiConfigStore.config.nightOrderBackgroundMode === 'official' && (
                         <Box sx={{ ml: 4, mt: 0.5, mb: 1 }}>
                           <RadioGroup
+                            row
                             value={uiConfigStore.config.nightOrderBackground}
                             onChange={(e) => uiConfigStore.updateConfig({
-                              nightOrderBackground: e.target.value as 'purple' | 'yellow' | 'green' | 'pink'
+                              nightOrderBackground: e.target.value as 'purple' | 'yellow' | 'green' | 'pink',
+                              theme: 'custom',
                             })}
+                            sx={{ '& .MuiFormControlLabel-root': { width: '30%', mr: 0 } }}
                           >
                             <FormControlLabel value="purple" control={<Radio size="small" />} label={t('ui.purpleBackground')} />
                             <FormControlLabel value="yellow" control={<Radio size="small" />} label={t('ui.yellowBackground')} />
@@ -337,12 +270,12 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                           </RadioGroup>
                         </Box>
                       )}
-                      
-                      {/* 自定义上传选项 */}
-                      <FormControlLabel 
-                        value="custom" 
-                        control={<Radio size="small" />} 
-                        label={t('ui.backgroundMode.custom')} 
+
+                      {/* 自訂上傳選項 */}
+                      <FormControlLabel
+                        value="custom"
+                        control={<Radio size="small" />}
+                        label={t('ui.backgroundMode.custom')}
                       />
                     </RadioGroup>
 
@@ -366,8 +299,9 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                               const reader = new FileReader();
                               reader.onload = (event) => {
                                 const base64 = event.target?.result as string;
-                                uiConfigStore.updateConfig({ 
-                                  customNightOrderBackground: base64 
+                                uiConfigStore.updateConfig({
+                                  customNightOrderBackground: base64,
+                                  theme: 'custom',
                                 });
                               };
                               reader.readAsDataURL(file);
@@ -424,45 +358,49 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                       {t('ui.mainBackgroundLabel')}
                     </FormLabel>
                     
-                    {/* 背景模式选择 */}
+                    {/* 背景模式選擇 */}
                     <RadioGroup
                       value={uiConfigStore.config.mainBackgroundMode}
                       onChange={(e) => {
-                        uiConfigStore.updateConfig({ 
-                          mainBackgroundMode: e.target.value as 'official' | 'custom' 
+                        uiConfigStore.updateConfig({
+                          mainBackgroundMode: e.target.value as 'official' | 'custom',
+                          theme: 'custom',
                         });
                       }}
                     >
-                      {/* 官方背景选项 */}
-                      <FormControlLabel 
-                        value="official" 
-                        control={<Radio size="small" />} 
-                        label={t('ui.backgroundMode.official')} 
+                      {/* 官方背景選項 */}
+                      <FormControlLabel
+                        value="official"
+                        control={<Radio size="small" />}
+                        label={t('ui.backgroundMode.official')}
                       />
-                      
-                      {/* 自定义上传选项 */}
-                      <FormControlLabel 
-                        value="custom" 
-                        control={<Radio size="small" />} 
-                        label={t('ui.backgroundMode.custom')} 
+
+                      {/* 官方背景的子選項（三個一列） */}
+                      {uiConfigStore.config.mainBackgroundMode === 'official' && (
+                        <Box sx={{ ml: 4, mt: 0.5, mb: 1 }}>
+                          <RadioGroup
+                            row
+                            value={uiConfigStore.config.mainBackground}
+                            onChange={(e) => uiConfigStore.updateConfig({
+                              mainBackground: e.target.value as 'classic' | 'v2' | 'pink',
+                              theme: 'custom',
+                            })}
+                            sx={{ '& .MuiFormControlLabel-root': { width: '30%', mr: 0 } }}
+                          >
+                            <FormControlLabel value="classic" control={<Radio size="small" />} label={t('ui.mainBackgroundClassic')} />
+                            <FormControlLabel value="v2" control={<Radio size="small" />} label={t('ui.mainBackgroundV2')} />
+                            <FormControlLabel value="pink" control={<Radio size="small" />} label={t('ui.mainBackgroundPink')} />
+                          </RadioGroup>
+                        </Box>
+                      )}
+
+                      {/* 自訂上傳選項 */}
+                      <FormControlLabel
+                        value="custom"
+                        control={<Radio size="small" />}
+                        label={t('ui.backgroundMode.custom')}
                       />
                     </RadioGroup>
-
-                    {/* 官方背景的子选项 */}
-                    {uiConfigStore.config.mainBackgroundMode === 'official' && (
-                      <Box sx={{ ml: 4, mt: 0.5, mb: 1 }}>
-                        <RadioGroup
-                          value={uiConfigStore.config.mainBackground}
-                          onChange={(e) => uiConfigStore.updateConfig({
-                            mainBackground: e.target.value as 'classic' | 'v2' | 'pink'
-                          })}
-                        >
-                          <FormControlLabel value="classic" control={<Radio size="small" />} label={t('ui.mainBackgroundClassic')} />
-                          <FormControlLabel value="v2" control={<Radio size="small" />} label={t('ui.mainBackgroundV2')} />
-                          <FormControlLabel value="pink" control={<Radio size="small" />} label={t('ui.mainBackgroundPink')} />
-                        </RadioGroup>
-                      </Box>
-                    )}
 
                     {/* 自定义背景上传界面 */}
                     {uiConfigStore.config.mainBackgroundMode === 'custom' && (
@@ -484,8 +422,9 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                               const reader = new FileReader();
                               reader.onload = (event) => {
                                 const base64 = event.target?.result as string;
-                                uiConfigStore.updateConfig({ 
-                                  customMainBackground: base64 
+                                uiConfigStore.updateConfig({
+                                  customMainBackground: base64,
+                                  theme: 'custom',
                                 });
                               };
                               reader.readAsDataURL(file);
@@ -534,12 +473,14 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                     )}
                   </Box>
 
-                  {/* 角落装饰花 */}
+                  {/* 角落裝飾花 */}
                   <FormControl component="fieldset">
                     <FormLabel component="legend">{t('ui.cornerFlower')}</FormLabel>
                     <RadioGroup
+                      row
                       value={uiConfigStore.config.cornerFlower}
-                      onChange={(e) => uiConfigStore.updateConfig({ cornerFlower: e.target.value as 'default' | 'cherry-blossom' })}
+                      onChange={(e) => uiConfigStore.updateConfig({ cornerFlower: e.target.value as 'default' | 'cherry-blossom', theme: 'custom' })}
+                      sx={{ '& .MuiFormControlLabel-root': { width: '30%', mr: 0 } }}
                     >
                       <FormControlLabel value="default" control={<Radio size="small" />} label={t('ui.cornerFlowerDefault')} />
                       <FormControlLabel value="cherry-blossom" control={<Radio size="small" />} label={t('ui.cornerFlowerCherryBlossom')} />
@@ -550,12 +491,12 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
             </Accordion>
             )}
 
-            {/* Tower Images */}
+            {/* 鐘樓圖片 */}
             {filteredCategories.find(c => c.id === 'towerImages')?.show && (
             <Accordion defaultExpanded={false}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                  Tower Images
+                  {t('ui.category.towerImages')}
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
@@ -565,7 +506,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
                   startIcon={<AddIcon />}
                   onClick={onOpenTowerImageDialog}
                 >
-                  Manage Tower Images
+                  {t('ui.towerImages.manage')}
                 </Button>
               </AccordionDetails>
             </Accordion>
@@ -573,7 +514,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
 
             {/* 1. 页面布局 */}
             {filteredCategories.find(c => c.id === 'pageLayout')?.show && (
-            <Accordion defaultExpanded={!searchQuery}>
+            <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
                   {t('ui.category.pageLayout')}
@@ -688,7 +629,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
 
             {/* 2. 角色卡片布局 */}
             {filteredCategories.find(c => c.id === 'cardLayout')?.show && (
-            <Accordion defaultExpanded={!searchQuery}>
+            <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
                   {t('ui.category.cardLayout')}
@@ -778,7 +719,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
             {/* 3. 图标大小配置 */}
 
             {filteredCategories.find(c => c.id === 'storytellerNightSheet')?.show && (
-            <Accordion defaultExpanded={!searchQuery}>
+            <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
                   {t('ui.category.storytellerNightSheet')}
@@ -833,7 +774,7 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
             )}
 
             {filteredCategories.find(c => c.id === 'iconSize')?.show && (
-            <Accordion defaultExpanded={!searchQuery}>
+            <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
                   {t('ui.category.iconSize')}
@@ -1083,14 +1024,93 @@ const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UI
           </Button>
         </Box>
       </Box>
-    </Drawer>
 
-    {/* 字体上传对话框 */}
-    <FontUploader
-      open={fontUploaderOpen}
-      onClose={() => setFontUploaderOpen(false)}
-    />
+      {/* 字体上传对话框 */}
+      <FontUploader
+        open={fontUploaderOpen}
+        onClose={() => setFontUploaderOpen(false)}
+      />
     </>
+  );
+});
+
+const UISettingsDrawer = observer(({ open, onClose, onOpenTowerImageDialog }: UISettingsDrawerProps) => {
+  const { t } = useTranslation();
+  const [isPinned, setIsPinned] = useState(false);
+
+  const handleClose = () => {
+    if (!isPinned) onClose();
+  };
+
+  const handlePinToggle = () => setIsPinned(!isPinned);
+
+  return (
+    <Drawer
+      anchor="left"
+      open={open}
+      onClose={handleClose}
+      hideBackdrop={isPinned}
+      disableScrollLock={true}
+      ModalProps={{
+        disableEnforceFocus: true,
+        disableAutoFocus: true,
+        disableScrollLock: true,
+      }}
+      sx={{
+        pointerEvents: isPinned ? 'none' : 'auto',
+        '& .MuiDrawer-paper': {
+          width: { xs: '90%', sm: 420 },
+          maxWidth: 420,
+          boxShadow: 3,
+          pointerEvents: 'auto',
+        },
+        ...(!isPinned && {
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          },
+        }),
+      }}
+    >
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* 头部 */}
+        <Box sx={{
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: isPinned ? 'primary.light' : 'background.paper',
+          transition: 'background-color 0.3s',
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: isPinned ? 'primary.contrastText' : 'text.primary' }}>
+            {t('ui.settings')}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={isPinned ? (t('ui.unpinDrawer')) : (t('ui.pinDrawer'))}>
+              <IconButton
+                onClick={handlePinToggle}
+                size="small"
+                color={isPinned ? 'inherit' : 'default'}
+                sx={{
+                  backgroundColor: isPinned ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: isPinned ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                {isPinned ? <LockIcon /> : <LockOpenIcon />}
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={onClose} size="small" sx={{ color: isPinned ? 'primary.contrastText' : 'text.primary' }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        <UISettingsContent onOpenTowerImageDialog={onOpenTowerImageDialog} />
+      </Box>
+    </Drawer>
   );
 });
 

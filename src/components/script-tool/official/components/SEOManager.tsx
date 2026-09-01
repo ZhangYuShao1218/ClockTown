@@ -30,8 +30,8 @@ export const SEOManager = observer(() => {
   useEffect(() => {
     const m = META[language as keyof typeof META] ?? META[DEFAULT_LANGUAGE];
 
-    // 更新页面标题
-    document.title = m.title;
+    // 更新頁面標題
+    document.title = "血染鐘樓 - 劇本工具";
 
     // 更新HTML lang属性（使用 BCP 47 标准码）
     document.documentElement.lang = LANG_TO_BCP47[language as keyof typeof LANG_TO_BCP47] ?? language;

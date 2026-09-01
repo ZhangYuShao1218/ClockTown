@@ -109,8 +109,8 @@ function SortableActionItem({
             src={normalizeImageUrl(action.image)}
             alt={getImageAlt(action.image)}
             sx={{
-              width: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 50 * COMPACT_SCALE },
-              height: { xs: 35 * COMPACT_SCALE, sm: 38 * COMPACT_SCALE, md: 50 * COMPACT_SCALE },
+              width: { xs: 40 * COMPACT_SCALE, sm: 44 * COMPACT_SCALE, md: 58 * COMPACT_SCALE },
+              height: { xs: 40 * COMPACT_SCALE, sm: 44 * COMPACT_SCALE, md: 58 * COMPACT_SCALE },
               transition: 'all 0.2s',
               filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.4))',
               '&:hover': {
@@ -122,22 +122,21 @@ function SortableActionItem({
         ) : (
           <Box
             sx={{
-              width: { xs: 36 * COMPACT_SCALE, sm: 40 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
-              height: { xs: 36 * COMPACT_SCALE, sm: 40 * COMPACT_SCALE, md: 52 * COMPACT_SCALE },
+              width: { xs: 42 * COMPACT_SCALE, sm: 46 * COMPACT_SCALE, md: 60 * COMPACT_SCALE },
+              height: { xs: 42 * COMPACT_SCALE, sm: 46 * COMPACT_SCALE, md: 60 * COMPACT_SCALE },
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(240, 230, 210, 0.16) 100%)',
-              border: '1.5px solid rgba(255, 255, 255, 0.65)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
-              backdropFilter: 'blur(3px)',
+              background: 'radial-gradient(circle at center, #f4e5c5 0%, #dcb37b 100%)',
+              border: '1.5px solid rgba(120, 80, 30, 0.55)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 100%)',
-                borderColor: '#ffffff',
+                background: 'radial-gradient(circle at center, #fbf0d8 0%, #e6c48c 100%)',
+                borderColor: 'rgba(120, 80, 30, 0.9)',
                 transform: 'scale(1.08)',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.55)',
               },
             }}
           >
@@ -145,8 +144,8 @@ function SortableActionItem({
               src={normalizeImageUrl(action.image)}
               alt={getImageAlt(action.image)}
               sx={{
-                width: '95%',
-                height: '95%',
+                width: '100%',
+                height: '100%',
                 objectFit: 'contain',
               }}
             />

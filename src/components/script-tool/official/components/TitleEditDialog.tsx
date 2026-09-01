@@ -339,17 +339,30 @@ const TitleEditDialog = ({
             )}
           </Box>
 
-          {/* 作者 */}
-          <TextField
-            fullWidth
-            label={t('title.author')}
-            value={formData.author}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, author: e.target.value }))
+          {/* 作者欄位開關與輸入 */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={uiConfigStore.config.showAuthor}
+                onChange={(e) => uiConfigStore.updateConfig({ showAuthor: e.target.checked })}
+                color="primary"
+              />
             }
-            placeholder={t('input.authorPlaceholder')}
-            size="small"
+            label="顯示作者資訊 (Show Author)"
           />
+
+          {uiConfigStore.config.showAuthor && (
+            <TextField
+              fullWidth
+              label={t('title.author')}
+              value={formData.author}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, author: e.target.value }))
+              }
+              placeholder={t('input.authorPlaceholder')}
+              size="small"
+            />
+          )}
 
           {/* 玩家人数 */}
           <TextField

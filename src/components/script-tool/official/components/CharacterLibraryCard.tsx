@@ -1,224 +1,23 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion, AnimatePresence } from 'framer-motion';
-import MarkdownRenderer from './MarkdownRenderer';
 import {
     Card,
     CardContent,
     Box,
-    Button,
-    Menu,
-    MenuItem,
     Typography,
     IconButton,
-    TextField,
-    InputAdornment,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-    Chip,
-    Divider,
 } from '@mui/material';
 import {
     Close as CloseIcon,
-    Search as SearchIcon,
     PushPin as PushPinIcon,
     PushPinOutlined as PushPinOutlinedIcon,
-    KeyboardArrowDown as KeyboardArrowDownIcon,
-    Check as CheckIcon,
 } from '@mui/icons-material';
-import { getCharacterDictionary } from '../data';
 import { useTranslation } from '../utils/i18n';
 import CharacterImage from './CharacterImage';
 import type { Character } from '../types';
 import { THEME_COLORS } from '../theme/colors';
-import { getFabledCharacters } from '../data/extras/fabled';
-import { getLoricCharacters } from '../data/extras/loric';
-import { configStore } from '../stores/ConfigStore';
-import { PINYIN_MAP } from '../data/utils/pinyinMap';
-
-// 剧本系列 → 颜色组合(背景色/前景色)
-const SERIES_COLORS: Record<string, { bg: string; fg: string }> = {
-    '奥德赛': { bg: '#B8860B', fg: '#ffffff' },
-};
-
-// 懒加载图片组件 - 使用统一的CharacterImage组件
-const LazyAvatar = React.memo(({ character, teamColor }: { character: Character; teamColor: string }) => {
-    return (
-        <CharacterImage
-            component="avatar"
-            src={character.image}
-            alt={character.name}
-            sx={{
-                width: 48,
-                height: 48,
-                border: `2px solid ${teamColor}`,
-            }}
-        />
-    );
-});
-
-interface CharacterItemProps {
-    character: Character;
-    index: number;
-    teamColor: string;
-    showTeamChip: boolean;
-    isSelected: boolean;
-    teamTabs: Array<{ key: string; label: string; color: string }>;
-    onAddCharacter: (character: Character) => void;
-    onRemoveCharacter?: (character: Character) => void;
-}
-
-// 角色项组件，使用memo优化
-const CharacterItem = React.memo(({
-    character,
-    index,
-    teamColor,
-    showTeamChip,
-    isSelected,
-    teamTabs,
-    onAddCharacter,
-    onRemoveCharacter
-}: CharacterItemProps) => {
-    const { t } = useTranslation();
-    const uniqueKey = `${character.team}-${character.id}-${index}`;
-
-    const handleClick = () => {
-        if (isSelected && onRemoveCharacter) {
-            onRemoveCharacter(character);
-        } else {
-            onAddCharacter(character);
-        }
-    };
-
-    return (
-        <>
-            <ListItem
-                component="div"
-                onClick={handleClick}
-                sx={{
-                    py: 1.5,
-                    cursor: 'pointer',
-                    backgroundColor: isSelected ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    border: isSelected ? '1px solid rgba(25, 118, 210, 0.3)' : '1px solid transparent',
-                    borderRadius: 1,
-                    mb: 0.5,
-                    '&:hover': {
-                        backgroundColor: isSelected
-                            ? 'rgba(25, 118, 210, 0.12)'
-                            : 'rgba(0, 0, 0, 0.04)',
-                    },
-                }}
-            >
-                <ListItemAvatar>
-                    <LazyAvatar character={character} teamColor={teamColor} />
-                </ListItemAvatar>
-                <ListItemText
-                    secondaryTypographyProps={{ component: 'div' }}
-                    primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                            <Typography
-                                variant="subtitle2"
-                                sx={{
-                                    fontWeight: 'bold',
-                                    color: teamColor,
-                                    fontSize: '0.9rem',
-                                }}
-                            >
-                                {character.name}
-                            </Typography>
-
-                            {isSelected && (
-                                <Chip
-                                    label={t('selected')}
-                                    size="small"
-                                    sx={{
-                                        height: 18,
-                                        fontSize: '0.6rem',
-                                        backgroundColor: THEME_COLORS.good,
-                                        color: '#fff',
-                                        '& .MuiChip-label': {
-                                            px: 0.5,
-                                        },
-                                    }}
-                                />
-                            )}
-                            {showTeamChip && (
-                                <Chip
-                                    label={teamTabs.find(t => t.key === character.team)?.label || character.team}
-                                    size="small"
-                                    sx={{
-                                        height: 18,
-                                        fontSize: '0.6rem',
-                                        backgroundColor: teamColor,
-                                        color: '#fff',
-                                        '& .MuiChip-label': {
-                                            px: 0.5,
-                                        },
-                                    }}
-                                />
-                            )}
-                            {/* 作者标签 */}
-                            {character.author && (
-                                <Chip
-                                    label={`@${character.author}`}
-                                    size="small"
-                                    sx={{
-                                        height: 16,
-                                        fontSize: '0.55rem',
-                                        backgroundColor: '#9e9e9e',
-                                        color: '#fff',
-                                        '& .MuiChip-label': {
-                                            px: 0.5,
-                                        },
-                                    }}
-                                />
-                            )}
-                            {/* 系列标签(如"奥德赛") */}
-                            {character.series && (() => {
-                                const sc = SERIES_COLORS[character.series] || { bg: '#B8860B', fg: '#ffffff' };
-                                return (
-                                    <Chip
-                                        label={`@${character.series}`}
-                                        size="small"
-                                        sx={{
-                                            height: 16,
-                                            fontSize: '0.55rem',
-                                            backgroundColor: sc.bg,
-                                            color: sc.fg,
-                                            '& .MuiChip-label': {
-                                                px: 0.5,
-                                            },
-                                        }}
-                                    />
-                                );
-                            })()}
-                        </Box>
-                    }
-                    secondary={
-                        <Box
-                            sx={{
-                                fontSize: '0.75rem',
-                                lineHeight: 1.3,
-                                color: 'text.secondary',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                '& p': { m: 0, display: 'inline' },
-                                '& ul, & ol': { m: 0, pl: 2 },
-                            }}
-                        >
-                            <MarkdownRenderer content={character.ability} />
-                        </Box>
-                    }
-                />
-            </ListItem>
-            <Divider />
-        </>
-    );
-});
+import CharacterLibraryContent from './CharacterLibraryContent';
 
 interface CharacterLibraryCardProps {
     open: boolean;
@@ -241,328 +40,82 @@ const CharacterLibraryCard = observer(({
     initialTeam,
     position,
 }: CharacterLibraryCardProps) => {
-    const { t, language } = useTranslation();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedTab, setSelectedTab] = useState(0);
-    const [seriesFilter, setSeriesFilter] = useState(''); // 系列筛选('' = 全部)
-    const [seriesMenuAnchor, setSeriesMenuAnchor] = useState<null | HTMLElement>(null); // 系列下拉锚点
-    const [renderCount, setRenderCount] = useState(-1); // 分3段渐进渲染,最终=全部
-    const [isPinned, setIsPinned] = useState(false); // 是否固定
-    const [isDragging, setIsDragging] = useState(false); // 是否正在拖拽
-    const dragOffsetRef = React.useRef({ x: 0, y: 0 }); // 使用 ref 存储拖拽偏移量,避免频繁渲染
-    const dragStartRef = React.useRef({ x: 0, y: 0 }); // 拖拽起始位置
+    const { t } = useTranslation();
+    const [isPinned, setIsPinned] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const dragOffsetRef = React.useRef({ x: 0, y: 0 });
+    const dragStartRef = React.useRef({ x: 0, y: 0 });
     const cardRef = React.useRef<HTMLDivElement>(null);
-    const listRef = React.useRef<HTMLDivElement>(null); // 滚动容器(分段加载)
-    const rafRef = React.useRef<number | null>(null); // requestAnimationFrame ID
-    const searchInputRef = React.useRef<HTMLInputElement>(null); // 搜索框引用
+    const rafRef = React.useRef<number | null>(null);
 
-    // 根据当前语言选择角色数据源
-    const currentCharacterData = useMemo(() => {
-        return getCharacterDictionary(language);
-    }, [language]);
-
-    // 按团队分类角色，包含传奇角色和 Loric 角色，去重处理
-    const charactersByTeam = useMemo(() => {
-        if (!open) {
-            return {
-                townsfolk: [] as Character[],
-                outsider: [] as Character[],
-                minion: [] as Character[],
-                demon: [] as Character[],
-                fabled: [] as Character[],
-                loric: [] as Character[],
-                traveler: [] as Character[],
-            };
-        }
-
-        const teams = {
-            townsfolk: [] as Character[],
-            outsider: [] as Character[],
-            minion: [] as Character[],
-            demon: [] as Character[],
-            fabled: getFabledCharacters(language), // 使用多语言传奇角色
-            loric: getLoricCharacters(language), // 使用多语言奇遇角色
-            traveler: [] as Character[],
-        };
-
-        // 使用Set来去重，避免重复的角色ID
-        const seenIds = new Set<string>();
-
-        Object.values(currentCharacterData).forEach((char) => {
-            const character = char as Character;
-            // 跳过重复的角色ID和传奇角色、奇遇角色（这些角色单独处理）
-            if (seenIds.has(character.id) || character.team === 'fabled' || character.team === 'loric') {
-                return;
-            }
-
-            seenIds.add(character.id);
-
-            if (teams[character.team as keyof typeof teams]) {
-                teams[character.team as keyof typeof teams].push(character);
-            }
-        });
-
-        // 每个阵营内部:自定义(有作者)角色稳定置底,官方在前
-        Object.keys(teams).forEach((teamKey) => {
-            const arr = teams[teamKey as keyof typeof teams];
-            if (arr.length > 1) {
-                teams[teamKey as keyof typeof teams] = [...arr.filter(c => !c.author), ...arr.filter(c => c.author)];
-            }
-        });
-
-        return teams;
-    }, [currentCharacterData, language, open]);
-
-    // 可用系列列表(去重,后续可多系列)
-    const availableSeries = useMemo(() => {
-        const set = new Set<string>();
-        Object.values(charactersByTeam).forEach(arr => arr.forEach(c => { if (c.series) set.add(c.series); }));
-        return Array.from(set);
-    }, [charactersByTeam]);
-
-    // 搜索过滤 - 只在组件可见时计算
-    const filteredCharacters = useMemo(() => {
-        // 如果组件不可见，返回空对象避免不必要的计算
-        if (!open) {
-            return {
-                townsfolk: [] as Character[],
-                outsider: [] as Character[],
-                minion: [] as Character[],
-                demon: [] as Character[],
-                fabled: [] as Character[],
-                loric: [] as Character[],
-                traveler: [] as Character[],
-            };
-        }
-
-        if (!searchTerm.trim()) {
-            return charactersByTeam;
-        }
-
-        const term = searchTerm.toLowerCase();
-        const filtered = {
-            townsfolk: [] as Character[],
-            outsider: [] as Character[],
-            minion: [] as Character[],
-            demon: [] as Character[],
-            fabled: [] as Character[],
-            loric: [] as Character[],
-            traveler: [] as Character[],
-        };
-
-        Object.entries(charactersByTeam).forEach(([team, characters]) => {
-            const teamKey = team as keyof typeof filtered;
-            filtered[teamKey] = characters.filter((char) => {
-                const nameMatch = char.name.toLowerCase().includes(term);
-                const abilityMatch = char.ability.toLowerCase().includes(term);
-                const pinyinMatch = PINYIN_MAP[char.name]?.includes(term);
-                const idMatch = char.id.toLowerCase().includes(term);
-                const seriesMatch = (char.series || '').toLowerCase().includes(term);
-
-                return nameMatch || abilityMatch || pinyinMatch || idMatch || seriesMatch;
-            });
-        });
-
-        return filtered;
-    }, [charactersByTeam, searchTerm, open]);
-
-    const teamTabs = [
-        { key: 'selected', label: t('selectedCharacters'), color: THEME_COLORS.good },
-        { key: 'all', label: t('all'), color: THEME_COLORS.text.primary },
-        { key: 'townsfolk', label: t('townsfolk'), color: THEME_COLORS.good },
-        { key: 'outsider', label: t('outsider'), color: THEME_COLORS.good },
-        { key: 'minion', label: t('minion'), color: THEME_COLORS.evil },
-        { key: 'demon', label: t('demon'), color: THEME_COLORS.evil },
-        { key: 'fabled', label: t('fabled'), color: THEME_COLORS.fabled },
-        { key: 'loric', label: t('loric'), color: THEME_COLORS.loric },
-        { key: 'traveler', label: t('traveler'), color: THEME_COLORS.purple },
-    ];
-
-    const currentTeam = teamTabs[selectedTab];
-
-    // 获取当前显示的角色列表
-    const currentCharacters = useMemo(() => {
-        let chars: Character[] = [];
-        if (currentTeam.key === 'selected') {
-            // 显示已选角色
-            if (!searchTerm.trim()) {
-                chars = selectedCharacters;
-            } else {
-                // 对已选角色进行搜索过滤
-                const term = searchTerm.toLowerCase();
-                chars = selectedCharacters.filter((char) => {
-                    const nameMatch = char.name.toLowerCase().includes(term);
-                    const abilityMatch = char.ability.toLowerCase().includes(term);
-                    const pinyinMatch = PINYIN_MAP[char.name]?.includes(term);
-                    const idMatch = char.id.toLowerCase().includes(term);
-                    const seriesMatch = (char.series || '').toLowerCase().includes(term);
-                    return nameMatch || abilityMatch || pinyinMatch || idMatch || seriesMatch;
-                });
-            }
-        } else if (currentTeam.key === 'all') {
-            // 显示所有角色
-            chars = Object.values(filteredCharacters).flat();
-        } else {
-            // 确保只返回当前选中团队的角色
-            const teamCharacters = filteredCharacters[currentTeam.key as keyof typeof filteredCharacters];
-            chars = teamCharacters ? teamCharacters.filter(char => char.team === currentTeam.key) : [];
-        }
-        if (seriesFilter) {
-            chars = chars.filter(c => c.series === seriesFilter);
-        }
-        return chars;
-    }, [currentTeam.key, filteredCharacters, selectedCharacters, searchTerm, seriesFilter]);
-
-    // 团队/系列/搜索变化时,回第1段;随后每帧补一段,共3段展开到全量
-    useEffect(() => {
-        setRenderCount(currentCharacters.length ? Math.max(1, Math.ceil(currentCharacters.length / 3)) : 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentTeam.key, seriesFilter, searchTerm]);
-    useEffect(() => {
-        if (renderCount < 0 || renderCount >= currentCharacters.length) return;
-        const step = Math.max(1, Math.ceil(currentCharacters.length / 3));
-        const id = requestAnimationFrame(() => setRenderCount(prev => Math.min(currentCharacters.length, prev + step)));
-        return () => cancelAnimationFrame(id);
-    }, [renderCount, currentCharacters.length]);
-
-    // 滚动接近底部时追加下一批(原生渲染 + 增量,避免每帧重渲染)
-    // 处理打开时重置状态
+    // 处理打开时重置拖拽状态
     useEffect(() => {
         if (open) {
-            // 重置搜索
-            setSearchTerm('');
-
-            // 重置拖拽状态
             dragOffsetRef.current = { x: 0, y: 0 };
             if (cardRef.current) {
                 cardRef.current.style.transform = 'translate(0px, 0px)';
             }
             setIsDragging(false);
-
-            // 如果有初始团队，自动切换到对应的标签
-            if (initialTeam) {
-                const teamIndex = teamTabs.findIndex(tab => tab.key === initialTeam);
-                if (teamIndex !== -1) {
-                    setSelectedTab(teamIndex);
-                }
-            } else {
-                // 否则默认显示已选角色
-                setSelectedTab(0);
-            }
-
-            // 打开后自动聚焦搜索框
-            requestAnimationFrame(() => {
-                searchInputRef.current?.focus();
-            });
         }
-    }, [open, initialTeam]);
-
-    const handleAddCharacter = useCallback((character: Character) => {
-        onAddCharacter(character);
-        // 不再自动关闭页面，保持打开状态
-    }, [onAddCharacter]);
-
-    const handleRemoveCharacter = useCallback((character: Character) => {
-        if (onRemoveCharacter) {
-            onRemoveCharacter(character);
-        }
-    }, [onRemoveCharacter]);
+    }, [open]);
 
     const handleClose = useCallback(() => {
         onClose();
     }, [onClose]);
 
-    // 处理点击外部关闭
     const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-        // 如果已固定，不响应外部点击
         if (isPinned) return;
-        
-        // 点击背景层时关闭
         if (e.target === e.currentTarget) {
             handleClose();
         }
     }, [isPinned, handleClose]);
 
-    // 拖拽处理函数
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        // 只在标题栏上才能拖拽
         if (!e.currentTarget.classList.contains('draggable-header')) return;
-        
         setIsDragging(true);
         dragStartRef.current = {
             x: e.clientX - dragOffsetRef.current.x,
             y: e.clientY - dragOffsetRef.current.y,
         };
-        e.preventDefault(); // 防止文本选择
+        e.preventDefault();
     }, []);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isDragging || !cardRef.current) return;
-        
-        // 取消之前的 RAF
         if (rafRef.current !== null) {
             cancelAnimationFrame(rafRef.current);
         }
-        
-        // 使用 RAF 优化性能
         rafRef.current = requestAnimationFrame(() => {
             if (!cardRef.current) return;
-            
-            // 获取卡片尺寸
             const cardRect = cardRef.current.getBoundingClientRect();
             const cardWidth = cardRect.width;
             const cardHeight = cardRect.height;
-            
-            // 获取初始位置 (从 sx 计算)
-            const initialRect = cardRef.current.getBoundingClientRect();
-            const baseX = initialRect.left - dragOffsetRef.current.x;
-            const baseY = initialRect.top - dragOffsetRef.current.y;
-            
-            // 计算新偏移量
+            const baseX = cardRect.left - dragOffsetRef.current.x;
+            const baseY = cardRect.top - dragOffsetRef.current.y;
             let newOffsetX = e.clientX - dragStartRef.current.x;
             let newOffsetY = e.clientY - dragStartRef.current.y;
-            
-            // 计算最终位置
             const finalX = baseX + newOffsetX;
             const finalY = baseY + newOffsetY;
-            
-            // 边界限制
-            const minX = 0;
-            const minY = 0;
             const maxX = window.innerWidth - cardWidth;
             const maxY = window.innerHeight - cardHeight;
-            
-            // 应用边界限制
-            if (finalX < minX) {
-                newOffsetX = minX - baseX;
-            } else if (finalX > maxX) {
-                newOffsetX = maxX - baseX;
-            }
-            
-            if (finalY < minY) {
-                newOffsetY = minY - baseY;
-            } else if (finalY > maxY) {
-                newOffsetY = maxY - baseY;
-            }
-            
+            if (finalX < 0) newOffsetX = -baseX;
+            else if (finalX > maxX) newOffsetX = maxX - baseX;
+            if (finalY < 0) newOffsetY = -baseY;
+            else if (finalY > maxY) newOffsetY = maxY - baseY;
             const newOffset = { x: newOffsetX, y: newOffsetY };
             dragOffsetRef.current = newOffset;
-            
-            // 直接操作 DOM,避免触发 React 重渲染
             cardRef.current.style.transform = `translate(${newOffset.x}px, ${newOffset.y}px)`;
         });
     }, [isDragging]);
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);
-        // 清理 RAF
         if (rafRef.current !== null) {
             cancelAnimationFrame(rafRef.current);
             rafRef.current = null;
         }
     }, []);
 
-    // 添加和移除全局鼠标事件监听
     useEffect(() => {
         if (isDragging) {
             window.addEventListener('mousemove', handleMouseMove);
@@ -578,7 +131,6 @@ const CharacterLibraryCard = observer(({
         <AnimatePresence>
             {open && (
                 <>
-                    {/* 背景遮罩层 - 点击关闭 (透明) */}
                     {!isPinned && (
                         <motion.div
                             key="lib-backdrop"
@@ -596,7 +148,6 @@ const CharacterLibraryCard = observer(({
                         />
                     )}
 
-                    {/* 卡片入场动画层 */}
                     <motion.div
                         key="lib-card"
                         initial={{ opacity: 0, scale: 0.96, y: 10 }}
@@ -615,7 +166,6 @@ const CharacterLibraryCard = observer(({
                             zIndex: 1001,
                         }}
                     >
-                        {/* 拖拽层（直接操作 DOM transform，不走 framer-motion） */}
                         <Box ref={cardRef}>
                             <Card
                                 sx={{
@@ -632,13 +182,9 @@ const CharacterLibraryCard = observer(({
                                     cursor: isDragging ? 'grabbing' : 'default',
                                     userSelect: 'none',
                                     WebkitUserSelect: 'none',
-                                    MozUserSelect: 'none',
-                                    msUserSelect: 'none',
                                     '& *': {
                                         userSelect: isDragging ? 'none !important' : 'auto',
                                         WebkitUserSelect: isDragging ? 'none !important' : 'auto',
-                                        MozUserSelect: isDragging ? 'none !important' : 'auto',
-                                        msUserSelect: isDragging ? 'none !important' : 'auto',
                                     },
                                 }}
                             >
@@ -655,6 +201,7 @@ const CharacterLibraryCard = observer(({
                                         borderBottom: '1px solid #e0e0e0',
                                         cursor: isDragging ? 'grabbing' : 'grab',
                                         '&:active': { cursor: 'grabbing' },
+                                        flexShrink: 0,
                                     }}
                                 >
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -668,7 +215,6 @@ const CharacterLibraryCard = observer(({
                                         </Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                        {/* 固定/解锁按钮 */}
                                         <IconButton
                                             onClick={(e) => { e.stopPropagation(); setIsPinned(!isPinned); }}
                                             size="small"
@@ -681,7 +227,6 @@ const CharacterLibraryCard = observer(({
                                         >
                                             {isPinned ? <PushPinIcon /> : <PushPinOutlinedIcon />}
                                         </IconButton>
-                                        {/* 关闭按钮 */}
                                         <IconButton
                                             onClick={(e) => { e.stopPropagation(); handleClose(); }}
                                             size="small"
@@ -692,162 +237,15 @@ const CharacterLibraryCard = observer(({
                                     </Box>
                                 </Box>
 
-                                {/* 搜索栏 */}
-                                <Box sx={{ p: 2, pb: 1 }}>
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        placeholder={t('searchCharacters')}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        inputRef={searchInputRef}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <SearchIcon fontSize="small" />
-                                                </InputAdornment>
-                                            ),
-                                        }}
-                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+                                <CardContent sx={{ flex: 1, overflow: 'hidden', p: 0, '&:last-child': { pb: 0 }, minHeight: 0 }}>
+                                    <CharacterLibraryContent
+                                        active={open}
+                                        initialTeam={initialTeam}
+                                        selectedCharacters={selectedCharacters}
+                                        onAddCharacter={onAddCharacter}
+                                        onRemoveCharacter={onRemoveCharacter}
+                                        autoFocusSearch
                                     />
-                                </Box>
-
-                                {/* 团队标签页 */}
-                                <Box sx={{ borderBottom: '1px solid #e0e0e0', p: 1 }}>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        {teamTabs.map((tab, index) => (
-                                            <Box
-                                                key={tab.key}
-                                                onClick={() => setSelectedTab(index)}
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 0.5,
-                                                    px: 1.5,
-                                                    py: 0.5,
-                                                    borderRadius: 1,
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.8rem',
-                                                    backgroundColor: selectedTab === index ? tab.color : 'transparent',
-                                                    color: selectedTab === index ? '#fff' : tab.color,
-                                                    border: `1px solid ${tab.color}`,
-                                                    transition: 'all 0.2s',
-                                                    '&:hover': {
-                                                        backgroundColor: selectedTab === index ? tab.color : `${tab.color}15`,
-                                                    },
-                                                }}
-                                            >
-                                                <Box sx={{
-                                                    width: 8, height: 8,
-                                                    borderRadius: '50%',
-                                                    backgroundColor: selectedTab === index ? '#fff' : tab.color,
-                                                }} />
-                                                {tab.label}
-                                                <Chip
-                                                    label={
-                                                        tab.key === 'selected'
-                                                            ? selectedCharacters.length
-                                                            : tab.key === 'all'
-                                                                ? Object.values(filteredCharacters).flat().length
-                                                                : (filteredCharacters[tab.key as keyof typeof filteredCharacters]?.length || 0)
-                                                    }
-                                                    size="small"
-                                                    sx={{
-                                                        height: 16,
-                                                        fontSize: '0.6rem',
-                                                        backgroundColor: selectedTab === index ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)',
-                                                        color: selectedTab === index ? '#fff' : 'inherit',
-                                                        '& .MuiChip-label': { px: 0.5 },
-                                                    }}
-                                                />
-                                            </Box>
-                                        ))}
-                                        {availableSeries.length > 0 && (
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                onClick={(e) => setSeriesMenuAnchor(e.currentTarget)}
-                                                endIcon={<KeyboardArrowDownIcon />}
-                                                sx={{
-                                                    fontSize: '0.75rem', textTransform: 'none', ml: 0.5,
-                                                    borderColor: seriesFilter ? (SERIES_COLORS[seriesFilter]?.bg ?? '#bbb') : '#bbb',
-                                                    color: seriesFilter ? (SERIES_COLORS[seriesFilter]?.bg ?? '#666') : '#666',
-                                                }}
-                                            >
-                                                {seriesFilter ? seriesFilter : t('all')}
-                                            </Button>
-                                        )}
-                                        <Menu
-                                            anchorEl={seriesMenuAnchor}
-                                            open={Boolean(seriesMenuAnchor)}
-                                            onClose={() => setSeriesMenuAnchor(null)}
-                                            slotProps={{ paper: { style: { maxHeight: 260, width: 180 } } }}
-                                        >
-                                            <MenuItem onClick={() => { setSeriesFilter(''); setSeriesMenuAnchor(null); }}>
-                                                <Box sx={{ width: 10, height: 10, borderRadius: 1, mr: 1, bgcolor: '#bbbbbb' }} />
-                                                {t('all')}
-                                            </MenuItem>
-                                            {availableSeries.map((seriesName) => {
-                                                const sc = SERIES_COLORS[seriesName] || { bg: '#9e9e9e', fg: '#ffffff' };
-                                                return (
-                                                    <MenuItem
-                                                        key={seriesName}
-                                                        onClick={() => { setSeriesFilter(seriesFilter === seriesName ? '' : seriesName); setSeriesMenuAnchor(null); }}
-                                                    >
-                                                        <Box sx={{ width: 10, height: 10, borderRadius: 1, mr: 1, bgcolor: sc.bg, border: `1px solid ${sc.fg}` }} />
-                                                        {seriesName}
-                                                        {seriesFilter === seriesName && <CheckIcon sx={{ ml: 'auto', fontSize: 16 }} />}
-                                                    </MenuItem>
-                                                );
-                                            })}
-                                        </Menu>
-                                    </Box>
-                                </Box>
-
-                                {/* 角色列表 - 虚拟化 + tab 切换动画 */}
-                                <CardContent
-                                    ref={listRef}
-                                    sx={{ flex: 1, overflow: 'auto', p: 0, position: 'relative' }}
-                                >
-                                    <Box sx={{ height: '100%' }}>
-                                            {currentCharacters.length === 0 ? (
-                                                <Box sx={{
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    height: 200,
-                                                    color: 'text.secondary',
-                                                }}>
-                                                    <Typography variant="body2">
-                                                        {searchTerm ? t('noSearchResults') : t('noCharactersInTeam')}
-                                                    </Typography>
-                                                </Box>
-                                            ) : (
-                                                <List sx={{ p: 0 }}>
-                                                    {currentCharacters.slice(0, renderCount).map((character, index) => {
-                                                        const characterTeamColor =
-                                                            currentTeam.key === 'all' || currentTeam.key === 'selected'
-                                                                ? teamTabs.find(t => t.key === character.team)?.color || THEME_COLORS.text.primary
-                                                                : currentTeam.color;
-                                                        const isSelected = selectedCharacters.some(c => c.id === character.id);
-
-                                                        return (
-                                                            <CharacterItem
-                                                                key={character.id}
-                                                                character={character}
-                                                                index={index}
-                                                                teamColor={characterTeamColor}
-                                                                showTeamChip={currentTeam.key === 'all' || currentTeam.key === 'selected'}
-                                                                isSelected={isSelected}
-                                                                teamTabs={teamTabs}
-                                                                onAddCharacter={handleAddCharacter}
-                                                                onRemoveCharacter={handleRemoveCharacter}
-                                                            />
-                                                        );
-                                                    })}
-                                                </List>
-                                            )}
-                                    </Box>
                                 </CardContent>
                             </Card>
                         </Box>
@@ -859,4 +257,3 @@ const CharacterLibraryCard = observer(({
 });
 
 export default CharacterLibraryCard;
-

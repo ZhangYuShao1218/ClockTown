@@ -31,8 +31,8 @@ import type { Script, Character } from './types';
 import InputPanel from './components/InputPanel';
 import ShareDialog from './components/ShareDialog';
 import CharacterEditDialog from './components/CharacterEditDialog';
-import FloatingAddButton from './components/FloatingAddButton';
 import CharacterLibraryCard from './components/CharacterLibraryCard';
+import LeftControlDrawer from './components/LeftControlDrawer';
 import TitleEditDialog from './components/TitleEditDialog';
 import SecondPageTitleEditDialog from './components/SecondPageTitleEditDialog';
 import SpecialRuleEditDialog from './components/SpecialRuleEditDialog';
@@ -275,6 +275,7 @@ const App = observer(() => {
   const [replacingCharacter, setReplacingCharacter] = useState<Character | null>(null);
   const [libraryPosition, setLibraryPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const [uiSettingsOpen, setUiSettingsOpen] = useState<boolean>(false);
+  const [leftDrawerOpen, setLeftDrawerOpen] = useState<boolean>(false);
   const [titleEditState, setTitleEditState] = useState<{
     open: boolean;
     mode: 'main' | 'firstNight' | 'otherNight' | null;
@@ -1153,7 +1154,7 @@ const App = observer(() => {
                   opacity: 0.85,
                 }}
               >
-                Blood on the Clocktower · 劇本排版與製作工坊
+                Blood on the Clocktower · 劇本排版與製作
               </Typography>
             </Box>
           </Box>
@@ -1287,7 +1288,7 @@ const App = observer(() => {
             bottom: 0,
             left: 0,
             width: '100%',
-            zIndex: 9999,
+            zIndex: 1150, // 低於 MUI Dialog (1300)，避免彈窗被面板蓋住
             pointerEvents: 'none', // 整體不擋點擊
             display: 'flex',
             justifyContent: 'center',
@@ -1362,6 +1363,7 @@ const App = observer(() => {
                 onExportPDF={handleExportPDF}
                 onExportImage={handleExportImage}
                 onExportJson={handleExportJson}
+                onExportOriginalJson={handleExportOriginalJson}
                 onShare={() => setShareDialogOpen(true)}
                 onClear={handleClear}
                 onOpenUISettings={() => setUiSettingsOpen(true)}
@@ -1375,6 +1377,7 @@ const App = observer(() => {
             </Box>
           </Box>
         </Box>
+
       </Box>
 
       {/* 開源專案致謝與來源彈窗 (點擊遮罩直接關閉) */}
@@ -1458,11 +1461,15 @@ const App = observer(() => {
         />
       )}
 
-      {/* Floating add button */}
-      <FloatingAddButton
-        key="floating-add-button"
-        onClick={() => setLibraryCardOpen(!libraryCardOpen)}
-        show={!!script || !!originalJson} // Show when script exists or JSON input is present
+      {/* 左側「角色 / 版面」附著式面板 */}
+      <LeftControlDrawer
+        key="left-control-drawer"
+        open={leftDrawerOpen}
+        onToggle={() => setLeftDrawerOpen((v) => !v)}
+        selectedCharacters={script?.all || []}
+        onAddCharacter={handleAddCharacter}
+        onRemoveCharacter={handleRemoveCharacter}
+        onOpenTowerImageDialog={handleOpenTowerImageDialog}
       />
 
       {uiSettingsOpen && (

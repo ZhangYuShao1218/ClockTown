@@ -6,23 +6,22 @@ import {
   Button,
   Box,
   Typography,
-  Chip,
 } from '@mui/material';
-import { Upload, Sync, InfoOutlined } from '@mui/icons-material';
+import { Upload, Download } from '@mui/icons-material';
 import { useTranslation } from '../utils/i18n';
 
 interface UploadJsonDialogProps {
   open: boolean;
   onClose: () => void;
   onSimpleUpload: (content: string) => void;
-  onFileSyncStart: (fileHandle: FileSystemFileHandle, content: string) => void;
+  onExportOriginalJson: () => void;
 }
 
 const UploadJsonDialog = ({
   open,
   onClose,
   onSimpleUpload,
-  onFileSyncStart,
+  onExportOriginalJson,
 }: UploadJsonDialogProps) => {
   const { t } = useTranslation();
 
@@ -39,40 +38,9 @@ const UploadJsonDialog = ({
     }
   };
 
-  const handleFileSyncStart = async () => {
-    try {
-      // 检查浏览器支持
-      if (!('showOpenFilePicker' in window)) {
-        alert(t('upload.browserNotSupported'));
-        return;
-      }
-
-      // 打开文件选择器
-      const [fileHandle] = await (window as any).showOpenFilePicker({
-        types: [
-          {
-            description: 'JSON Files',
-            accept: {
-              'application/json': ['.json'],
-            },
-          },
-        ],
-        multiple: false,
-      });
-
-      // 读取文件内容
-      const file = await fileHandle.getFile();
-      const content = await file.text();
-
-      // 通知父组件
-      onFileSyncStart(fileHandle, content);
-      onClose();
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('文件同步启动失败:', error);
-        alert(t('upload.syncStartFailed'));
-      }
-    }
+  const handleDownloadOriginal = () => {
+    onExportOriginalJson();
+    onClose();
   };
 
   return (
@@ -145,53 +113,31 @@ const UploadJsonDialog = ({
           />
         </Box>
 
-        {/* 文件同步卡片 */}
+        {/* 下載（匯出原始 JSON）卡片 */}
         <Box
-          onClick={handleFileSyncStart}
+          onClick={handleDownloadOriginal}
           sx={{
             p: 2.5,
             borderRadius: 2,
-            border: '2px solid #fff3e0',
+            border: '2px solid #e8f5e9',
             backgroundColor: '#f5f5f5',
             cursor: 'pointer',
             transition: 'all 0.2s',
             '&:hover': {
-              borderColor: '#ff9800',
-              backgroundColor: '#fff3e0',
+              borderColor: '#43a047',
+              backgroundColor: '#e8f5e9',
             }
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-            <Sync sx={{ color: '#ff9800', fontSize: 24 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#ff9800' }}>
+            <Download sx={{ color: '#43a047', fontSize: 24 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#43a047' }}>
               {t('upload.syncMode')}
             </Typography>
-            <Chip
-              label={t('upload.experimental')}
-              size="small"
-              sx={{
-                height: 20,
-                fontSize: '0.65rem',
-                backgroundColor: '#ff9800',
-                color: '#fff',
-                fontWeight: 'bold',
-              }}
-            />
           </Box>
-          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.9rem', mb: 1 }}>
+          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.9rem' }}>
             {t('upload.syncDesc')}
           </Typography>
-          <Box sx={{ pl: 0.5 }}>
-            <Typography variant="body2" sx={{ mb: 0.3, color: '#757575', fontSize: '0.85rem' }}>
-              • {t('upload.syncFeature1')}
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 0.3, color: '#757575', fontSize: '0.85rem' }}>
-              • {t('upload.syncFeature2')}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#757575', fontSize: '0.85rem' }}>
-              • {t('upload.syncFeature3')}
-            </Typography>
-          </Box>
         </Box>
       </DialogContent>
 

@@ -39,7 +39,7 @@ export interface UIConfig {
   customMainBackground: string; // base64
 
   // Theme (overrides individual settings)
-  theme: 'none' | 'sakura';
+  theme: 'none' | 'sakura' | 'custom';
 
   // Corner flower decoration
   cornerFlower: 'default' | 'cherry-blossom';
@@ -153,15 +153,18 @@ export interface UIConfig {
     iconOnlyJinxPosition: 'below-description' | 'next-to-name';
   };
 
+  showAuthor: boolean; // 是否顯示作者欄位（預設 false）
 }
+
+// 專案主要字型（與 theme/colors.ts 的 THEME_FONTS 一致）
+const PROJECT_FONT = '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif';
 
 const DEFAULT_UI_CONFIG: UIConfig = {
   nightOrderBackground: 'green',
   nightOrderBackgroundMode: 'official',
   customNightOrderBackground: '',
 
-
-
+  showAuthor: false,
 
   mainBackground: 'classic',
   mainBackgroundMode: 'official',
@@ -191,17 +194,17 @@ const DEFAULT_UI_CONFIG: UIConfig = {
     md: '4.5rem',
   },
 
-  // Font settings - default to existing fonts
+  // Font settings - default to the project's own font (Source Han Serif TC stack)
   fonts: {
-    scriptTitle: 'jicao, Dumbledor, serif',
-    teamDivider: 'jicao, Dumbledor, serif',
-    characterName: 'jicao, Dumbledor, serif',
-    characterAbility: '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif',
-    jinxText: 'jicao, Dumbledor, serif',
-    stateRuleTitle: 'jicao, Dumbledor, serif',
-    stateRuleContent: 'jicao, Dumbledor, serif',
-    specialRuleTitle: 'jicao, Dumbledor, serif',
-    specialRuleContent: 'jicao, Dumbledor, serif',
+    scriptTitle: PROJECT_FONT,
+    teamDivider: PROJECT_FONT,
+    characterName: PROJECT_FONT,
+    characterAbility: PROJECT_FONT,
+    jinxText: PROJECT_FONT,
+    stateRuleTitle: PROJECT_FONT,
+    stateRuleContent: PROJECT_FONT,
+    specialRuleTitle: PROJECT_FONT,
+    specialRuleContent: PROJECT_FONT,
   },
 
   // Page 1 special rule font size
@@ -742,8 +745,8 @@ class UIConfigStore {
   // Get all available fonts (built-in + custom)
   get availableFonts() {
     const builtInFonts = [
-      { value: 'jicao, Dumbledor, serif', label: 'Jicao + Dumbledor (Default)' },
-      { value: '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif', label: '思源宋體 (Source Han Serif TC)' },
+      { value: '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif', label: '思源宋體 (預設)' },
+      { value: 'jicao, Dumbledor, serif', label: 'Jicao + Dumbledor' },
       { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "微軟正黑體", system-ui, sans-serif', label: '繁體系統預設 (System TC)' },
       { value: 'sans-serif', label: 'Sans-serif' },
       { value: 'monospace', label: 'Monospace' },

@@ -38,9 +38,6 @@ import { useTranslation } from '../utils/i18n';
 import { alertSuccess, alertError, alertInfo, alertWarning } from '../utils/alert';
 import { registerFileSyncSaveCallback, unregisterFileSyncSaveCallback } from '../utils/event';
 import { trackUploadJson } from '../utils/analytics';
-import LanguageSwitcher from './LanguageSwitcher';
-import UserMenu from './Auth/UserMenu';
-import LoginDialog from './Auth/LoginDialog';
 import CloudScriptDialog from './CloudScriptDialog';
 import { saveScript } from '../lib/cloudScripts';
 import { authStore } from '../stores/AuthStore';
@@ -53,6 +50,7 @@ interface InputPanelProps {
   onExportPDF: () => void;
   onExportImage: () => void;
   onExportJson: () => void;
+  onExportOriginalJson: () => void;
   onShare: () => void;
   onClear?: () => void;
   onOpenUISettings?: () => void;
@@ -64,7 +62,7 @@ interface InputPanelProps {
   jsonParseError?: string; // 新增：JSON 解析错误信息
 }
 
-const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJson, onShare, onClear, onOpenUISettings, onAddCustomRule, onOpenAboutDialog, onJsonChange, hasScript, currentJson, jsonParseError }: InputPanelProps) => {
+const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJson, onExportOriginalJson, onShare, onClear, onOpenUISettings, onAddCustomRule, onOpenAboutDialog, onJsonChange, hasScript, currentJson, jsonParseError }: InputPanelProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [jsonInput, setJsonInput] = useState('');
@@ -609,34 +607,6 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
             flexWrap: { sm: 'wrap' },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <LanguageSwitcher
-              buttonSx={{
-                width: { xs: '100%', sm: 'auto' },
-                justifyContent: { xs: 'flex-start', sm: 'center' },
-              boxSizing: 'border-box',
-            }}
-          />
-          <UserMenu />
-        </Box>
-          <Button
-            variant="outlined"
-            startIcon={<InfoIcon />}
-            onClick={onOpenAboutDialog}
-            sx={{
-              width: { xs: '100%', sm: 'auto' },
-              boxSizing: 'border-box',
-              whiteSpace: { xs: 'normal', sm: 'nowrap' },
-              borderColor: '#4caf50',
-              color: '#4caf50',
-              '&:hover': {
-                borderColor: '#388e3c',
-                backgroundColor: 'rgba(76, 175, 80, 0.08)',
-              },
-            }}
-          >
-            {t('repo.aboutAndThanks')}
-          </Button>
           <Button
             variant="outlined"
             startIcon={<AutoAwesomeIcon />}
@@ -798,20 +768,6 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
             }}
           >
             {t('input.exportJson')}
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={<Share />}
-            onClick={onShare}
-            disabled={!hasScript}
-            sx={{
-              flex: { xs: '1 1 100%', sm: '1 1 auto' },
-              minHeight: 48,
-            }}
-          >
-            {t('input.shareScript')}
           </Button>
 
           <Button
@@ -1161,14 +1117,13 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
         open={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
         onSimpleUpload={handleSimpleUpload}
-        onFileSyncStart={handleFileSyncStart}
+        onExportOriginalJson={onExportOriginalJson}
       />
       <CloudScriptDialog
         open={cloudDialogOpen}
         onClose={() => setCloudDialogOpen(false)}
         onLoad={handleCloudLoad}
       />
-      <LoginDialog />
     </Paper>
   );
 });
