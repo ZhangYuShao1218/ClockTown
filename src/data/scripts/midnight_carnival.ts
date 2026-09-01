@@ -4,7 +4,9 @@ import { AllRoles } from '../roles';
 export const MidnightCarnival: Script = {
   id: 'midnight_carnival',
     name: '夜半狂歡 Midnight Carnival',
-  description: '',
+  description: `午夜嘉年華來到了小鎮，帶來了歡笑與奇觀。但當夜幕低垂，狂歡的背後卻隱藏著致命的殺機。這是一個充滿變數與混亂的劇本，適合喜歡挑戰極限的玩家。`,
+  recommendedPlayers: "7 - 15",
+  difficulty: "進階",
   roles: [
     AllRoles['professor'],
     AllRoles['noble'],

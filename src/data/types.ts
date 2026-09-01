@@ -10,6 +10,8 @@ export interface Role {
   image?: string;
   icon?: string;
   description?: string;
+  recommendedPlayers?: string;
+  difficulty?: string;
   abilityHTML?: string;
   flavor?: string;
   firstNight?: number;
@@ -22,6 +24,8 @@ export interface Script {
   id: string;
   name: string;
   description: string;
+  recommendedPlayers?: string;
+  difficulty?: string;
   roles: Role[];
   jinxes?: Array<{ role1: string; role2: string; reason: string }>;
   author?: string;
