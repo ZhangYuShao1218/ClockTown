@@ -11,7 +11,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(process.cwd(), "./src"),
     },
+  },
+  optimizeDeps: {
+    include: [
+      '@mui/material',
+      '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled',
+      'mobx',
+      'mobx-react-lite',
+      'framer-motion',
+      'overlayscrollbars',
+      'markdown-it',
+    ],
   },
 })

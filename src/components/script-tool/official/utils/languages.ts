@@ -1,0 +1,35 @@
+export const SUPPORTED_LANGUAGES = ['cn', 'en', 'es', 'de'] as const;
+
+export type Language = (typeof SUPPORTED_LANGUAGES)[number];
+
+export const DEFAULT_LANGUAGE: Language = 'cn';
+
+export const LANGUAGE_LABELS: Record<Language, string> = {
+  cn: '中文 (Chinese)',
+  en: 'English',
+  es: 'Español',
+  de: 'Deutsch',
+};
+
+export const LANGUAGE_SHORT_LABELS: Record<Language, string> = {
+  cn: '中文',
+  en: 'EN',
+  es: 'ES',
+  de: 'DE',
+};
+
+// Internal language code → BCP 47 standard code (for HTML lang attribute)
+export const LANG_TO_BCP47: Record<Language, string> = {
+  cn: 'zh-CN',
+  en: 'en',
+  es: 'es',
+  de: 'de',
+};
+
+export function isSupportedLanguage(value: string | null | undefined): value is Language {
+  return SUPPORTED_LANGUAGES.includes(value as Language);
+}
+
+export function normalizeLanguage(value: unknown): Language {
+  return typeof value === 'string' && isSupportedLanguage(value) ? value : DEFAULT_LANGUAGE;
+}

@@ -175,10 +175,11 @@ export const Lobby = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <button 
-                onClick={() => setModalContent({ title: "劇本庫", content: "這裡未來會列出所有可用的劇本（如：暗流湧動、黯月馬戲團等），供說書人與玩家查閱每個角色的詳細技能與互動關係。" })}
-                className="rounded-md border border-white/10 bg-black/40 py-2 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all"
+                onClick={() => navigate('/script-tool')}
+                className="rounded-md border border-indigo-500/50 bg-indigo-950/50 py-2.5 text-xs font-bold text-indigo-200 hover:bg-indigo-900/60 hover:text-white transition-all shadow-md flex items-center justify-center gap-1 group"
               >
-                查看各劇本
+                <span className="group-hover:scale-110 transition-transform">📜</span>
+                <span>章魚燒劇本工具</span>
               </button>
               <button 
                 onClick={() => setModalContent({ title: "遊戲介紹", content: "《血染鐘樓》是一款社交推理遊戲。白天，玩家們互相交談、交換資訊並處決嫌疑人；夜晚，惡魔會殺人，而鎮民們則運用特殊能力收集線索。不要相信任何人。" })}
