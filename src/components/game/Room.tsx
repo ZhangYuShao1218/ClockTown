@@ -301,6 +301,7 @@ export const Room = () => {
             fabled={gameState?.public?.fabled || []}
             hostPlayer={hostPlayer}
             privateNotes={user ? gameState?.private?.notes?.[user.uid] : undefined}
+            seatTokens={user ? gameState?.private?.seatTokens?.[user.uid] : undefined}
             isHost={isHost}
             seatStatus={gameState?.public?.seatStatus || {}}
             votingState={gameState?.public?.votingState}
@@ -324,6 +325,8 @@ export const Room = () => {
                 onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
                 hostPlayer={hostPlayer}
                 seatStatus={gameState?.public?.seatStatus || {}}
+                userUid={user?.uid}
+                seatTokens={user ? gameState?.private?.grimoireTokens?.[user.uid] : undefined}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-white/50 h-full"><p>真相仍在迷霧之中...</p></div>
@@ -363,7 +366,7 @@ export const Room = () => {
           <h2 className="text-lg font-bold text-white tracking-widest">
             {isHost && activeTab === 'truth' ? '說書人面版' : `${myPlayer?.name || user?.displayName || '未知玩家'} - 玩家面板`}
           </h2>
-          {isHost && activeTab === 'truth' && activeScriptId && (
+          {isHost && activeTab === 'truth' && activeScriptId && !isViewingList && (
             <button 
               onClick={() => setIsViewingList(true)} 
               className="bg-slate-800 hover:bg-slate-700 border border-slate-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors text-sm font-bold flex items-center"
