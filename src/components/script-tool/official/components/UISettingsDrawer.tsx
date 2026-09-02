@@ -34,7 +34,7 @@ import {
   FontDownload as FontDownloadIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
-import { uiConfigStore } from '../stores/UIConfigStore';
+import { uiConfigStore, type ThemeName } from '../stores/UIConfigStore';
 import { useTranslation } from '../utils/i18n';
 import FontUploader from './FontUploader';
 
@@ -285,10 +285,13 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog, sections = 
                     <RadioGroup
                       row
                       value={uiConfigStore.config.theme}
-                      onChange={(e) => uiConfigStore.updateConfig({ theme: e.target.value as 'none' | 'sakura' | 'custom' })}
+                      onChange={(e) => uiConfigStore.updateConfig({ theme: e.target.value as ThemeName })}
                     >
                       <FormControlLabel value="none" control={<Radio size="small" />} label={t('ui.themeNone')} />
                       <FormControlLabel value="sakura" control={<Radio size="small" />} label={t('ui.themeSakura')} />
+                      <FormControlLabel value="nightfall" control={<Radio size="small" />} label={t('ui.themeNightfall')} />
+                      <FormControlLabel value="ember" control={<Radio size="small" />} label={t('ui.themeEmber')} />
+                      <FormControlLabel value="gilded" control={<Radio size="small" />} label={t('ui.themeGilded')} />
                       <FormControlLabel value="custom" control={<Radio size="small" />} label={t('ui.themeCustom')} />
                     </RadioGroup>
                   </FormControl>
@@ -614,6 +617,21 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog, sections = 
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={2}>
+                  {/* 陣營間隔（陣營 Label 上下留白） */}
+                  <Box>
+                    <Typography variant="caption" gutterBottom>
+                      {t('ui.teamLabelSpacingY')}: {uiConfigStore.config.teamLabelSpacingY}px
+                    </Typography>
+                    <Slider
+                      value={uiConfigStore.config.teamLabelSpacingY}
+                      onChange={(_, value) => uiConfigStore.updateConfig({ teamLabelSpacingY: value as number })}
+                      min={0}
+                      max={40}
+                      step={1}
+                      valueLabelDisplay="auto"
+                    />
+                  </Box>
+
                   {/* 卡片内边距（水平） */}
                   <Box>
                     <Typography variant="caption" gutterBottom>
@@ -828,8 +846,8 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog, sections = 
                     <Slider
                       value={uiConfigStore.config.characterCard.fabledIconWidthMd}
                       onChange={(_, value) => uiConfigStore.updateCharacterCardConfig({ fabledIconWidthMd: value as number })}
-                      min={20}
-                      max={100}
+                      min={50}
+                      max={150}
                       valueLabelDisplay="auto"
                     />
                   </Box>
@@ -840,8 +858,8 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog, sections = 
                     <Slider
                       value={uiConfigStore.config.characterCard.fabledIconHeightMd}
                       onChange={(_, value) => uiConfigStore.updateCharacterCardConfig({ fabledIconHeightMd: value as number })}
-                      min={20}
-                      max={100}
+                      min={40}
+                      max={120}
                       valueLabelDisplay="auto"
                     />
                   </Box>

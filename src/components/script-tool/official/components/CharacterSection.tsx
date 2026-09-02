@@ -236,7 +236,7 @@ const CharacterSection = observer(({
 
   return (
     <Box sx={{ backgroundColor: 'transparent' }} onContextMenu={handleContextMenu}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', py: `${uiConfigStore.teamLabelSpacingY}px` }}>
         <Typography variant="h5" sx={{
           fontFamily: uiConfigStore.teamDividerFont, fontWeight: 'bold',
           fontSize: isChinese

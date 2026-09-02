@@ -2,6 +2,53 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { fontStorage } from '../utils/fontStorage';
 import { towerImageStorage } from '../utils/towerImageStorage';
 
+// ============ 主題 ============
+export type ThemeName = 'none' | 'sakura' | 'nightfall' | 'ember' | 'gilded' | 'custom';
+
+interface ThemeCornerFlowers { bl: string; br: string; tr: string; tl: string; }
+interface ThemePreset {
+  mainBackground: string;
+  nightOrderBackground: string;
+  cornerFlowers: ThemeCornerFlowers | null;
+  /** 相剋規則小方框底色 */
+  jinxTint: string;
+}
+
+const CHERRY_FLOWERS: ThemeCornerFlowers = {
+  bl: '/imgs/images/sources/flowers/cherry-blossom3.png',
+  br: '/imgs/images/sources/flowers/cherry-blossom3.png',
+  tr: '/imgs/images/sources/flowers/cherry-blossom2.png',
+  tl: '/imgs/images/sources/flowers/cherry-blossom3.png',
+};
+
+/** 具名主題預設值；以現有資產組合而成，不需新增圖片。 */
+export const THEME_PRESETS: Record<Exclude<ThemeName, 'none' | 'custom'>, ThemePreset> = {
+  sakura: {
+    mainBackground: '/imgs/images/background/back_pink.jpg',
+    nightOrderBackground: '/imgs/images/night_order/order_back_pink.jpg',
+    cornerFlowers: CHERRY_FLOWERS,
+    jinxTint: 'rgba(255, 218, 224, 0.5)',
+  },
+  nightfall: {
+    mainBackground: '/imgs/images/background/back_v2.jpg',
+    nightOrderBackground: '/imgs/images/night_order/order_back_purple.jpg',
+    cornerFlowers: null,
+    jinxTint: 'rgba(226, 222, 240, 0.55)',
+  },
+  ember: {
+    mainBackground: '/imgs/images/background/back_v2.jpg',
+    nightOrderBackground: '/imgs/images/night_order/order_back_red.jpg',
+    cornerFlowers: null,
+    jinxTint: 'rgba(244, 222, 212, 0.6)',
+  },
+  gilded: {
+    mainBackground: '/imgs/images/background/back_classic.jpg',
+    nightOrderBackground: '/imgs/images/night_order/order_back_yellow2.jpg',
+    cornerFlowers: null,
+    jinxTint: 'rgba(244, 236, 214, 0.62)',
+  },
+};
+
 // Custom font interface
 
 // Tower image interface
@@ -39,7 +86,7 @@ export interface UIConfig {
   customMainBackground: string; // base64
 
   // Theme (overrides individual settings)
-  theme: 'none' | 'sakura' | 'custom';
+  theme: ThemeName;
 
   // Corner flower decoration
   cornerFlower: 'default' | 'cherry-blossom';
@@ -60,6 +107,9 @@ export interface UIConfig {
 
   // Title area height
   titleHeightMd: number;
+
+  // 陣營 Label（如「善良陣營·鎮民」）的上下留白（px），控制各陣營區塊之間的間隔
+  teamLabelSpacingY: number;
 
   // Night order top spacing
   nightOrderTopSpacingAuto: boolean;  // AUTO centering
@@ -173,7 +223,7 @@ const DEFAULT_UI_CONFIG: UIConfig = {
   theme: 'none',
   cornerFlower: 'default',
   enableTwoPageMode: false,
-  enableStorytellerNightOrderSheet: true,
+  enableStorytellerNightOrderSheet: false,
   storytellerNightSheet: {
     iconSize: 1.6,
     textSize: 1.02,
@@ -184,6 +234,8 @@ const DEFAULT_UI_CONFIG: UIConfig = {
   },
 
   titleHeightMd: 100,
+
+  teamLabelSpacingY: 4,
 
   nightOrderTopSpacingAuto: true,
   nightOrderTopSpacing: 20,   // vh, default 20vh
@@ -222,12 +274,12 @@ const DEFAULT_UI_CONFIG: UIConfig = {
     cardBorderRadius: 1,
     cardGap: 1,
 
-    avatarWidthMd: 99,
-    avatarHeightMd: 79,
+    avatarWidthMd: 95,
+    avatarHeightMd: 80,
     avatarBorderRadius: 1,
 
-    fabledIconWidthMd: 74,
-    fabledIconHeightMd: 74,
+    fabledIconWidthMd: 95,
+    fabledIconHeightMd: 80,
     fabledIconBorderRadius: 1,
 
     textAreaGap: 0.3,
@@ -610,10 +662,22 @@ class UIConfigStore {
   }
 
 
+  /** 目前生效的具名主題預設（none / custom 回傳 null） */
+  get activeThemePreset(): ThemePreset | null {
+    const t = this.config.theme;
+    if (t === 'none' || t === 'custom') return null;
+    return THEME_PRESETS[t] ?? null;
+  }
+
+  /** 相剋方框底色（有具名主題時用主題色，否則 null 由元件用預設） */
+  get themeJinxTint(): string | null {
+    return this.activeThemePreset?.jinxTint ?? null;
+  }
+
   get nightOrderBackgroundUrl() {
     // Theme override
-    if (this.config.theme === 'sakura') {
-      return '/imgs/images/night_order/order_back_pink.jpg';
+    if (this.activeThemePreset) {
+      return this.activeThemePreset.nightOrderBackground;
     }
     // If custom mode with custom background, use custom background
     if (this.config.nightOrderBackgroundMode === 'custom' && this.config.customNightOrderBackground) {
@@ -637,8 +701,8 @@ class UIConfigStore {
 
   get mainBackgroundUrl() {
     // Theme override
-    if (this.config.theme === 'sakura') {
-      return '/imgs/images/background/back_pink.jpg';
+    if (this.activeThemePreset) {
+      return this.activeThemePreset.mainBackground;
     }
     // If custom mode with custom background, use custom background
     if (this.config.mainBackgroundMode === 'custom' && this.config.customMainBackground) {
@@ -659,13 +723,8 @@ class UIConfigStore {
 
   get cornerFlowers(): { bl: string; br: string; tr: string; tl: string } | null {
     // Theme override
-    if (this.config.theme === 'sakura') {
-      return {
-        bl: '/imgs/images/sources/flowers/cherry-blossom3.png',
-        br: '/imgs/images/sources/flowers/cherry-blossom3.png',
-        tr: '/imgs/images/sources/flowers/cherry-blossom2.png',
-        tl: '/imgs/images/sources/flowers/cherry-blossom3.png',
-      };
+    if (this.activeThemePreset) {
+      return this.activeThemePreset.cornerFlowers;
     }
     switch (this.config.cornerFlower) {
       case 'cherry-blossom':
@@ -683,6 +742,10 @@ class UIConfigStore {
 
   get titleHeight() {
     return this.config.titleHeightMd;
+  }
+
+  get teamLabelSpacingY() {
+    return this.config.teamLabelSpacingY ?? 4;
   }
 
   get titleFontSizeXs() {

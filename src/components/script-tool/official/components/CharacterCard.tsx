@@ -134,7 +134,7 @@ const CharacterCard = observer(({ character, jinxInfo, allCharacters, allJinx, o
     jinx: {
       gap: (isMobile ? config.jinxGap * 0.6 : config.jinxGap) * COMPACT_SCALE,
       padding: (isMobile ? config.jinxPadding * 0.6 : config.jinxPadding) * COMPACT_SCALE,
-      backgroundColor: uiConfigStore.config.theme === 'sakura' ? 'rgba(255, 218, 224, 0.5)' : '#EDE4D5',
+      backgroundColor: uiConfigStore.themeJinxTint ?? '#EDE4D5',
       borderRadius: config.jinxBorderRadius,
       iconGap: (isMobile ? config.jinxIconGap * 0.6 : config.jinxIconGap) * COMPACT_SCALE,
       // Jinx rule character icons - smaller on mobile
