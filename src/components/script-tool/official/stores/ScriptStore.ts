@@ -1846,7 +1846,7 @@ class ScriptStore {
 
     // If loading fails, return a basic example
     return JSON.stringify([
-      {"id":"_meta","author":"Onion","name":"Custom Your Script!"},
+      {"id":"_meta","author":"Onion","name":"自訂你的劇本！"},
       "noble","shugenja","pixie","highpriestess","villageidiot",
       "mathematician","oracle","savant","philosopher","huntsman",
       "artist","cannibal","ravenkeeper","recluse","klutz",

@@ -178,17 +178,50 @@ export const Lobby = () => {
                 onClick={() => navigate('/script-tool')}
                 className="rounded-md border border-indigo-500/50 bg-indigo-950/50 py-2.5 text-xs font-bold text-indigo-200 hover:bg-indigo-900/60 hover:text-white transition-all shadow-md flex items-center justify-center gap-1 group"
               >
-                <span className="group-hover:scale-110 transition-transform">📜</span>
-                <span>章魚燒劇本工具</span>
+                <span>劇本工具</span>
               </button>
               <button 
-                onClick={() => setModalContent({ title: "遊戲介紹", content: "《血染鐘樓》是一款社交推理遊戲。白天，玩家們互相交談、交換資訊並處決嫌疑人；夜晚，惡魔會殺人，而鎮民們則運用特殊能力收集線索。不要相信任何人。" })}
+                onClick={() => setModalContent({ title: "遊戲介紹", content: [
+                  "《血染鐘樓》(Blood on the Clocktower) 是一款多人社交推理遊戲，由一位「說書人」主持，其餘玩家分屬兩大陣營：",
+                  "",
+                  "• 善良陣營：鎮民 (Townsfolk) 與外來者 (Outsider)。目標是找出並處決惡魔。",
+                  "• 邪惡陣營：爪牙 (Minion) 與惡魔 (Demon)。目標是活到只剩兩人，或讓好人潰散。",
+                  "",
+                  "【遊戲流程】",
+                  "夜晚：所有人閉眼，說書人依「夜晚順序」逐一喚醒角色。惡魔選擇獵殺目標，資訊型角色獲得線索（可能被下毒或被醉，導致資訊錯誤）。",
+                  "白天：眾人睜眼，得知昨夜死者。玩家自由討論、交換資訊、互相盤問。",
+                  "提名與處決：每位存活玩家每天可提名一人，得票數過半且為當日最高者被處決。若被處決的是惡魔，善良陣營獲勝。",
+                  "",
+                  "【勝負判定】",
+                  "• 惡魔死亡 → 善良陣營勝。",
+                  "• 存活玩家僅剩 2 人 → 邪惡陣營勝。",
+                  "• 特定角色亦有專屬的勝利／落敗條件。",
+                  "",
+                  "死亡的玩家仍留在場上，可以繼續發言，並保有「一張」幽靈票，直到遊戲結束。",
+                ].join("\n") })}
                 className="rounded-md border border-white/10 bg-black/40 py-2 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all"
               >
                 遊戲介紹
               </button>
               <button 
-                onClick={() => setModalContent({ title: "新手技巧", content: "1. 如果你是好人，請盡量分享資訊，好人死於沉默。\n2. 如果你是壞人，請準備好一個假身分。\n3. 不要怕死，即使死了你仍有最後一張『幽靈票』可以扭轉戰局。" })}
+                onClick={() => setModalContent({ title: "新手技巧", content: [
+                  "【給善良陣營】",
+                  "1. 好人死於沉默：盡早、清楚地分享你的角色與資訊，讓大家能交叉驗證。",
+                  "2. 小心假資訊：你可能被下毒或被酒鬼影響，資訊未必為真；也要提防惡魔的偽裝。",
+                  "3. 建立資訊網：把大家的資訊串起來，尋找互相矛盾的說法。",
+                  "4. 別急著處決：第一天資訊少，隨意處決往往幫了壞人。",
+                  "",
+                  "【給邪惡陣營】",
+                  "1. 想好假身分：開局就決定要假扮的角色，並讓故事前後一致。",
+                  "2. 融入好人：積極參與推理、提供「看似有用」的資訊。",
+                  "3. 保護惡魔：爪牙要適時吸引火力，必要時為惡魔擋刀。",
+                  "4. 控制節奏：製造混亂與對立，拖到剩 2 人即獲勝。",
+                  "",
+                  "【通用】",
+                  "• 不要怕死：死後仍能發言，且保有一張幽靈票，能繼續影響戰局。",
+                  "• 注意提名順序與投票數，票型常常透露立場。",
+                  "• 有疑問就問說書人規則（規則問題可公開問，不會洩漏身分）。",
+                ].join("\n") })}
                 className="rounded-md border border-white/10 bg-black/40 py-2 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all"
               >
                 新手技巧
