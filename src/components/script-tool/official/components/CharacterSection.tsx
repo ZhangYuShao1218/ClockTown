@@ -263,8 +263,8 @@ const CharacterSection = observer(({
           <Box>
             <SortableContext items={characters.map(c => c.id)} strategy={rectSortingStrategy}>
               {characters.length === 1 ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', px: { xs: 0, sm: 2, md: 4 } }}>
-                  <Box sx={{ width: { xs: '100%', sm: compact ? '100%' : '50%' }, display: 'flex' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', px: 0 }}>
+                  <Box sx={{ width: { xs: '100%', sm: compact ? '100%' : 'calc(50% - 4px)' }, display: 'flex' }}>
                     <CharacterCard character={characters[0]} jinxInfo={script.jinx[characters[0].name]}
                       allCharacters={script.all} allJinx={script.jinx}
                       onUpdate={onUpdateCharacter} onEdit={onEditCharacter} onDelete={onDeleteCharacter}

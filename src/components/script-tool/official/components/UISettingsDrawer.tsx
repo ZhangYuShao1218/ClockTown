@@ -58,8 +58,8 @@ interface UISettingsContentProps {
 }
 
 /** 頁面版面設定（雙頁模式、說書人夜間順序表、相剋圖示位置、標題高度、夜間順序頂距） */
-// 版面分頁字級：標題 +2pt、說明 +2pt
-const LAYOUT_LABEL_SX = { fontSize: '1.05rem', fontWeight: 500 } as const;
+// 版面分頁字級：標題 +2pt（淺藍色）、說明 +2pt
+const LAYOUT_LABEL_SX = { fontSize: '1.05rem', fontWeight: 600, color: '#1d4ed8' } as const;
 const LAYOUT_DESC_SX = { display: 'block', mt: 0.5, fontSize: '0.92rem' } as const;
 
 export const PageLayoutSettings = observer(() => {

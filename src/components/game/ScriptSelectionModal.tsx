@@ -69,7 +69,7 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
 
                 {/* Description (Shows on hover) */}
                 <div className="overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover/card:max-h-[250px] group-hover/card:opacity-100 w-full px-2 group-hover/card:mt-2">
-                  <p className="text-xs text-slate-300 leading-relaxed text-center w-full">
+                  <p className="text-xs text-slate-300 leading-relaxed text-left w-full">
                     {script.description}
                   </p>
                 </div>

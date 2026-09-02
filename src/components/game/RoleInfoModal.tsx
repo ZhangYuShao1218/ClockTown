@@ -10,7 +10,7 @@ interface RoleInfoModalProps {
 }
 
 export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
-  const [activeTab, setActiveTab] = useState<'good'|'evil'|'traveler'|'fabled'>('good');
+  const [activeTab, setActiveTab] = useState<'good'|'evil'|'other'>('good');
   const [isImageViewOpen, setIsImageViewOpen] = useState(false);
   if (!isOpen || !script) return null;
 
@@ -19,6 +19,10 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   const outsider = validRoles.filter(r => r.type === 'outsider');
   const minion = validRoles.filter(r => r.type === 'minion');
   const demon = validRoles.filter(r => r.type === 'demon');
+  const traveler = validRoles.filter(r => r.type === 'traveler');
+  const fabled = validRoles.filter(r => r.type === 'fabled');
+  const loric = validRoles.filter(r => r.type === 'loric');
+  const hasOther = traveler.length > 0 || fabled.length > 0 || loric.length > 0;
 
   let renderGroups: { title: string, roles: Role[], color: string, bg: string, border: string, titleBorder: string }[] = [];
 
@@ -31,6 +35,12 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
     renderGroups = [
       { title: "爪牙", roles: minion, color: "text-red-400", bg: "bg-red-900/20", border: "border-red-900/50", titleBorder: "border-red-500/80" },
       { title: "惡魔", roles: demon, color: "text-red-500", bg: "bg-rose-900/20", border: "border-rose-900/50", titleBorder: "border-red-600/80" }
+    ];
+  } else if (activeTab === 'other') {
+    renderGroups = [
+      { title: "傳奇角色", roles: fabled, color: "text-yellow-400", bg: "bg-yellow-900/20", border: "border-yellow-700/50", titleBorder: "border-yellow-500/80" },
+      { title: "旅行者", roles: traveler, color: "text-purple-300", bg: "bg-purple-900/20", border: "border-purple-800/50", titleBorder: "border-purple-500/80" },
+      { title: "奇遇角色", roles: loric, color: "text-teal-300", bg: "bg-teal-900/20", border: "border-teal-800/50", titleBorder: "border-teal-500/80" }
     ];
   }
 
@@ -56,6 +66,9 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           <div className="flex space-x-3">
             <button onClick={() => setActiveTab('good')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
             <button onClick={() => setActiveTab('evil')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
+            {hasOther && (
+              <button onClick={() => setActiveTab('other')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'other' ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>其他</button>
+            )}
           </div>
           <button onClick={() => setIsImageViewOpen(true)} className="ml-[30px] px-4 py-2 text-base rounded-lg font-bold transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-2 border border-emerald-400/30">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

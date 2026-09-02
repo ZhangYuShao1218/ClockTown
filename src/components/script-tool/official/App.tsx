@@ -195,7 +195,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: THEME_FONTS.fontFamily,
+    fontFamily: 'sans-serif',
   },
   breakpoints: {
     values: {
