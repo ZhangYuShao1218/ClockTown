@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
+import { OfficialJinxes } from "../../data/jinxes";
 
 interface RoleInfoModalProps {
   isOpen: boolean;
@@ -10,11 +11,35 @@ interface RoleInfoModalProps {
 }
 
 export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
-  const [activeTab, setActiveTab] = useState<'good'|'evil'|'other'>('good');
+  const [activeTab, setActiveTab] = useState<'good'|'evil'|'other'|'loric'>('good');
   const [isImageViewOpen, setIsImageViewOpen] = useState(false);
   if (!isOpen || !script) return null;
 
   const validRoles = script.roles.filter(Boolean);
+
+  // 劇本內角色 id → Role，用來判斷相剋雙方是否都在此劇本
+  const roleById = new Map<string, Role>();
+  for (const r of validRoles) roleById.set(r.id, r);
+
+  /** 取得某角色在「當前劇本」中生效的相剋規則（雙方都在場才算）。
+   *  相剋資料不保證雙向登記，所以正向、反向都要查。 */
+  const getActiveJinxes = (roleId: string): Array<{ other: Role; reason: string }> => {
+    const out: Array<{ other: Role; reason: string }> = [];
+    const seen = new Set<string>();
+    for (const j of OfficialJinxes[roleId] ?? []) {
+      const other = roleById.get(j.with);
+      if (other && !seen.has(other.id)) { out.push({ other, reason: j.reason }); seen.add(other.id); }
+    }
+    for (const [otherId, entries] of Object.entries(OfficialJinxes)) {
+      if (otherId === roleId || seen.has(otherId)) continue;
+      const other = roleById.get(otherId);
+      if (!other) continue;
+      const e = entries.find(x => x.with === roleId);
+      if (e) { out.push({ other, reason: e.reason }); seen.add(otherId); }
+    }
+    return out;
+  };
+
   const townsfolk = validRoles.filter(r => r.type === 'townsfolk');
   const outsider = validRoles.filter(r => r.type === 'outsider');
   const minion = validRoles.filter(r => r.type === 'minion');
@@ -22,7 +47,8 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   const traveler = validRoles.filter(r => r.type === 'traveler');
   const fabled = validRoles.filter(r => r.type === 'fabled');
   const loric = validRoles.filter(r => r.type === 'loric');
-  const hasOther = traveler.length > 0 || fabled.length > 0 || loric.length > 0;
+  const hasOther = traveler.length > 0 || fabled.length > 0;
+  const hasLoric = loric.length > 0;
 
   let renderGroups: { title: string, roles: Role[], color: string, bg: string, border: string, titleBorder: string }[] = [];
 
@@ -39,8 +65,11 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   } else if (activeTab === 'other') {
     renderGroups = [
       { title: "傳奇角色", roles: fabled, color: "text-yellow-400", bg: "bg-yellow-900/20", border: "border-yellow-700/50", titleBorder: "border-yellow-500/80" },
-      { title: "旅行者", roles: traveler, color: "text-purple-300", bg: "bg-purple-900/20", border: "border-purple-800/50", titleBorder: "border-purple-500/80" },
-      { title: "奇遇角色", roles: loric, color: "text-teal-300", bg: "bg-teal-900/20", border: "border-teal-800/50", titleBorder: "border-teal-500/80" }
+      { title: "旅行者", roles: traveler, color: "text-purple-300", bg: "bg-purple-900/20", border: "border-purple-800/50", titleBorder: "border-purple-500/80" }
+    ];
+  } else if (activeTab === 'loric') {
+    renderGroups = [
+      { title: "奇遇角色", roles: loric, color: "text-emerald-300", bg: "bg-emerald-900/20", border: "border-emerald-800/50", titleBorder: "border-emerald-500/80" }
     ];
   }
 
@@ -69,6 +98,9 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
             {hasOther && (
               <button onClick={() => setActiveTab('other')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'other' ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>其他</button>
             )}
+            {hasLoric && (
+              <button onClick={() => setActiveTab('loric')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'loric' ? 'bg-emerald-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>奇遇</button>
+            )}
           </div>
           <button onClick={() => setIsImageViewOpen(true)} className="ml-[30px] px-4 py-2 text-base rounded-lg font-bold transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-2 border border-emerald-400/30">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,21 +119,36 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
                   {group.title}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {group.roles.map(role => (
-                    <div key={role.id} className={`flex items-start p-1.5 rounded-lg border ${group.border} ${group.bg} shadow-sm relative z-10 group/tooltip`}>
-                      <div className="w-[44px] h-[44px] shrink-0 rounded-full border border-white/30 bg-black overflow-hidden mr-2 flex items-center justify-center">
-                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                  {group.roles.map(role => {
+                    const jinxes = getActiveJinxes(role.id);
+                    return (
+                    <div key={role.id} className={`flex flex-col p-1.5 rounded-lg border ${group.border} ${group.bg} shadow-sm relative z-10 group/tooltip`}>
+                      <div className="flex items-start">
+                        <div className="w-[44px] h-[44px] shrink-0 rounded-full border border-white/30 bg-black overflow-hidden mr-2 flex items-center justify-center">
+                          <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1 justify-center">
+                          <span className={`text-[16px] leading-tight font-bold ${group.color} whitespace-nowrap mb-0.5`}>{role.name}</span>
+                          {role.abilityHTML ? (
+                            <span className="text-[13px] leading-snug text-white/80" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
+                          ) : (
+                            <span className="text-[13px] leading-snug text-white/80">{role.ability}</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col min-w-0 flex-1 justify-center">
-                        <span className={`text-[16px] leading-tight font-bold ${group.color} whitespace-nowrap mb-0.5`}>{role.name}</span>
-                        {role.abilityHTML ? (
-                          <span className="text-[13px] leading-snug text-white/80" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
-                        ) : (
-                          <span className="text-[13px] leading-snug text-white/80">{role.ability}</span>
-                        )}
-                      </div>
+                      {jinxes.length > 0 && (
+                        <div className="mt-1.5 pt-1.5 border-t border-amber-500/25 w-full space-y-1">
+                          {jinxes.map(j => (
+                            <p key={j.other.id} className="text-[12px] leading-snug text-amber-300/90">
+                              <span className="font-bold text-amber-300">⚔ {j.other.name}：</span>
+                              {j.reason}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
