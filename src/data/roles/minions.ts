@@ -1,64 +1,41 @@
 import type { Role } from '../types';
 
-// ================= Minions (爪牙) =================
-export const Poisoner: Role = {
-  flavor: '幾滴無色無味的毒藥，就能讓最聰明的人陷入瘋狂。今夜，你又要讓誰的感官錯亂呢？',
-  id: 'poisoner',
-  name: '投毒者',
-  alignment: 'evil',
-  type: 'minion',
-  icon: '/character/character_poisoner_minion.png',
-  ability: '每個夜晚，你要選擇一名玩家：他在當晚和明天白天中毒。',
-  abilityHTML: '每個夜晚，你要選擇一名玩家：他在當晚和明天白天<span class="highlight-evil">中毒。</span>',
-  firstNight: 4600,
-  otherNight: 1400,
-  firstNightReminder: '讓投毒者選擇一名玩家。標記那名玩家中毒。',
-  otherNightReminder: '讓投毒者選擇一名玩家。標記那名玩家中毒。'
+// ================= 爪牙 (minion) — 38 個 =================
+export const Minions: Record<string, Role> = {
+  'boffin': { id: 'boffin', name: '科學怪人', alignment: 'evil', type: 'minion', icon: '/character/character_boffin_minion.png', ability: '惡魔擁有一個不在場的善良角色的能力，即使他醉酒或中毒。你和他都知道他獲得了什麼能力。', firstNight: 1, firstNightReminder: '（分別或同時）喚醒科學怪人和惡魔，通知他們惡魔因為科學怪人而獲得的善良角色的能力。', setup: true },
+  'summoner': { id: 'summoner', name: '召喚師', alignment: 'evil', type: 'minion', icon: '/character/character_summoner_minion.png', ability: '在首個夜晚，你會得知三個偽裝。在第三個夜晚，你要選擇一名玩家：他變成由你選擇的邪惡惡魔。[無惡魔在場]', firstNight: 7, otherNight: 23, firstNightReminder: '喚醒召喚師，對他展示三個不在場的善良角色標記。', otherNightReminder: '如果這是遊戲中的第三個夜晚，喚醒召喚師，讓他選擇一名玩家和一個惡魔角色，那名玩家變成由他選擇的邪惡惡魔。', reminders: ['第一晚', '第二晚', '第三晚'], setup: true },
+  'marionette': { id: 'marionette', name: '提線木偶', alignment: 'evil', type: 'minion', icon: '/character/character_marionette_minion.png', ability: '你以為你是一個善良角色，但其實你不是。惡魔會知道你是提線木偶。[提線木偶會與惡魔鄰座]', firstNight: 12, firstNightReminder: '如果提線木偶在場，對惡魔展示提線木偶角色標記並指向提線木偶玩家。', setup: true },
+  'poisoner': { id: 'poisoner', name: '投毒者', alignment: 'evil', type: 'minion', icon: '/character/character_poisoner_minion.png', ability: '每個夜晚，你要選擇一名玩家：他在當晚和明天白天中毒。', abilityHTML: '每個夜晚，你要選擇一名玩家：他在當晚和明天白天<span class="highlight-evil">中毒。</span>', flavor: '幾滴無色無味的毒藥，就能讓最聰明的人陷入瘋狂。今夜，你又要讓誰的感官錯亂呢？', firstNight: 17, otherNight: 7, firstNightReminder: '讓投毒者選擇一名玩家。標記那名玩家中毒。', otherNightReminder: '讓投毒者選擇一名玩家。標記那名玩家中毒。' },
+  'widow': { id: 'widow', name: '寡婦', alignment: 'evil', type: 'minion', icon: '/character/character_widow_minion.png', ability: '在你的首個夜晚，你能查看魔典並選擇一名玩家：他中毒。隨後，始終會有一名善良玩家知道寡婦在場。', firstNight: 18, firstNightReminder: '喚醒寡婦，讓她查看魔典。在她查看完畢後讓她選擇一名玩家，那名玩家中毒。隨後如果寡婦未醉酒中毒，喚醒一名善良玩家，對他展示寡婦角色標記。', reminders: ['中毒'] },
+  'godfather': { id: 'godfather', name: '教父', alignment: 'evil', type: 'minion', icon: '/character/character_godfather_minion.png', ability: '在你的首個夜晚，你會得知有哪些外來者角色在場。如果有外來者在白天死亡，你會在當晚被喚醒並且你要選擇一名玩家：他死亡。[-1或+1外來者]', firstNight: 21, otherNight: 37, firstNightReminder: '對他展示所有在場的外來者標記。', otherNightReminder: '如果有外來者在今天白天死亡，讓教父選擇一名玩家。標記那名玩家死亡。' },
+  'witch': { id: 'witch', name: '女巫', alignment: 'evil', type: 'minion', icon: '/character/character_witch_minion.png', ability: '每個夜晚，你要選擇一名玩家：如果他明天白天發起提名，他死亡。如果只有三名存活的玩家，你失去此能力。', firstNight: 24, otherNight: 14, firstNightReminder: '喚醒女巫，讓她選擇一名玩家，那名玩家被詛咒。', otherNightReminder: '喚醒女巫，讓她選擇一名玩家，那名玩家被詛咒。', reminders: ['被詛咒'] },
+  'cerenovus': { id: 'cerenovus', name: '洗腦師', alignment: 'evil', type: 'minion', icon: '/character/character_cerenovus_minion.png', ability: '每個夜晚，你要選擇一名玩家和一個善良角色。他明天白天和夜晚需要“瘋狂”地證明自己是這個角色，不然他可能被處決。', firstNight: 25, otherNight: 15, firstNightReminder: '喚醒洗腦師，讓他選擇一名玩家和角色列表上的一個善良角色，那名玩家明天需要“瘋狂”證明自己是那個角色。在洗腦師入睡後通知那名玩家被洗腦。', otherNightReminder: '喚醒洗腦師，讓他選擇一名玩家和角色列表上的一個善良角色，那名玩家明天需要“瘋狂”證明自己是那個角色。在洗腦師入睡後通知那名玩家被洗腦。', reminders: ['瘋狂'] },
+  'harpy': { id: 'harpy', name: '鷹身女妖', alignment: 'evil', type: 'minion', icon: '/character/character_harpy_minion.png', ability: '每個夜晚，你要選擇兩名玩家：明天第一名玩家需要“瘋狂”地證明第二名玩家是邪惡的，否則他們之中可能會有人死亡。', firstNight: 25, otherNight: 15, firstNightReminder: '喚醒鷹身女妖，讓她選擇兩名玩家，第一名玩家明天需要“瘋狂”證明第二名玩家邪惡。在鷹身女妖入睡後通知第一名玩家被鷹身女妖選中。', otherNightReminder: '喚醒鷹身女妖，讓她選擇兩名玩家，第一名玩家明天需要“瘋狂”證明第二名玩家邪惡。在鷹身女妖入睡後通知第一名玩家被鷹身女妖選中。', reminders: ['瘋狂', '第二名'] },
+  'fearmonger': { id: 'fearmonger', name: '恐懼之靈', alignment: 'evil', type: 'minion', icon: '/character/character_fearmonger_minion.png', ability: '每個夜晚，你要選擇一名玩家：如果你提名他且他被處決，他的陣營落敗。當你首次選擇或更換目標時，所有玩家都會得知你選擇了新的玩家。', firstNight: 26, otherNight: 17, firstNightReminder: '喚醒恐懼之靈，讓他選擇一名玩家，隨後通知所有玩家恐懼之靈選擇了一名玩家。', otherNightReminder: '喚醒恐懼之靈，讓他選擇一名玩家，隨後如果恐懼之靈的目標發生了變更，通知所有玩家恐懼之靈選擇了一名玩家。', reminders: ['恐懼'] },
+  'mezepheles': { id: 'mezepheles', name: '靈言師', alignment: 'evil', type: 'minion', icon: '/character/character_mezepheles_minion.png', ability: '在你的首個夜晚，你會得知一個關鍵詞。首個說出該關鍵詞的善良玩家會在當晚轉變為邪惡陣營。', firstNight: 27, otherNight: 18, firstNightReminder: '告訴靈言師他的秘密詞語。', otherNightReminder: '喚醒第一個說出靈言師詞語的玩家並告知他已經變成邪惡陣營。' },
+  'spy': { id: 'spy', name: '間諜', alignment: 'evil', type: 'minion', icon: '/character/character_spy_minion.png', ability: '每個夜晚，你能查看魔典。你可能會被當作善良陣營、鎮民角色或外來者角色，即使你已死亡。', abilityHTML: '每個夜晚，你能查看魔典。你可能會被當作<span class="highlight-good">善良陣營、</span><span class="highlight-good">鎮民角色或</span><span class="highlight-good">外來者角色，即使你已</span><span class="highlight-evil">死亡。</span>', flavor: '你潛伏在光明之中，翻閱著魔法書的每一頁。沒有任何秘密能逃過你的雙眼。', firstNight: 49, otherNight: 68, firstNightReminder: '將魔典展示給間諜，他想看多久就看多久。', otherNightReminder: '將魔典展示給間諜，他想看多久就看多久。' },
+  'huapi': { id: 'huapi', name: '畫皮', alignment: 'evil', type: 'minion', icon: '/character/character_huapi_minion.png', ability: '在你的首個夜晚，你要選擇一名存活玩家：他死亡但會被當作存活。當他下一次即將死亡時，他重生，隨後你重獲能力。', firstNight: 3017, otherNight: 54, firstNightReminder: '喚醒畫皮，讓畫皮選擇一名存活玩家，那名存活玩家變成活屍。', otherNightReminder: '如果首夜被畫皮變成活屍的玩家死亡，他重生，然後畫皮重獲能力。喚醒畫皮，讓畫皮選擇一名存活玩家，那名存活玩家變成活屍。', reminders: ['活屍', '失去能力'] },
+  'niangjiushi': { id: 'niangjiushi', name: '釀酒師', alignment: 'evil', type: 'minion', icon: '/character/character_niangjiushi_minion.png', ability: '每個夜晚，你要選擇一個鎮民角色：當他下一次通過自身能力獲取資訊時，改為得知你給出的資訊。', firstNight: 3019, otherNight: 9, firstNightReminder: '喚醒釀酒師，讓其選擇一個鎮民角色並給出一個符合該角色資訊格式的資訊，當他下一次通過自身能力獲取資訊時，改為得知釀酒師給出的資訊。', otherNightReminder: '喚醒釀酒師，讓其選擇一個鎮民角色並給出一個符合該角色資訊格式的資訊，當他下一次通過自身能力獲取資訊時，改為得知釀酒師給出的資訊。', reminders: ['微醺'] },
+  'gudiao': { id: 'gudiao', name: '蠱雕', alignment: 'evil', type: 'minion', icon: '/character/character_gudiao_minion.png', ability: '每個夜晚，你要選擇左或右：你得知該方向上的下一名存活善良玩家的角色，他中毒且其他善良玩家以為他是邪惡的蠱雕，直到下個黃昏。', firstNight: 3019.5, otherNight: 9.5, firstNightReminder: '喚醒蠱雕，讓他選擇左或者右，他得知該方向上的下一名存活善良玩家的角色，這個善良玩家中毒且其他善良玩家以為他是邪惡的蠱雕，直到下個黃昏。', otherNightReminder: '喚醒蠱雕，讓他選擇左或者右，他得知該方向上的下一名存活善良玩家的角色，這個善良玩家中毒且其他善良玩家以為他是邪惡的蠱雕，直到下個黃昏。', reminders: ['中毒'] },
+  'devils_advocate': { id: 'devils_advocate', name: '魔鬼代言人', alignment: 'evil', type: 'minion', icon: '/character/character_devils_advocate_minion.png', ability: '每個夜晚，你要選擇一名存活的玩家（與上個夜晚不同）：如果明天白天他被處決，他不會死亡。', firstNight: 3022, otherNight: 18, firstNightReminder: '讓魔鬼代言人選擇一名存活玩家。標記那名玩家處決不死。', otherNightReminder: '讓魔鬼代言人選擇一名存活玩家，不能是上一夜他選擇過的玩家。標記那名玩家處決不死。' },
+  'evil_twin': { id: 'evil_twin', name: '映像雙子', alignment: 'evil', type: 'minion', icon: '/character/character_evil_twin_minion.png', ability: '你與一名對立陣營的玩家互相知道對方是什麼角色。如果其中善良玩家被處決，邪惡陣營獲勝。如果你們都存活，善良陣營無法獲勝。', firstNight: 3023, firstNightReminder: '分別獨自喚醒映像雙子和對立雙子，告知他們由於映像雙子能力而得知的資訊。', reminders: ['對立雙子'] },
+  'jinweijun2': { id: 'jinweijun2', name: '禁衛軍Ⅱ', alignment: 'evil', type: 'minion', icon: '/character/character_jinweijun2_minion.png', ability: '在你的首個夜晚，你要選擇存活或死亡。“瘋狂”地想要這樣做的玩家可能會立即被處決。', firstNight: 3023 },
+  'humeiniang': { id: 'humeiniang', name: '狐媚娘', alignment: 'evil', type: 'minion', icon: '/character/character_humeiniang_minion.png', ability: '在你的首個夜晚，你要選擇一名玩家：他會知道狐媚娘在場。如果你死於處決，當晚他轉變為邪惡陣營。', firstNight: 3029, otherNight: 24, firstNightReminder: '喚醒狐媚娘，讓她選擇一名玩家。在狐媚娘入睡後通知那名玩家狐媚娘在場。', otherNightReminder: '如果狐媚娘死於處決，喚醒她選擇的玩家並通知他陣營變化。', reminders: ['被魅惑'] },
+  'assassin': { id: 'assassin', name: '刺客', alignment: 'evil', type: 'minion', icon: '/character/character_assassin_minion.png', ability: '每局遊戲限一次，在夜晚時*，你可以選擇一名玩家：他死亡，即使因為任何原因讓他不會死亡。', otherNight: 36, otherNightReminder: '刺客可以選擇一名玩家。如果他這麼做了，標記那名玩家死亡，且刺客失去能力，之後的夜晚無需再喚醒刺客。' },
+  'baron': { id: 'baron', name: '男爵', alignment: 'evil', type: 'minion', icon: '/character/character_baron_minion.png', ability: '會有額外的外來者在場。[+2外來者]', abilityHTML: '會有額外的外來者在場。<span class="highlight-good">[+2外來者]</span>', flavor: '你的詭計讓鎮上的秩序陷入混亂。更多的外人，意味著更多的猜忌與不安。' },
+  'boomdandy': { id: 'boomdandy', name: '炸彈人', alignment: 'evil', type: 'minion', icon: '/character/character_boomdandy_minion.png', ability: '如果你被處決，除三名玩家以外的其他所有玩家均會死亡。倒數十聲後，被最多玩家手指指著的玩家死亡。' },
+  'ganshiren': { id: 'ganshiren', name: '趕屍人', alignment: 'evil', type: 'minion', icon: '/character/character_ganshiren_minion.png', ability: '與你鄰近的兩名鎮民玩家會在其首次死亡時被當作仍然存活。[-1外來者]', reminders: ['活屍'], setup: true },
+  'goblin': { id: 'goblin', name: '哥布林', alignment: 'evil', type: 'minion', icon: '/character/character_goblin_minion.png', ability: '如果你在被提名後公開聲明自己是哥布林且在那個白天被處決，你的陣營獲勝。', reminders: ['已宣稱'] },
+  'jinweijun': { id: 'jinweijun', name: '禁衛軍', alignment: 'evil', type: 'minion', icon: '/character/character_jinweijun_minion.png', ability: '“瘋狂”地想要死亡的玩家可能會立即被處決。' },
+  'mastermind': { id: 'mastermind', name: '主謀', alignment: 'evil', type: 'minion', icon: '/character/character_mastermind_minion.png', ability: '如果惡魔因為死於處決而因此導致遊戲結束時，再額外進行一個夜晚和一個白天。在那個白天如果有玩家被處決，他的陣營落敗。' },
+  'mengpo': { id: 'mengpo', name: '孟婆', alignment: 'evil', type: 'minion', icon: '/character/character_mengpo_minion.png', ability: '每個夜晚*，你要選擇一名玩家：如果他存活，那麼他要選擇讓自己失去能力，或死亡並保留能力直到下個黃昏。', otherNight: 54, otherNightReminder: '喚醒孟婆，讓孟婆選擇一名玩家。讓被孟婆選擇的玩家做出生或死的選擇。', reminders: ['存活並失去能力', '死亡並保留能力'] },
+  'organ_grinder': { id: 'organ_grinder', name: '街頭風琴手', alignment: 'evil', type: 'minion', icon: '/character/character_organ_grinder_minion.png', ability: '所有玩家在投票時閉眼，且票數會秘密統計。每個夜晚，你要選擇自己是否醉酒，直到你下次選擇。', reminders: ['即將被處決'] },
+  'pit-hag': { id: 'pit-hag', name: '麻臉巫婆', alignment: 'evil', type: 'minion', icon: '/character/character_pit-hag_minion.png', ability: '每個夜晚*，你要選擇一名玩家和一個角色，如果該角色不在場，他變成該角色。如果因此創造了一個惡魔，當晚的死亡由說書人決定。', otherNight: 8, otherNightReminder: '讓麻臉巫婆選擇一名玩家和一個角色。如果她選擇的角色不在場：讓麻臉巫婆重新入睡。喚醒她的目標玩家。對該玩家展示“你是”信息標記和他的新角色標記。' },
+  'psychopath': { id: 'psychopath', name: '精神病患者', alignment: 'evil', type: 'minion', icon: '/character/character_psychopath_minion.png', ability: '每個白天，在提名開始前，你可以公開選擇一名玩家：他死亡。如果你被處決，提名你的玩家需要和你猜拳，只有你輸了你才會死亡。' },
+  'scarlet_woman': { id: 'scarlet_woman', name: '紅唇女郎', alignment: 'evil', type: 'minion', icon: '/character/character_scarlet_woman_minion.png', ability: '如果大於等於五名玩家存活時（旅行者不計算在內）惡魔死亡，你變成那個惡魔。', abilityHTML: '如果大於等於五名玩家<span class="highlight-good">存活時（旅行者不計算在內）</span><span class="highlight-evil">惡魔死亡，你變成那個</span><span class="highlight-evil">惡魔。</span>', flavor: '你是暗影中的繼承者。當王座崩塌，你將披上血色的長袍，成為新的夢魘。', otherNight: 26, otherNightReminder: '如果紅唇女郎今天變成了小惡魔，對她展示“你是”信息標記，和小惡魔角色標記。' },
+  'vizier': { id: 'vizier', name: '維齊爾', alignment: 'evil', type: 'minion', icon: '/character/character_vizier_minion.png', ability: '所有玩家都知道你是維齊爾。你在白天時不會死亡。如果一次提名中有善良玩家投票，你可以讓被提名者立即被處決。', firstNightReminder: '如果維齊爾在場，告知所有人誰是維齊爾。' },
+  'wizard': { id: 'wizard', name: '巫師', alignment: 'evil', type: 'minion', icon: '/character/character_wizard_minion.png', ability: '每局遊戲限一次，你可以向說書人許願。如果願望被實現，可能會伴隨著代價和線索。', reminders: ['？'] },
+  'wraith': { id: 'wraith', name: '亡魂', alignment: 'evil', type: 'minion', icon: '/character/character_wraith_minion.png', ability: '你可以在夜晚睜眼。當其他邪惡玩家被喚醒時，你也會被喚醒。' },
+  'xaan': { id: 'xaan', name: '限', alignment: 'evil', type: 'minion', icon: '/character/character_xaan_minion.png', ability: '在等同於初始外來者數量的夜晚，所有鎮民玩家中毒直到下個黃昏。[外來者數量任意]', otherNight: 7, reminders: ['第一夜', '第二夜', '第三夜', '大限已至'], setup: true },
+  'yangguren': { id: 'yangguren', name: '養蠱人', alignment: 'evil', type: 'minion', icon: '/character/character_yangguren_minion.png', ability: '在你存活時提名你的玩家會在當晚死亡，即使你已死亡。', otherNight: 54, otherNightReminder: '今天白天提名了存活的養蠱人的玩家死亡。', reminders: ['蠱'] },
 };
-
-export const Spy: Role = {
-  flavor: '你潛伏在光明之中，翻閱著魔法書的每一頁。沒有任何秘密能逃過你的雙眼。',
-  id: 'spy',
-  name: '間諜',
-  alignment: 'evil',
-  type: 'minion',
-  icon: '/character/character_spy_minion.png',
-  ability: '每個夜晚，你能查看魔典。你可能會被當作善良陣營、鎮民角色或外來者角色，即使你已死亡。',
-  abilityHTML: '每個夜晚，你能查看魔典。你可能會被當作<span class="highlight-good">善良陣營、</span><span class="highlight-good">鎮民角色或</span><span class="highlight-good">外來者角色，即使你已</span><span class="highlight-evil">死亡。</span>',
-  firstNight: 11700,
-  otherNight: 14400,
-  firstNightReminder: '將魔典展示給間諜，他想看多久就看多久。',
-  otherNightReminder: '將魔典展示給間諜，他想看多久就看多久。'
-};
-
-export const ScarletWoman: Role = {
-  flavor: '你是暗影中的繼承者。當王座崩塌，你將披上血色的長袍，成為新的夢魘。',
-  id: 'scarlet_woman',
-  name: '紅唇女郎',
-  alignment: 'evil',
-  type: 'minion',
-  icon: '/character/character_scarlet_woman_minion.png',
-  ability: '如果大於等於五名玩家存活時（旅行者不計算在內）惡魔死亡，你變成那個惡魔。',
-  abilityHTML: '如果大於等於五名玩家<span class="highlight-good">存活時（旅行者不計算在內）</span><span class="highlight-evil">惡魔死亡，你變成那個</span><span class="highlight-evil">惡魔。</span>',
-  firstNight: 0,
-  otherNight: 3700,
-  firstNightReminder: '',
-  otherNightReminder: '如果紅唇女郎今天變成了小惡魔，對她展示“你是”信息標記，和小惡魔角色標記。'
-};
-
-export const Baron: Role = {
-  flavor: '你的詭計讓鎮上的秩序陷入混亂。更多的外人，意味著更多的猜忌與不安。',
-  id: 'baron',
-  name: '男爵',
-  alignment: 'evil',
-  type: 'minion',
-  icon: '/character/character_baron_minion.png',
-  ability: '會有額外的外來者在場。[+2外來者]',
-  abilityHTML: '會有額外的外來者在場。<span class="highlight-good">[+2外來者]</span>',
-  firstNight: 0,
-  otherNight: 0,
-  firstNightReminder: '',
-  otherNightReminder: ''
-};
-
-

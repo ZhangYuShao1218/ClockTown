@@ -1,46 +1,33 @@
 import type { Role } from '../types';
 
-// ================= Demon (惡魔) =================
-export const Imp: Role = {
-  flavor: '你是黑鍾鎮隱藏的邪惡存在，一段被遺忘的過去。人們是如此稱呼你：小惡魔。',
-  id: 'imp',
-  name: '小惡魔',
-  alignment: 'evil',
-  type: 'demon',
-  icon: '/character/character_imp_demon.png',
-  ability: '每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式自殺，一名爪牙會變成小惡魔。',
-  abilityHTML: '每個夜晚*，你要選擇一名玩家：他<span class="highlight-evil">死亡。如果你以這種方式自殺，一名</span><span class="highlight-evil">爪牙會變成</span><span class="highlight-evil">小惡魔。</span>',
-  firstNight: 0,
-  otherNight: 4900,
-  firstNightReminder: '',
-  otherNightReminder: '讓小惡魔選擇一名玩家。標記那名玩家死亡。如果小惡魔選擇了自己：用一個備用的小惡魔標記替換一個存活的爪牙角色標記。讓原來的小惡魔重新入睡。喚醒新的小惡魔。對他展示“你是”信息標記，和小惡魔角色標記。'
+// ================= 惡魔 (demon) — 29 個 =================
+export const Demons: Record<string, Role> = {
+  'kazali': { id: 'kazali', name: '卡扎力', alignment: 'evil', type: 'demon', icon: '/character/character_kazali_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。[由你決定誰是什麼爪牙，-或+任意數量外來者]', firstNight: 1, otherNight: 24, firstNightReminder: '喚醒卡扎力，讓他選擇玩家變成邪惡爪牙。', otherNightReminder: '喚醒卡扎力，讓他攻擊一名玩家。', reminders: ['死亡'], setup: true },
+  'lord_of_typhon': { id: 'lord_of_typhon', name: '堤豐之首', alignment: 'evil', type: 'demon', icon: '/character/character_lord_of_typhon_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。[邪惡角色全部鄰座，你位於正中，+1爪牙，-或+任意數量外來者]', firstNight: 1.4, otherNight: 38.5, firstNightReminder: '將位於堤豐之首兩側的對應數量的玩家變成邪惡的爪牙，並分別喚醒他們通知他們的角色和陣營變化。', otherNightReminder: '喚醒堤豐之首，讓他攻擊一名玩家。', reminders: ['死亡'], setup: true },
+  'yaggababble': { id: 'yaggababble', name: '牙噶巴卜', alignment: 'evil', type: 'demon', icon: '/character/character_yaggababble_demon.png', ability: '在你的首個夜晚，你會得知一段秘密短語。每次你在白天公開說出這段短語，當天便可能會有一名玩家在這之後死亡。', firstNight: 5, otherNight: 36, firstNightReminder: '喚醒牙噶巴卜，對他展示他的秘密短語。', otherNightReminder: '根據已放置的提示標記數量，選擇最多等同於該數量的玩家死亡。該夜晚行動只是一個提示，死亡的造成時機可以是白天，也可以是夜晚的任何時候。', reminders: ['死亡'] },
+  'lleech': { id: 'lleech', name: '痢蛭', alignment: 'evil', type: 'demon', icon: '/character/character_lleech_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。在你的首個夜晚，你要選擇一名存活的玩家：他中毒，只有當他處於死亡狀態時你才會立即死亡。', firstNight: 16, otherNight: 34, firstNightReminder: '喚醒痢蛭，讓他選擇一名玩家以寄生。', otherNightReminder: '喚醒痢蛭，讓他攻擊一名玩家。', reminders: ['中毒', '死亡'] },
+  'pukka': { id: 'pukka', name: '普卡', alignment: 'evil', type: 'demon', icon: '/character/character_pukka_demon.png', ability: '每個夜晚，你要選擇一名玩家：他中毒。上個因你的能力中毒的玩家會死亡並恢復健康。', firstNight: 28, otherNight: 26, firstNightReminder: '讓普卡選擇一名玩家。標記那名玩家中毒。', otherNightReminder: '讓普卡選擇一名玩家。標記那名玩家中毒。【圓】上一個因普卡中毒的玩家死亡，隨後恢復健康。' },
+  'leviathan': { id: 'leviathan', name: '利維坦', alignment: 'evil', type: 'demon', icon: '/character/character_leviathan_demon.png', ability: '如果多於一名善良玩家被處決，邪惡陣營獲勝。所有玩家都知道利維坦在場。在第五個白天結束時，邪惡陣營獲勝。', firstNight: 54, otherNight: 73, firstNightReminder: '如果利維坦在場，告知所有人利維坦在場，現在是第一個白天。', otherNightReminder: '如果利維坦在場，告知所有人利維坦在場，現在是第幾個白天。（如果玩家一致同意，則無需在已經知曉利維坦在場的前提下在其他夜晚執行此項操作。）', reminders: ['第一天', '第二天', '第三天', '第四天', '第五天', '善良被處決'] },
+  'taowu': { id: 'taowu', name: '檮杌', alignment: 'evil', type: 'demon', icon: '/character/character_taowu_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。當你將要死亡時，改為一名存活且具有能力的爪牙失去能力。你不會得知惡魔資訊。', firstNight: 2005, otherNight: 50, firstNightReminder: '如果檮杌在場，跳過他的惡魔資訊環節。', otherNightReminder: '喚醒檮杌，讓他攻擊一名玩家。', reminders: ['死亡', '失去能力'] },
+  'lil_monsta': { id: 'lil_monsta', name: '小怪寶', alignment: 'evil', type: 'demon', icon: '/character/character_lil_monsta_demon.png', ability: '每個夜晚，所有爪牙要秘密決定由哪名玩家來照看小怪寶並且“是惡魔”。每個夜晚*，可能會有一名玩家死亡。[+1爪牙]', firstNight: 3016, otherNight: 44, firstNightReminder: '喚醒所有爪牙選擇由誰照看小怪寶。', otherNightReminder: '喚醒所有爪牙選擇由誰照看小怪寶。隨後，決定今晚誰會因為小怪寶能力死亡。', setup: true },
+  'dianyuzhang': { id: 'dianyuzhang', name: '典獄長', alignment: 'evil', type: 'demon', icon: '/character/character_dianyuzhang_demon.png', ability: '每個夜晚，你要選擇至多三名玩家：如果明天白天他們之一死於處決，上次被你選擇的其他玩家會在當晚死亡。否則，當晚他們之中會有一名玩家死亡。', firstNight: 3031, otherNight: 50, firstNightReminder: '喚醒典獄長，讓他選擇至多三名玩家。', otherNightReminder: '喚醒典獄長，讓他選擇至多三名玩家。如果上個夜晚選擇的玩家之中有人死於處決，上個夜晚選擇的其餘玩家均死亡，否則其中之一死亡。', reminders: ['囚禁', '死亡'] },
+  'yanluo': { id: 'yanluo', name: '閻羅', alignment: 'evil', type: 'demon', icon: '/character/character_yanluo_demon.png', ability: '在你的首個夜晚，你能查看魔典並選擇一名玩家：他在第三個夜晚死亡，即使因為任何原因讓他不會死亡。每個夜晚，你要選擇一名玩家：上個夜晚被你選擇的玩家死亡。', firstNight: 3058.1, otherNight: 50.5, firstNightReminder: '喚醒閻羅，讓他查看魔典。讓閻羅選擇一名玩家，將“三更將死”標記放置該玩家角色標記旁。之後再讓閻羅選擇一名玩家，將“即將死亡”標記放置該玩家角色標記旁。', otherNightReminder: '喚醒閻羅，讓他選擇一名玩家，將“即將死亡”標記放置該玩家角色標記旁，並將上一個夜晚的“即將死亡”標記替換為“死亡”標記。如果這是遊戲的第三個夜晚，將“三更將死”標記的玩家判死，即使因為任何原因讓他不會死亡。', reminders: ['三更將死', '即將死亡', '死亡'] },
+  'al-hadikhia': { id: 'al-hadikhia', name: '哈迪寂亞', alignment: 'evil', type: 'demon', icon: '/character/character_al-hadikhia_demon.png', ability: '每個夜晚*，你要選擇三名玩家（所有玩家都會得知你選了誰）：他們分別秘密決定自己的生死，然後如果他們都存活則都死亡。', otherNight: 42, otherNightReminder: '哈迪寂亞選擇三名玩家。對所有人宣告第一位玩家，然後喚醒他並讓他秘密選擇活著還是死去。依次對第二第三位玩家如此做。如果三名玩家都選擇活著，他們都死去。' },
+  'baojun': { id: 'baojun', name: '暴君', alignment: 'evil', type: 'demon', icon: '/character/character_baojun_demon.png', ability: '每個夜晚*，你可以選擇至多兩名玩家：他們死亡。你選擇的玩家數量不能與上個夜晚死亡的玩家數量相同（超過二人時算作二人）。', otherNight: 50, otherNightReminder: '喚醒暴君，讓他攻擊至多兩名玩家。但是暴君選擇的玩家數量不能與上個夜晚死亡的玩家數量相同。', reminders: ['死亡'] },
+  'fang_gu': { id: 'fang_gu', name: '方古', alignment: 'evil', type: 'demon', icon: '/character/character_fang_gu_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。被該能力殺死的外來者變成邪惡的方古且你代替他死亡，但每局遊戲僅能成功轉化一次。[+1外來者]', otherNight: 36, otherNightReminder: '喚醒方古，讓他攻擊一名玩家。如果該玩家是外來者併成功轉化，則方古死亡，在他入睡後通知那名外來者角色變化。', reminders: ['死亡', '限一次'], setup: true },
+  'guhuoniao': { id: 'guhuoniao', name: '姑獲鳥', alignment: 'evil', type: 'demon', icon: '/character/character_guhuoniao_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。你可能會擁有上一個死於處決的爪牙的能力。', otherNight: 50, otherNightReminder: '喚醒姑獲鳥，讓他攻擊一名玩家。', reminders: ['死亡', '獲得能力'] },
+  'hundun': { id: 'hundun', name: '混沌', alignment: 'evil', type: 'demon', icon: '/character/character_hundun_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式殺死了一名與你鄰近的鎮民玩家，除旅行者外的所有善良玩家會中毒直到下個黃昏。', otherNight: 47, firstNightReminder: '0', otherNightReminder: '喚醒混沌，讓他攻擊一名玩家。如果他殺死了自己鄰近的鎮民，所有善良玩家中毒。', reminders: ['死亡', '善良中毒'] },
+  'imp': { id: 'imp', name: '小惡魔', alignment: 'evil', type: 'demon', icon: '/character/character_imp_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式自殺，一名爪牙會變成小惡魔。', abilityHTML: '每個夜晚*，你要選擇一名玩家：他<span class="highlight-evil">死亡。如果你以這種方式自殺，一名</span><span class="highlight-evil">爪牙會變成</span><span class="highlight-evil">小惡魔。</span>', flavor: '你是黑鍾鎮隱藏的邪惡存在，一段被遺忘的過去。人們是如此稱呼你：小惡魔。', otherNight: 24, otherNightReminder: '讓小惡魔選擇一名玩家。標記那名玩家死亡。如果小惡魔選擇了自己：用一個備用的小惡魔標記替換一個存活的爪牙角色標記。讓原來的小惡魔重新入睡。喚醒新的小惡魔。對他展示“你是”信息標記，和小惡魔角色標記。' },
+  'jianning': { id: 'jianning', name: '奸佞', alignment: 'evil', type: 'demon', icon: '/character/character_jianning_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。如果你今天白天沒有投票，今晚你可以行動兩次。', otherNight: 50, otherNightReminder: '喚醒奸佞，讓他攻擊一名玩家。如果他白天沒投票，可以攻擊兩次。', reminders: ['死亡', '行動兩次'] },
+  'legion': { id: 'legion', name: '軍團', alignment: 'evil', type: 'demon', icon: '/character/character_legion_demon.png', ability: '每個夜晚*，可能有一名玩家死亡。如果一項提名只有邪惡玩家投票，投票無效。你也會被當作是爪牙。[多數玩家為軍團]', otherNight: 23, otherNightReminder: '決定今晚誰會因為軍團能力死亡。', reminders: ['即將被處決', '死亡'], setup: true },
+  'no_dashii': { id: 'no_dashii', name: '諾-達鯴', alignment: 'evil', type: 'demon', icon: '/character/character_no_dashii_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。與你鄰近的兩名鎮民中毒。', otherNight: 37, otherNightReminder: '喚醒諾-達鯴，讓他攻擊一名玩家。', reminders: ['死亡', '中毒'] },
+  'ojo': { id: 'ojo', name: '奧赫', alignment: 'evil', type: 'demon', icon: '/character/character_ojo_demon.png', ability: '每個夜晚*，你要選擇一個角色：他死亡。如果該角色不在場，則由說書人來決定誰會被你殺死。', otherNight: 24, otherNightReminder: '喚醒奧赫，讓他選擇角色列表上的一個角色。該角色對應的玩家死亡，如果該角色不在場，替奧赫決定今晚誰會因為奧赫能力死亡。', reminders: ['死亡'] },
+  'po': { id: 'po', name: '珀', alignment: 'evil', type: 'demon', icon: '/character/character_po_demon.png', ability: '每個夜晚*，你可以選擇一名玩家：他死亡。如果你上次選擇時沒有選擇任何玩家，當晚你要選擇三名玩家：他們死亡。', otherNight: 28, otherNightReminder: '珀可以選擇一名玩家；或如果上一次他被喚醒時未做選擇，讓他選擇三名玩家。標記這些玩家死亡。' },
+  'qiongqi': { id: 'qiongqi', name: '窮奇', alignment: 'evil', type: 'demon', icon: '/character/character_qiongqi_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。如果今天白天有外來者死亡，當晚改為你要選擇一名玩家：他死亡，但被當作仍然存活，隨後會有一名其他玩家死亡。[+1外來者]', otherNight: 48, firstNightReminder: '0', otherNightReminder: '喚醒窮奇，讓他攻擊一名玩家。如果今天白天有外來者死亡，他攻擊並殺死的玩家成為活屍，隨後決定今晚誰會因為窮奇能力死亡。', reminders: ['死於今日', '死亡', '活屍'], setup: true },
+  'riot': { id: 'riot', name: '暴亂', alignment: 'evil', type: 'demon', icon: '/character/character_riot_demon.png', ability: '在第三個白天，所有爪牙會變成暴亂，當天被提名的玩家會立即死亡且必須再次提名一名存活的玩家。', setup: true },
+  'shabaloth': { id: 'shabaloth', name: '沙巴洛斯', alignment: 'evil', type: 'demon', icon: '/character/character_shabaloth_demon.png', ability: '每個夜晚*，你要選擇兩名玩家：他們死亡。你的上個夜晚選擇過的且當前死亡的玩家可能會被你反芻。', otherNight: 27, otherNightReminder: '上一夜被沙巴洛斯選擇且當前已死亡的玩家之一可能被反芻，如果被反芻，標記那名玩家被複活。讓沙巴洛斯選擇兩名玩家。標記這兩名玩家死亡。' },
+  'taotie': { id: 'taotie', name: '饕餮', alignment: 'evil', type: 'demon', icon: '/character/character_taotie_demon.png', ability: '每個夜晚*，你要選擇任意數量的非旅行者玩家或一名旅行者玩家：如果他們的角色類型均不相同，他們死亡。[+1外來者]', otherNight: 49, firstNightReminder: '0', otherNightReminder: '喚醒饕餮，讓他選擇任意數量的非旅行者玩家或一名旅行者玩家。如果這些玩家角色類型不同，他們死亡。', reminders: ['死亡'], setup: true },
+  'vigormortis': { id: 'vigormortis', name: '亡骨魔', alignment: 'evil', type: 'demon', icon: '/character/character_vigormortis_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。被你殺死的爪牙保留他的能力，且與他鄰近的兩名鎮民之一中毒。[-1外來者]', otherNight: 32, otherNightReminder: '讓亡骨魔選擇一名玩家。標記那名玩家死亡。如果該玩家是爪牙，標記該玩家保留能力，並標記與該玩家鄰近的鎮民玩家之一中毒。' },
+  'vortox': { id: 'vortox', name: '渦流', alignment: 'evil', type: 'demon', icon: '/character/character_vortox_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。鎮民玩家的能力都會產生錯誤資訊。如果白天沒人被處決，邪惡陣營獲勝。', otherNight: 31, otherNightReminder: '喚醒渦流，讓他攻擊一名玩家。', reminders: ['死亡'] },
+  'zombuul': { id: 'zombuul', name: '僵怖', alignment: 'evil', type: 'demon', icon: '/character/character_zombuul_demon.png', ability: '每個夜晚*，如果今天白天沒有人死亡，你會被喚醒並要選擇一名玩家：他死亡。當你首次死亡後，你仍存活，但會被當作死亡。', otherNight: 25, otherNightReminder: '如果今天白天沒有人死亡，讓僵怖選擇一名玩家。標記那名玩家死亡。' },
 };
-
-export const Sentinel: Role = {
-  flavor: '你守護著這座城鎮的邊緣。外來者的數量在你眼中，不再是個謎團。',
-  id: 'sentinel',
-  name: '哨兵',
-  alignment: 'good',
-  type: 'fabled',
-  icon: '/character/character_sentinel_fabled.png',
-  ability: '外來者數量可能 +1 或 -1',
-  firstNight: 0,
-  otherNight: 0,
-  firstNightReminder: '',
-  otherNightReminder: ''
-};
-
-export const Angel: Role = {
-  flavor: '你的羽翼帶來了恩典。新手將在你的庇護下，免受第一夜的殘酷侵擾。',
-  id: 'angel',
-  name: '天使',
-  alignment: 'good',
-  type: 'fabled',
-  icon: '/character/character_angel_fabled.png',
-  ability: '對新玩家的死亡負最大責任的人，可能會遭遇一些不好的事情。',
-  firstNight: 2,
-  otherNight: 0,
-  firstNightReminder: '',
-  otherNightReminder: ''
-};
-

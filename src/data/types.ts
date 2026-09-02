@@ -1,5 +1,5 @@
-export type Alignment = 'good' | 'evil';
-export type RoleType = 'townsfolk' | 'outsider' | 'minion' | 'demon' | 'traveler' | 'fabled';
+export type Alignment = 'good' | 'evil' | 'neutral';
+export type RoleType = 'townsfolk' | 'outsider' | 'minion' | 'demon' | 'traveler' | 'fabled' | 'loric';
 
 export interface Role {
   id: string;
@@ -18,6 +18,10 @@ export interface Role {
   otherNight?: number;
   firstNightReminder?: string;
   otherNightReminder?: string;
+  /** 說書人提醒標記（token） */
+  reminders?: string[];
+  /** 是否影響開局配置 */
+  setup?: boolean;
 }
 
 export interface Script {

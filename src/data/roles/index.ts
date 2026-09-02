@@ -1,36 +1,23 @@
 import type { Role } from '../types';
-import * as townsfolk from './townsfolk';
-import * as outsiders from './outsiders';
-import * as minions from './minions';
-import * as demons from './demons';
-import * as travelers from './travelers';
-import { NewRoles } from './new_roles';
+import { Townsfolk } from './townsfolk';
+import { Outsiders } from './outsiders';
+import { Minions } from './minions';
+import { Demons } from './demons';
+import { Travelers } from './travelers';
+import { Fabled } from './fabled';
+import { Loric } from './loric';
 
+/**
+ * 全部角色。每個 type 一個檔案，夜晚順序權重統一採用全域整數。
+ */
 export const AllRoles: Record<string, Role> = {
-  washerwoman: townsfolk.Washerwoman,
-  librarian: townsfolk.Librarian,
-  investigator: townsfolk.Investigator,
-  chef: townsfolk.Chef,
-  empath: townsfolk.Empath,
-  fortune_teller: townsfolk.FortuneTeller,
-  undertaker: townsfolk.Undertaker,
-  monk: townsfolk.Monk,
-  ravenkeeper: townsfolk.Ravenkeeper,
-  virgin: townsfolk.Virgin,
-  slayer: townsfolk.Slayer,
-  soldier: townsfolk.Soldier,
-  mayor: townsfolk.Mayor,
-  butler: outsiders.Butler,
-  drunk: outsiders.Drunk,
-  recluse: outsiders.Recluse,
-  saint: outsiders.Saint,
-  poisoner: minions.Poisoner,
-  spy: minions.Spy,
-  scarlet_woman: minions.ScarletWoman,
-  baron: minions.Baron,
-  imp: demons.Imp,
-  scapegoat: travelers.Scapegoat,
-  sentinel: demons.Sentinel,
-  angel: demons.Angel,
-  ...NewRoles
+  ...Townsfolk,
+  ...Outsiders,
+  ...Minions,
+  ...Demons,
+  ...Travelers,
+  ...Fabled,
+  ...Loric,
 };
+
+export { Townsfolk, Outsiders, Minions, Demons, Travelers, Fabled, Loric };

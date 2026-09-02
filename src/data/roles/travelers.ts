@@ -1,16 +1,24 @@
 import type { Role } from '../types';
 
-// ================= Travelers (旅行者) =================
-export const Scapegoat: Role = {
-  id: 'scapegoat',
-  name: '替罪羊',
-  alignment: 'good',
-  type: 'traveler',
-  ability: '如果與你同陣營的玩家被處決，你可能會代替他被處決。',
-  flavor: '沒事的，就怪在我頭上吧。這又不是第一次了。',
-  icon: '/character/character_scapegoat_traveler.png',
-  firstNight: 0,
-  otherNight: 0,
-  firstNightReminder: '',
-  otherNightReminder: ''
+// ================= 旅行者 (traveler) — 19 個 =================
+export const Travelers: Record<string, Role> = {
+  'apprentice': { id: 'apprentice', name: '學徒', alignment: 'neutral', type: 'traveler', icon: '/character/character_apprentice_traveler.png', ability: '在你的首個夜晚，如果你是善良的，你會獲得一個鎮民角色的能力；如果你是邪惡的，你會獲得一個爪牙角色的能力。', firstNight: 1, firstNightReminder: '對學徒展示一個鎮民或爪牙標記。在魔典中，用那個角色標記代替學徒標記，並在一旁標識該玩家是學徒。' },
+  'barista': { id: 'barista', name: '咖啡師', alignment: 'neutral', type: 'traveler', icon: '/character/character_barista_traveler.png', ability: '每個夜晚，直至下個黃昏，由說書人二選一：1）一名玩家解除並免受醉酒和中毒影響，且會得知正確資訊；2）一名玩家的能力可以生效兩次。該玩家會得知是哪個效果。', firstNight: 1, otherNight: 1, firstNightReminder: '每個夜晚，移除先前的標記並在任一角色標記旁放置咖啡師的“清醒且健康”標記或“行動兩次”提示。喚醒那個角色的玩家並向他展示“該角色的能力對你生效”資訊標記，咖啡師標記和一根手指（代表他現在清醒且健康）或兩根手指（代表他要行動兩次）。讓這名玩家入睡。', otherNightReminder: '每個夜晚，移除先前的標記並在任一角色標記旁放置咖啡師的“清醒且健康”標記或“行動兩次”提示。喚醒那個角色的玩家並向他展示“該角色的能力對你生效”資訊標記，咖啡師標記和一根手指（代表他現在清醒且健康）或兩根手指（代表他要行動兩次）。讓這名玩家入睡。', reminders: ['清醒且健康', '行動兩次', '？'] },
+  'bureaucrat': { id: 'bureaucrat', name: '官員', alignment: 'neutral', type: 'traveler', icon: '/character/character_bureaucrat_traveler.png', ability: '每個夜晚，你要選擇除你以外的一名玩家：明天白天，他的投票算作三票。', firstNight: 1, otherNight: 1, firstNightReminder: '喚醒官員。讓官員指向任意一名玩家。用官員的“3票”提示標記那名被選中的玩家。讓官員入睡。', otherNightReminder: '喚醒官員。讓官員指向任意一名玩家。用官員的“3票”提示標記那名被選中的玩家。讓官員入睡。', reminders: ['3票'] },
+  'jiaohuazi': { id: 'jiaohuazi', name: '叫花子', alignment: 'neutral', type: 'traveler', icon: '/character/character_jiaohuazi_traveler.png', ability: '每個白天限一次，你可以公開選擇一名其他玩家，讓他選擇一個非惡魔角色：你可能會獲得這個角色的能力，直到下個黎明。', firstNight: 1, otherNight: 1, firstNightReminder: '如果你決定不讓叫花子獲得這個角色的能力，無事發生。如果你決定讓叫花子獲得這個角色的能力，那麼讓他行動。如果該角色已在場，你可以自由決定是先喚醒原角色對應的玩家還是先喚醒叫花子玩家來進行行動。', otherNightReminder: '如果你決定不讓叫花子獲得這個角色的能力，無事發生。如果你決定讓叫花子獲得這個角色的能力，那麼讓他行動。如果該角色已在場，你可以自由決定是先喚醒原角色對應的玩家還是先喚醒叫花子玩家來進行行動。', reminders: ['乞討', '是叫花子'] },
+  'thief': { id: 'thief', name: '竊賊', alignment: 'neutral', type: 'traveler', icon: '/character/character_thief_traveler.png', ability: '每個夜晚，你要選擇除你以外的一名玩家：明天白天他的投票會被算作負數。', firstNight: 1, otherNight: 1, firstNightReminder: '喚醒竊賊。讓竊賊指向任意一名玩家。用竊賊的“負票”提示標記那名被選中的玩家。讓竊賊入睡。', otherNightReminder: '喚醒竊賊。讓竊賊指向任意一名玩家。用竊賊的“負票”提示標記那名被選中的玩家。讓竊賊入睡。', reminders: ['負票'] },
+  'beggar': { id: 'beggar', name: '乞丐', alignment: 'neutral', type: 'traveler', icon: '/character/character_beggar_traveler.png', ability: '你只能使用投票標記才能投票。死亡的玩家可以將他的投票標記給你，如果他這麼做，你會得知他的陣營。你不會中毒和醉酒。' },
+  'bishop': { id: 'bishop', name: '主教', alignment: 'neutral', type: 'traveler', icon: '/character/character_bishop_traveler.png', ability: '只有說書人可以發起提名。每個白天說書人至少要提名一名你對立陣營的玩家。' },
+  'bone_collector': { id: 'bone_collector', name: '集骨者', alignment: 'neutral', type: 'traveler', icon: '/character/character_bone_collector_traveler.png', ability: '每局遊戲限一次，在夜晚時*，你可以選擇一名死亡的玩家：他重新獲得能力直到下個黃昏。', otherNight: 1, otherNightReminder: '每個夜晚，喚醒集骨者。集骨者要麼搖頭表示不使用能力，或者是指向任何一名已死亡的玩家。讓集骨者重新入睡。', reminders: ['重獲能力', '失去能力'] },
+  'butcher': { id: 'butcher', name: '屠夫', alignment: 'neutral', type: 'traveler', icon: '/character/character_butcher_traveler.png', ability: '每個白天，首次處決後，你可以再次發起提名。' },
+  'cacklejack': { id: 'cacklejack', name: '笑匠', alignment: 'neutral', type: 'traveler', icon: '/character/character_cacklejack_traveler.png', ability: '每天晚上選擇一名玩家，今晚一名除了他以外的其他玩家將更換角色。', otherNightReminder: '在今晚，將你今天選的玩家之外的任意玩家的角色標記替換為其他角色標記。喚醒該玩家，展示給他們“你是”卡片以及他們的新角色標記。', reminders: ['不是我'] },
+  'deviant': { id: 'deviant', name: '怪咖', alignment: 'neutral', type: 'traveler', icon: '/character/character_deviant_traveler.png', ability: '如果你表現得很有趣，當天你不能被流放。' },
+  'gangster': { id: 'gangster', name: '黑幫', alignment: 'neutral', type: 'traveler', icon: '/character/character_gangster_traveler.png', ability: '每個白天限一次，你可以殺死與你鄰近的兩名存活的玩家中的一名，但需要另一邊那個存活的玩家同意。' },
+  'gnome': { id: 'gnome', name: '侏儒', alignment: 'neutral', type: 'traveler', icon: '/character/character_gnome_traveler.png', ability: '當你加入遊戲時，所有玩家會得知一名與你陣營相同的玩家。每當他被提名時，你可以殺死提名者。', reminders: ['同伴'] },
+  'gunslinger': { id: 'gunslinger', name: '槍手', alignment: 'neutral', type: 'traveler', icon: '/character/character_gunslinger_traveler.png', ability: '每個白天，當首次投票被統計後，你可以選擇一名剛投過票的玩家：他死亡。' },
+  'harlot': { id: 'harlot', name: '流鶯', alignment: 'neutral', type: 'traveler', icon: '/character/character_harlot_traveler.png', ability: '每個夜晚*，你要選擇一名存活的玩家：如果他同意，你會得知他的角色，但是你們兩個可能同時死亡。', otherNight: 1, otherNightReminder: '喚醒流鶯。讓流鶯指向任意一名玩家。讓流鶯重新入睡。喚醒被選中的玩家，對該玩家展示“該角色的能力對你生效”提示標記和流鶯角色標記。該玩家需要通過點頭表示是，搖頭表示否。然後讓該玩家重新入睡。', reminders: ['死亡'] },
+  'judge': { id: 'judge', name: '法官', alignment: 'neutral', type: 'traveler', icon: '/character/character_judge_traveler.png', ability: '每局遊戲限一次，如果其他玩家發起了提名，你可以選擇讓本次提名直接執行處決或讓投票無效。' },
+  'matron': { id: 'matron', name: '女舍監', alignment: 'neutral', type: 'traveler', icon: '/character/character_matron_traveler.png', ability: '每個白天，你可以選擇至多三對玩家交換座位。玩家不能離開座位私聊。' },
+  'scapegoat': { id: 'scapegoat', name: '替罪羊', alignment: 'neutral', type: 'traveler', icon: '/character/character_scapegoat_traveler.png', ability: '如果與你同陣營的玩家被處決，你可能會代替他被處決。', flavor: '沒事的，就怪在我頭上吧。這又不是第一次了。' },
+  'voudon': { id: 'voudon', name: '巫毒師', alignment: 'neutral', type: 'traveler', icon: '/character/character_voudon_traveler.png', ability: '只有你和死亡的玩家可以投票，且投票不需要使用投票標記。忽略票數需要過半的要求。' },
 };
