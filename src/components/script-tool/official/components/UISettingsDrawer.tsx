@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
@@ -53,12 +53,90 @@ interface SettingCategory {
 
 interface UISettingsContentProps {
   onOpenTowerImageDialog?: () => void;
+  /** all = 完整；settingsNoLayout = 不含頁面版面與字型；layoutOnly = 只有頁面版面（無手風琴、常駐展開） */
+  sections?: 'all' | 'settingsNoLayout' | 'layoutOnly';
 }
 
-export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISettingsContentProps) => {
+/** 頁面版面設定（雙頁模式、說書人夜間順序表、相剋圖示位置、標題高度、夜間順序頂距） */
+// 版面分頁字級：標題 +2pt、說明 +2pt
+const LAYOUT_LABEL_SX = { fontSize: '1.05rem', fontWeight: 500 } as const;
+const LAYOUT_DESC_SX = { display: 'block', mt: 0.5, fontSize: '0.92rem' } as const;
+
+export const PageLayoutSettings = observer(() => {
+  const { t } = useTranslation();
+
+  // 這些設定已固定，不再提供調整；為既有使用者強制回正
+  useEffect(() => {
+    if (uiConfigStore.config.characterCard.iconOnlyJinxPosition !== 'next-to-name') {
+      uiConfigStore.updateCharacterCardConfig({ iconOnlyJinxPosition: 'next-to-name' });
+    }
+    if (!uiConfigStore.config.nightOrderTopSpacingAuto) {
+      uiConfigStore.updateConfig({ nightOrderTopSpacingAuto: true });
+    }
+  }, []);
+
+  return (
+    <Stack spacing={2.5}>
+      {/* 雙頁面模式 */}
+      <FormControl component="fieldset" fullWidth>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <FormLabel component="legend" sx={LAYOUT_LABEL_SX}>{t('ui.enableTwoPageMode')}</FormLabel>
+            <Typography variant="caption" color="text.secondary" sx={LAYOUT_DESC_SX}>
+              {t('ui.twoPageModeDesc')}
+            </Typography>
+          </Box>
+          <Switch
+            checked={uiConfigStore.config.enableTwoPageMode}
+            onChange={(e) => uiConfigStore.updateConfig({ enableTwoPageMode: e.target.checked })}
+          />
+        </Box>
+      </FormControl>
+
+      <FormControl component="fieldset" fullWidth>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <FormLabel component="legend" sx={LAYOUT_LABEL_SX}>{t('ui.enableStorytellerNightOrderSheet')}</FormLabel>
+            <Typography variant="caption" color="text.secondary" sx={LAYOUT_DESC_SX}>
+              {t('ui.enableStorytellerNightOrderSheetDesc')}
+            </Typography>
+          </Box>
+          <Switch
+            checked={uiConfigStore.config.enableStorytellerNightOrderSheet}
+            onChange={(e) => uiConfigStore.updateConfig({ enableStorytellerNightOrderSheet: e.target.checked })}
+          />
+        </Box>
+      </FormControl>
+
+      {/* 標題區域高度 */}
+      <Box>
+        <FormLabel component="legend" sx={{ ...LAYOUT_LABEL_SX, display: 'block', mb: 0.5 }}>
+          {t('ui.titleHeight')}: {uiConfigStore.config.titleHeightMd}px
+        </FormLabel>
+        <Slider
+          value={uiConfigStore.config.titleHeightMd}
+          onChange={(_, value) => uiConfigStore.updateConfig({ titleHeightMd: value as number })}
+          min={30}
+          max={250}
+          valueLabelDisplay="auto"
+        />
+      </Box>
+    </Stack>
+  );
+});
+
+export const UISettingsContent = observer(({ onOpenTowerImageDialog, sections = 'all' }: UISettingsContentProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [fontUploaderOpen, setFontUploaderOpen] = useState(false);
+
+  if (sections === 'layoutOnly') {
+    return (
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 2 }}>
+        <PageLayoutSettings />
+      </Box>
+    );
+  }
 
   // 定义配置分类及其关键词（中英文）
   const categories: SettingCategory[] = [
@@ -512,8 +590,8 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISetting
             </Accordion>
             )}
 
-            {/* 1. 页面布局 */}
-            {filteredCategories.find(c => c.id === 'pageLayout')?.show && (
+            {/* 1. 頁面版面 */}
+            {sections === 'all' && filteredCategories.find(c => c.id === 'pageLayout')?.show && (
             <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
@@ -521,108 +599,7 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISetting
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={2}>
-                  {/* 双页面模式 */}
-                  <FormControl component="fieldset" fullWidth>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Box>
-                        <FormLabel component="legend">
-                          {t('ui.enableTwoPageMode')}
-                        </FormLabel>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          {t('ui.twoPageModeDesc')}
-                        </Typography>
-                      </Box>
-                      <Switch
-                        checked={uiConfigStore.config.enableTwoPageMode}
-                        onChange={(e) => uiConfigStore.updateConfig({ enableTwoPageMode: e.target.checked })}
-                      />
-                    </Box>
-                  </FormControl>
-
-                  <FormControl component="fieldset" fullWidth>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Box>
-                        <FormLabel component="legend">
-                          {t('ui.enableStorytellerNightOrderSheet')}
-                        </FormLabel>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          {t('ui.enableStorytellerNightOrderSheetDesc')}
-                        </Typography>
-                      </Box>
-                      <Switch
-                        checked={uiConfigStore.config.enableStorytellerNightOrderSheet}
-                        onChange={(e) => uiConfigStore.updateConfig({ enableStorytellerNightOrderSheet: e.target.checked })}
-                      />
-                    </Box>
-                  </FormControl>
-
-                  {/* 隐藏方相克图标位置 */}
-                  <FormControl component="fieldset" fullWidth>
-                    <FormLabel component="legend">
-                      <Typography variant="caption" sx={{ fontWeight: 'medium' }}>
-                        {t('ui.jinxIconPosition')}
-                      </Typography>
-                    </FormLabel>
-                    <RadioGroup
-                      row
-                      value={uiConfigStore.config.characterCard.iconOnlyJinxPosition}
-                      onChange={(e) => uiConfigStore.updateCharacterCardConfig({ iconOnlyJinxPosition: e.target.value as 'below-description' | 'next-to-name' })}
-                    >
-                      <FormControlLabel value="next-to-name" control={<Radio size="small" />} label={t('ui.jinxIconPositionNextToName')} />
-                      <FormControlLabel value="below-description" control={<Radio size="small" />} label={t('ui.jinxIconPositionBelowDesc')} />
-                    </RadioGroup>
-                  </FormControl>
-
-                  {/* 标题区域高度 */}
-                  <Box>
-                    <Typography variant="caption" gutterBottom>
-                      {t('ui.titleHeight')}: {uiConfigStore.config.titleHeightMd}px
-                    </Typography>
-                    <Slider
-                      value={uiConfigStore.config.titleHeightMd}
-                      onChange={(_, value) => uiConfigStore.updateConfig({ titleHeightMd: value as number })}
-                      min={30}
-                      max={250}
-                      valueLabelDisplay="auto"
-                    />
-                  </Box>
-
-                  {/* Night Order top spacing */}
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption">
-                        {t('ui.nightOrderTopSpacing')}
-                      </Typography>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            size="small"
-                            checked={uiConfigStore.config.nightOrderTopSpacingAuto}
-                            onChange={(e) => uiConfigStore.updateConfig({ nightOrderTopSpacingAuto: e.target.checked })}
-                          />
-                        }
-                        label={<Typography variant="caption">{t('ui.nightOrderTopSpacingAuto')}</Typography>}
-                      />
-                    </Box>
-                    {!uiConfigStore.config.nightOrderTopSpacingAuto && (
-                      <Box>
-                        <Typography variant="caption" gutterBottom>
-                          {uiConfigStore.config.nightOrderTopSpacing}vh
-                        </Typography>
-                        <Slider
-                          value={uiConfigStore.config.nightOrderTopSpacing}
-                          onChange={(_, value) => uiConfigStore.updateConfig({ nightOrderTopSpacing: value as number })}
-                          min={0}
-                          max={100}
-                          step={1}
-                          valueLabelDisplay="auto"
-                        />
-                      </Box>
-                    )}
-                  </Box>
-
-                </Stack>
+                <PageLayoutSettings />
               </AccordionDetails>
             </Accordion>
             )}
@@ -718,7 +695,7 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISetting
 
             {/* 3. 图标大小配置 */}
 
-            {filteredCategories.find(c => c.id === 'storytellerNightSheet')?.show && (
+            {uiConfigStore.config.enableStorytellerNightOrderSheet && filteredCategories.find(c => c.id === 'storytellerNightSheet')?.show && (
             <Accordion defaultExpanded={!!searchQuery}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
@@ -874,7 +851,7 @@ export const UISettingsContent = observer(({ onOpenTowerImageDialog }: UISetting
             )}
 
             {/* 4. 字体设置 */}
-            {filteredCategories.find(c => c.id === 'fontSettings')?.show && (
+            {sections === 'all' && filteredCategories.find(c => c.id === 'fontSettings')?.show && (
             <Accordion defaultExpanded={false}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>

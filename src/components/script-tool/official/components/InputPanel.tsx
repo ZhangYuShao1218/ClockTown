@@ -13,7 +13,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Menu,
+  MenuItem,
 } from '@mui/material';
+import { AllScripts } from '../../../../data/scripts';
 import { Cloud } from 'lucide-react';
 import SettingsIcon from '@mui/icons-material/Settings';
 import InfoIcon from '@mui/icons-material/Info';
@@ -77,6 +80,30 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
   const [isResizing, setIsResizing] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false); // 拖拽状态
+  const [repoAnchor, setRepoAnchor] = useState<null | HTMLElement>(null); // 專案劇本倉庫選單
+
+  // 將本專案的 Script 轉為劇本工具可解析的 JSON 並匯入
+  const importProjectScript = (scriptId: string) => {
+    const src = AllScripts[scriptId];
+    if (!src) return;
+    const json = JSON.stringify([
+      { id: '_meta', name: src.name, author: src.author || '' },
+      ...src.roles.map((r) => ({
+        id: r.id,
+        name: r.name,
+        ability: r.ability,
+        team: r.type,
+        image: r.icon || r.image || '',
+        firstNight: r.firstNight ?? 0,
+        otherNight: r.otherNight ?? 0,
+        ...(r.firstNightReminder ? { firstNightReminder: r.firstNightReminder } : {}),
+        ...(r.otherNightReminder ? { otherNightReminder: r.otherNightReminder } : {}),
+      })),
+    ], null, 2);
+    onJsonChange?.(json);
+    onGenerate(json);
+    setRepoAnchor(null);
+  };
 
   // 文件同步相关状态
   const [fileSyncEnabled, setFileSyncEnabled] = useState(false);
@@ -521,10 +548,14 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
       onDrop={handleDrop}
       sx={{
         p: { xs: 2, sm: 3, md: 4 },
-        mb: 3,
+        mb: 0,
+        fontFamily: 'sans-serif',
+        '& *': { fontFamily: 'sans-serif !important' },
         backgroundColor: isDragging ? '#f5f5f5' : '#fefefe',
-        borderRadius: 2,
-        border: isDragging ? '3px dashed #9e9e9e' : '3px solid transparent',
+        borderRadius: '16px 16px 0 0',
+        border: isDragging ? '3px dashed #9e9e9e' : '1.5px solid #cbd5e1',
+        borderBottom: 'none',
+        boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.18)',
         transition: 'all 0.3s',
         position: 'relative',
         '@media print': {
@@ -628,7 +659,7 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
           <Button
             variant="outlined"
             startIcon={<LibraryBooks />}
-            onClick={() => navigate('/repo')}
+            onClick={(e) => setRepoAnchor(e.currentTarget)}
             sx={{
               width: { xs: '100%', sm: 'auto' },
               boxSizing: 'border-box',
@@ -643,8 +674,18 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
           >
             {t('app.scriptRepository')}
           </Button>
-
-
+          <Menu
+            anchorEl={repoAnchor}
+            open={Boolean(repoAnchor)}
+            onClose={() => setRepoAnchor(null)}
+            disableScrollLock
+          >
+            {Object.values(AllScripts).map((s) => (
+              <MenuItem key={s.id} onClick={() => importProjectScript(s.id)}>
+                {s.name}
+              </MenuItem>
+            ))}
+          </Menu>
         </Stack>
       </Box>
 
@@ -759,20 +800,6 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
           <Button
             variant="outlined"
             size="large"
-            startIcon={<Download />}
-            onClick={onExportJson}
-            disabled={!hasScript}
-            sx={{
-              flex: { xs: '1 1 100%', sm: '1 1 auto' },
-              minHeight: 48,
-            }}
-          >
-            {t('input.exportJson')}
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="large"
             startIcon={<Print />}
             onClick={onExportPDF}
             disabled={!hasScript}
@@ -822,21 +849,6 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
           </Button>
 
           <Button
-            variant="outlined"
-            size="large"
-            color="primary"
-            startIcon={<Cloud size={20} strokeWidth={1.8} />}
-            onClick={() => authStore.isLoggedIn ? setCloudDialogOpen(true) : handleCloudSave()}
-            disabled={cloudSaving}
-            sx={{
-              flex: { xs: '1 1 100%', sm: '1 1 auto' },
-              minHeight: 48,
-            }}
-          >
-            {cloudSaving ? t('cloudScripts.saving') : t('cloudScripts.cloud')}
-          </Button>
-
-          <Button
             variant="contained"
             color="success"
             size="large"
@@ -851,213 +863,8 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
             {t('specialRules.add')}
           </Button>
 
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<SettingsIcon />}
-            onClick={onOpenUISettings}
-            sx={{
-              flex: { xs: '1 1 100%', sm: '1 1 auto' },
-              minHeight: 48,
-              // backgroundColor: '#0078BA',
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: '#005583ff',
-              },
-            }}
-          >
-            {t('ui.adjustUI')}
-          </Button>
         </Box>
 
-        {/* 第三行：重置所有设置 */}
-        <Box
-          sx={{
-            display: 'flex',
-            gap: 2,
-            flexWrap: 'wrap',
-          }}
-        >
-          <Button
-            variant="outlined"
-            color="error"
-            size="large"
-            startIcon={<RestartAlt />}
-            onClick={handleResetSettings}
-            sx={{
-              flex: { xs: '1 1 100%' },
-              minHeight: 48,
-            }}
-          >
-            {t('ui.resetAllSettings')}
-          </Button>
-        </Box>
-
-        {/* 提示信息和开关设置 */}
-        <Alert severity="info" sx={{ mt: 2, '& .MuiAlert-icon': { mt: 0.5 } }}>
-          <Box sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: { xs: 2.5, md: 3 },
-            alignItems: 'flex-start'
-          }}>
-            {/* 左侧文字说明 */}
-            <Box sx={{
-              flex: { xs: '1 1 auto', md: '0 0 auto' },
-              maxWidth: { xs: '100%', md: '460px' },
-              flexShrink: 0,
-            }}>
-              <Typography variant="body2" sx={{
-                fontSize: { xs: '0.8rem', sm: '0.85rem' },
-                lineHeight: 1.6
-              }}>
-                {t('info.supportOfficial')}<br />
-                {t('info.supportFormats')}<br />
-                {t('info.experimentalCharacters')}
-              </Typography>
-            </Box>
-
-            {/* 右侧开关区域 */}
-            <Box sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2,
-              flex: { xs: '1 1 auto', md: '1 1 0' },
-              minWidth: { xs: '100%', md: '280px' }
-            }}>
-              {/* 官方ID解析模式 */}
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 2,
-                justifyContent: 'space-between'
-              }}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    mb: 0.25
-                  }}>
-                    {t('input.officialIdParseMode')}
-                  </Typography>
-                  <Typography variant="caption" sx={{
-                    fontSize: '0.7rem',
-                    color: 'warning.main',
-                    display: 'block'
-                  }}>
-                    {t('input.officialIdParseModeWarning')}
-                  </Typography>
-                </Box>
-                <IOSSwitch
-                  checked={configStore.config.officialIdParseMode}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => configStore.setOfficialIdParseMode(e.target.checked)}
-                />
-              </Box>
-
-              {/* 单边隐藏相克规则 */}
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 2,
-                justifyContent: 'space-between'
-              }}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    mb: 0.25
-                  }}>
-                    {t('input.hideDuplicateJinx')}
-                  </Typography>
-                  <Typography variant="caption" sx={{
-                    fontSize: '0.7rem',
-                    color: 'text.secondary',
-                    display: 'block'
-                  }}>
-                    {t('input.hideDuplicateJinxDesc')}
-                  </Typography>
-                </Box>
-                <IOSSwitch
-                  checked={configStore.config.hideDuplicateJinx}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => configStore.setHideDuplicateJinx(e.target.checked)}
-                />
-              </Box>
-
-              {/* 双页模式 */}
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 2,
-                justifyContent: 'space-between'
-              }}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    mb: 0.25
-                  }}>
-                    {t('input.twoPageMode')}
-                  </Typography>
-                  <Typography variant="caption" sx={{
-                    fontSize: '0.7rem',
-                    color: 'text.secondary',
-                    display: 'block'
-                  }}>
-                    {t('input.twoPageModeDesc')}
-                  </Typography>
-                </Box>
-                <IOSSwitch
-                  checked={uiConfigStore.config.enableTwoPageMode}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    uiConfigStore.updateConfig({ enableTwoPageMode: e.target.checked })
-                  }
-                />
-              </Box>
-              {/* Storyteller Night Order Sheet */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 2,
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      mb: 0.25
-                    }}
-                  >
-                    {t('ui.enableStorytellerNightOrderSheet')}
-                  </Typography>
-
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: '0.7rem',
-                      color: 'text.secondary',
-                      display: 'block'
-                    }}
-                  >
-                    {t('ui.enableStorytellerNightOrderSheetDesc')}
-                  </Typography>
-                </Box>
-
-                <IOSSwitch
-                  checked={uiConfigStore.config.enableStorytellerNightOrderSheet}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    uiConfigStore.updateConfig({
-                      enableStorytellerNightOrderSheet: e.target.checked
-                    })
-                  }
-                />
-              </Box>
-            </Box>
-          </Box>
-        </Alert>
       </Stack>
 
       {/* 重置确认对话框 */}

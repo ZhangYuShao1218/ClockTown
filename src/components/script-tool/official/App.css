@@ -10,7 +10,7 @@
 
 .font-union,
 .font-union * {
-  font-family: 'jicao', 'Dumbledor', serif !important;
+  font-family: "Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif !important;
 }
 
 #root {

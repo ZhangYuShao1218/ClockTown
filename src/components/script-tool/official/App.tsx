@@ -1339,20 +1339,13 @@ const App = observer(() => {
               {inputDrawerOpen ? '▼ 收起設定' : '▲ 劇本設定 / JSON'}
             </Button>
 
-            {/* 純白視窗主體 (不壓黑背景、無多餘外框、無右上 X 按鈕) */}
+            {/* 視窗主體：僅作為捲動容器，底板由內層 InputPanel 提供（避免雙層底板） */}
             <Box
               sx={{
                 width: '100%',
                 maxHeight: '85vh',
                 overflowY: 'auto',
-                p: { xs: 1, sm: 2 },
-                pb: 3,
-                boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.18)',
-                borderRadius: '16px 16px 0 0',
-                background: 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(10px)',
-                border: '1.5px solid #cbd5e1',
-                borderBottom: 'none',
+                p: 0,
               }}
             >
               <InputPanel

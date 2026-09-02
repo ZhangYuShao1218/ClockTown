@@ -8,7 +8,7 @@ import { UISettingsContent } from './UISettingsDrawer';
 interface LeftControlDrawerProps {
   open: boolean;
   onToggle: () => void;
-  initialTab?: 'character' | 'ui';
+  initialTab?: 'character' | 'layout' | 'ui';
   selectedCharacters?: Character[];
   onAddCharacter?: (char: Character) => void;
   onRemoveCharacter?: (char: Character) => void;
@@ -24,7 +24,7 @@ const LeftControlDrawer = observer(({
   onRemoveCharacter,
   onOpenTowerImageDialog,
 }: LeftControlDrawerProps) => {
-  const [activeTab, setActiveTab] = useState<'character' | 'ui'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'character' | 'layout' | 'ui'>(initialTab);
 
   return (
     <Box
@@ -41,6 +41,8 @@ const LeftControlDrawer = observer(({
         flexDirection: 'column',
         backgroundColor: 'rgba(255, 255, 255, 0.98)',
         backdropFilter: 'blur(10px)',
+        fontFamily: 'sans-serif',
+        '& *': { fontFamily: 'sans-serif !important' },
         borderRight: '1.5px solid #cbd5e1',
         boxShadow: open ? '10px 0 30px rgba(0, 0, 0, 0.18)' : 'none',
         transform: open ? 'translateX(0)' : 'translateX(-100%)',
@@ -60,8 +62,8 @@ const LeftControlDrawer = observer(({
           flexDirection: 'column',
           alignItems: 'center',
           gap: 0.75,
-          px: '10px',
-          py: 2,
+          px: '15px',
+          py: '18px',
           lineHeight: 1.15,
           fontSize: '0.95rem',
           fontWeight: 800,
@@ -79,7 +81,7 @@ const LeftControlDrawer = observer(({
       >
         <Box component="span" sx={{ display: 'block' }}>角</Box>
         <Box component="span" sx={{ display: 'block' }}>色</Box>
-        <Box component="span" sx={{ width: 16, height: '2px', backgroundColor: 'currentColor', my: 0.25, opacity: 0.6 }} />
+        <Box component="span" sx={{ width: 16, height: '2px', backgroundColor: 'currentColor', my: 0.75, opacity: 0.6 }} />
         <Box component="span" sx={{ display: 'block' }}>版</Box>
         <Box component="span" sx={{ display: 'block' }}>面</Box>
       </Box>
@@ -92,6 +94,7 @@ const LeftControlDrawer = observer(({
           sx={{ '& .MuiTab-root': { fontSize: '1rem', fontWeight: 'bold' } }}
         >
           <Tab value="character" label="角色" sx={{ color: '#1d4ed8' }} />
+          <Tab value="layout" label="版面" />
           <Tab value="ui" label="UI" />
         </Tabs>
       </Box>
@@ -100,7 +103,7 @@ const LeftControlDrawer = observer(({
 
       {/* 分頁內容 */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
-        {activeTab === 'character' ? (
+        {activeTab === 'character' && (
           <CharacterLibraryContent
             active={open && activeTab === 'character'}
             selectedCharacters={selectedCharacters}
@@ -110,8 +113,10 @@ const LeftControlDrawer = observer(({
             hideSelectedChip
             hideAllTeamTab
           />
-        ) : (
-          <UISettingsContent onOpenTowerImageDialog={onOpenTowerImageDialog} />
+        )}
+        {activeTab === 'layout' && <UISettingsContent sections="layoutOnly" />}
+        {activeTab === 'ui' && (
+          <UISettingsContent sections="settingsNoLayout" onOpenTowerImageDialog={onOpenTowerImageDialog} />
         )}
       </Box>
     </Box>

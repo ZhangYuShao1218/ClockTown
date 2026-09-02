@@ -194,17 +194,17 @@ const DEFAULT_UI_CONFIG: UIConfig = {
     md: '4.5rem',
   },
 
-  // Font settings - default to the project's own font (Source Han Serif TC stack)
+  // Font settings - 統一使用 sans-serif
   fonts: {
-    scriptTitle: PROJECT_FONT,
-    teamDivider: PROJECT_FONT,
-    characterName: PROJECT_FONT,
-    characterAbility: PROJECT_FONT,
-    jinxText: PROJECT_FONT,
-    stateRuleTitle: PROJECT_FONT,
-    stateRuleContent: PROJECT_FONT,
-    specialRuleTitle: PROJECT_FONT,
-    specialRuleContent: PROJECT_FONT,
+    scriptTitle: 'sans-serif',
+    teamDivider: 'sans-serif',
+    characterName: 'sans-serif',
+    characterAbility: 'sans-serif',
+    jinxText: 'sans-serif',
+    stateRuleTitle: 'sans-serif',
+    stateRuleContent: 'sans-serif',
+    specialRuleTitle: 'sans-serif',
+    specialRuleContent: 'sans-serif',
   },
 
   // Page 1 special rule font size
@@ -745,9 +745,8 @@ class UIConfigStore {
   // Get all available fonts (built-in + custom)
   get availableFonts() {
     const builtInFonts = [
-      { value: '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif', label: '思源宋體 (預設)' },
-      { value: 'jicao, Dumbledor, serif', label: 'Jicao + Dumbledor' },
-      { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "微軟正黑體", system-ui, sans-serif', label: '繁體系統預設 (System TC)' },
+      { value: PROJECT_FONT, label: '思源宋體 (預設)' },
+      { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "微軟正黑體", system-ui, sans-serif', label: '繁體系統字型' },
       { value: 'sans-serif', label: 'Sans-serif' },
       { value: 'monospace', label: 'Monospace' },
     ];
