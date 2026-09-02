@@ -302,13 +302,29 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
 
   // 記錄復盤事件 (若生死狀態改變)
   if (status.isDead !== undefined) {
-    import("./replayService").then(({ recordReplayEvent }) => {
+    import("./replayService").then(async ({ recordReplayEvent }) => {
+      const [playersSnap, pubSnap] = await Promise.all([
+        get(ref(db, `rooms/${roomId}/players`)),
+        get(ref(db, `rooms/${roomId}/public`)),
+      ]);
+      const players = playersSnap.val() || {};
+      const pub = pubSnap.val() || {};
+      const seatLabel = String(seatIndex).padStart(2, '0');
+      const player = Object.values(players).find((p: any) => p?.seat === seatIndex) as any;
+      const name = player?.name || `${seatLabel} 號座位`;
+      const day = pub.dayNumber || 1;
+      const isNight = pub.timePhase === 'night';
+      const phaseText = isNight ? '黑夜' : '白天';
       recordReplayEvent(roomId, {
-        dayNumber: 1,
-        timePhase: 'day',
+        dayNumber: day,
+        timePhase: isNight ? 'night' : 'day',
         type: 'DEATH_TOGGLE',
-        title: `座位 #${seatIndex} 狀態更新`,
-        description: `說書人將 #${seatIndex} 號座位標記為 ${status.isDead ? '死亡' : '存活'}。`
+        title: status.isDead
+          ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡`
+          : `${seatLabel}. ${name} 復活`,
+        description: status.isDead
+          ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡。`
+          : `${seatLabel}. ${name} 於第 ${day} 天${phaseText}被標記為存活。`,
       }).catch(console.error);
     });
   }

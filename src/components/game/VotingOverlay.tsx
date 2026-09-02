@@ -27,7 +27,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 }) => {
   const { phase, nominatorSeat, nomineeSeat, startTime, timePerPlayerMs, votes } = votingState;
   
-  const [timeSetting, setTimeSetting] = useState<number>(2000); // Default 2 seconds
+  const [timeSetting, setTimeSetting] = useState<number>(1000); // Default 1 second
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
   const requestRef = useRef<number>(0);
 
@@ -86,10 +86,18 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
     import('../../services/roomService').then(({ addVoteRecord }) => {
       const totalVotes = Object.values(votes || {}).filter(Boolean).length;
       const timeStr = `第 ${dayNumber} 天`;
+      const seatLabel = (seat: number | null | undefined) => {
+        if (seat === null || seat === undefined) return '未知';
+        const p = getPlayerInSeat(seat);
+        return p?.name ? `${String(seat).padStart(2, '0')}. ${p.name}` : `${String(seat).padStart(2, '0')} 號座位`;
+      };
       addVoteRecord(roomId, {
         time: timeStr,
+        dayNumber,
         nominatorSeat,
         nomineeSeat,
+        nominatorName: seatLabel(nominatorSeat),
+        nomineeName: seatLabel(nomineeSeat),
         totalVotes,
         votes: votes || {}
       });

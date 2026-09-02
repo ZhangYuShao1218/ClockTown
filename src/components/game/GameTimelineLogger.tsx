@@ -622,7 +622,7 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
             
             {/* Header / Clear */}
             <div className="px-4 py-1.5 flex items-center justify-between text-sm text-stone-400 border-b border-white/10 shrink-0">
-              <span className="font-bold text-stone-300">時間軸歷程 ({timeline.length} 步)</span>
+              <span className="font-bold text-stone-300">遊戲紀錄 ({timeline.length} 步)</span>
               {timeline.length > 0 && (
                 <button
                   onClick={() => {
@@ -640,8 +640,8 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
             {/* Timeline Events Scroll List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
               {timeline.length === 0 ? (
-                <div className="text-center py-10 text-sm text-stone-500">
-                  尚未有任何紀錄。可前往「動作」或「局勢」分頁新增事件。
+                <div className="text-center py-10 text-base font-medium text-white">
+                  尚未有任何紀錄
                 </div>
               ) : (
                 timeline.map((ev, idx) => {
@@ -703,7 +703,7 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
                   onClick={() => stopRoomReplay(roomId)}
                   className="w-full py-3 bg-red-900/80 hover:bg-red-800 border border-red-500/50 text-white font-bold rounded-lg text-base transition-all shadow tracking-wider"
                 >
-                  結束覆盤 (返回即時遊戲)
+                  結束復盤
                 </button>
               )}
             </div>
