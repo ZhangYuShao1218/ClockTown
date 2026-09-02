@@ -32,6 +32,8 @@ interface CenterStageProps {
   dayNumber?: number;
   seatTokens?: Record<number, SeatToken[]>;
   highlightedSeats?: number[];
+  replayActorSeat?: number | null;
+  replayTargetSeats?: number[];
 }
 
 export const CenterStage = ({ 
@@ -55,7 +57,9 @@ export const CenterStage = ({
   votingState,
   dayNumber = 1,
   seatTokens = {},
-  highlightedSeats = []
+  highlightedSeats = [],
+  replayActorSeat = null,
+  replayTargetSeats = []
 }: CenterStageProps) => {
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -262,13 +266,13 @@ export const CenterStage = ({
               return (
                 <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
                   <div 
-                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-slate-900 hover:border-red-400' : 'border-red-900 bg-slate-900 hover:border-red-500'}`}
+                    className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
                   >
                     {canSeeBluffs ? (
                       role ? (
                         <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] group-hover:scale-105 transition-transform" />
                       ) : (
-                        <span className="text-red-400/80 text-lg font-bold group-hover:text-red-300">空</span>
+                        <span className="text-red-500/60 text-lg font-bold group-hover:text-red-400">空</span>
                       )
                     ) : (
                       <span className="text-white text-4xl font-black leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform">?</span>
@@ -437,15 +441,15 @@ export const CenterStage = ({
               >
                 {/* Seat Highlighting Badge */}
                 {isHighlighted && (
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
-                    ⚡ 行動目標
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
+                    {replayActorSeat === seatIndex ? '行動者' : (replayTargetSeats?.includes(seatIndex) ? '目標' : '行動目標')}
                   </div>
                 )}
                 
                 <div 
                   onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
-                    isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
+                    isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
                   }${
                     guessedRole 
                       ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')

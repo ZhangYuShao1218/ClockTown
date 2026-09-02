@@ -231,6 +231,23 @@ export const Room = () => {
         </div>
       )}
 
+      {/* 復盤事件文字（置中底板呈現） */}
+      {isReplayActive && (replayMode?.eventTitle || replayMode?.eventDescription) && (
+        <div className="absolute top-[68px] left-1/2 -translate-x-1/2 z-40 w-[560px] max-w-[92vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-6 py-4 text-center pointer-events-none animate-in fade-in slide-in-from-top-2">
+          <div className="text-lg font-bold text-white leading-snug">
+            {replayMode?.eventType === 'ACTION_LOG' && (
+              <span className="text-amber-400 text-xl mr-2">【動作】</span>
+            )}
+            {replayMode?.eventTitle}
+          </div>
+          {replayMode?.eventDescription && replayMode.eventDescription !== replayMode.eventTitle && (
+            <div className={`mt-1.5 text-white/85 ${replayMode?.eventType === 'ACTION_LOG' ? 'text-lg' : 'text-base'}`}>
+              {replayMode.eventDescription}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Top Left Nav */}
       <div className="absolute top-4 left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
         <div className="flex space-x-1 bg-black/60 p-1 rounded-lg border border-white/20 backdrop-blur-md">
@@ -341,6 +358,8 @@ export const Room = () => {
             votingState={gameState?.public?.votingState}
             dayNumber={currentDayNumber}
             highlightedSeats={replayMode?.highlightedSeats || []}
+            replayActorSeat={replayMode?.actorSeat ?? null}
+            replayTargetSeats={replayMode?.targetSeats || []}
           />
         ) : (
           isHost ? (
@@ -363,6 +382,8 @@ export const Room = () => {
                 userUid={user?.uid}
                 seatTokens={isReplayActive ? (replaySnapshot?.seatTokens || {}) : (user ? gameState?.private?.grimoireTokens?.[user.uid] : undefined)}
                 highlightedSeats={replayMode?.highlightedSeats || []}
+                replayActorSeat={replayMode?.actorSeat ?? null}
+                replayTargetSeats={replayMode?.targetSeats || []}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-white/50 h-full"><p>真相仍在迷霧之中...</p></div>
