@@ -58,11 +58,14 @@ components/
                              NightOrderEditor, RolePicker, ScriptPreviewSheet…）
     knowledge/botc/          ⚠️ BOTC「遊戲規則」RAG 知識庫，非程式碼文件
     official/                ⚠️ 鏡像整合的開源劇本工具（見下方「地雷區」）
-data/
+data/            ⭐ 角色 / 劇本的「單一資料源」（遊戲與劇本工具共用）
   types.ts         Role, Script, SeatStatus, VotingState 介面
-  roles/           townsfolk/outsiders/minions/demons/travelers.ts + new_roles.ts
-                   index.ts → export AllRoles: Record<string, Role>
+  roles/           townsfolk/outsiders/minions/demons/travelers/fabled/loric.ts
+                   index.ts → export AllRoles: Record<string, Role>（繁體中文文案）
+                   ※ 劇本工具的 official/data/characters/characters.ts、extras/fabled.ts、
+                     extras/loric.ts 皆由此衍生，不另外維護。改角色文案只改這裡。
   scripts/         每個劇本一檔 + index.ts → export AllScripts: Record<string, Script>
+  jinxes.ts        相剋規則（由 official/data/sources/jinxZh.json 產生）
 hooks/
   useAuth.ts       Firebase 匿名登入 + onAuthStateChanged（含 cleanup）
   useGameState.ts  訂閱 rooms/{id} 的 onValue（含 cleanup）※ gameState 目前型別為 any
@@ -105,7 +108,8 @@ rooms/{roomId}
 ## 地雷區 / 已知不一致
 
 1. **`components/script-tool/official/` 是 vendored（鏡像整合的開源工具）**：自有 MUI/MobX 生態、i18n、`stores/*.ts`。改動時盡量小範圍、貼近上游風格，別把主專案的 Tailwind/shadcn 慣例套進去。
+   例外：**角色資料已收斂為單一資料源**——`official/data/characters/characters.ts`（ZH_CORE_CHARACTERS）、`extras/fabled.ts`、`extras/loric.ts` 全部從 `src/data/roles/*` 衍生。`roles.json`（英文結構：夜晚順序 / 圖片 / edition）、`rolesEs/De.json`、`extras/custom.ts`（社群自製角色大量匯入）仍是工具專屬、非日常維護。
 2. **`components.json` 指向 `@/components/ui`，但該資料夾目前不存在**：ui-design rule 說「shadcn first」，實務上尚無 shadcn 元件庫；需要時要先建立。
 3. **`useGameState` 的 `gameState` 是 `any`**：違反 architecture rule 的「嚴禁 any」，屬既有債，碰到再視情況補型別。
-4. **繁體中文保證**：劇本工具有 `official/utils/traditionalChinese.ts`，簡轉繁相關改動走它。
+4. **繁體中文保證**：`src/data/roles/*` 已是繁體，不需執行期轉換。`official/data/{custom.ts,sources/jinxZh.json}` 等工具專屬資料以 `opencc-js`（devDep）離線簡轉繁，寫回原檔。
 5. `dist/` 有被 `.gitignore` 但工作區存在；`scratch/`、`temp.txt` 為暫存物。

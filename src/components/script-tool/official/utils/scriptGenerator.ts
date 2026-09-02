@@ -9,7 +9,6 @@ export const NIGHT_ICON_IMAGES = [
 export const OTHER_NIGHT_ICON_IMAGES = ['/imgs/icons/75px-Dusk.png'];
 export const DEFAULT_FIRSTNIGHT_ICON_INDEXES = [0.001, 0.002, 0.003];
 export const DEFAULT_OTHERNIGHT_ICON_INDEXES = [0.001];
-import { toTraditionalChinese } from './traditionalChinese';
 import {
   CHARACTERS,
   getAllCharacterDictionaries,
@@ -512,14 +511,6 @@ export function generateScript(jsonString: string, language: Language = 'cn'): S
       // Save official ID to finalCharacter
       if (officialId) {
         (finalCharacter as any)._officialId = officialId;
-      }
-
-      if (language === 'cn') {
-        finalCharacter.name = toTraditionalChinese(finalCharacter.name);
-        finalCharacter.ability = toTraditionalChinese(finalCharacter.ability);
-        if (finalCharacter.firstNightReminder) finalCharacter.firstNightReminder = toTraditionalChinese(finalCharacter.firstNightReminder);
-        if (finalCharacter.otherNightReminder) finalCharacter.otherNightReminder = toTraditionalChinese(finalCharacter.otherNightReminder);
-        if (Array.isArray(finalCharacter.reminders)) finalCharacter.reminders = finalCharacter.reminders.map(toTraditionalChinese);
       }
 
       // Push to all array (using processed character data)
