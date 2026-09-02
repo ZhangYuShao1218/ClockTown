@@ -800,20 +800,6 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
           <Button
             variant="outlined"
             size="large"
-            startIcon={<Print />}
-            onClick={onExportPDF}
-            disabled={!hasScript}
-            sx={{
-              flex: { xs: '1 1 100%', sm: '1 1 auto' },
-              minHeight: 48,
-            }}
-          >
-            {t('input.exportPDF')}
-          </Button>
-
-          <Button
-            variant="outlined"
-            size="large"
             startIcon={<Image />}
             onClick={onExportImage}
             disabled={!hasScript}
@@ -823,6 +809,20 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
             }}
           >
             {t('input.exportImage')}
+          </Button>
+
+          <Button
+            variant="outlined"
+            size="large"
+            startIcon={<Print />}
+            onClick={onExportPDF}
+            disabled={!hasScript}
+            sx={{
+              flex: { xs: '1 1 100%', sm: '1 1 auto' },
+              minHeight: 48,
+            }}
+          >
+            {t('input.exportPDF')}
           </Button>
         </Box>
 

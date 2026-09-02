@@ -22,6 +22,7 @@
     "@mui/material": "^6.5.0",
     "@supabase/supabase-js": "^2.112.4",
     "@xyflow/react": "^12.11.5",
+    "@zumer/snapdom": "^2.24.15",
     "ai": "^7.0.87",
     "clsx": "^2.1.1",
     "firebase": "^12.17.1",

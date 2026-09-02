@@ -16,6 +16,7 @@ import {
   Button,
   Drawer,
   IconButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   Print as PrintIcon,
@@ -40,6 +41,8 @@ import AddCustomRuleDialog from './components/AddCustomRuleDialog';
 import CustomJinxDialog from './components/CustomJinxDialog';
 import ScriptRenderer from './components/ScriptRenderer';
 import { generateScript } from './utils/scriptGenerator';
+import { applyPrintLayout, resetPrintLayout, pinToDesktopWidth, resetExportLayout, EXPORT_PAGE_IDS } from './utils/exportLayout';
+import { snapdom } from '@zumer/snapdom';
 import { THEME_COLORS, THEME_FONTS } from './theme/colors';
 import { useTranslation } from './utils/i18n';
 import { SEOManager } from './components/SEOManager';
@@ -76,6 +79,12 @@ const printStyles = {
       margin: 0,           // Set page margin to 0, we control margins inside the container
     },
 
+    // 不打印的區塊（頂部 Header / 底部 JSON 面板 / 側邊抽屜）
+    '.no-print, .no-print *': {
+      display: 'none !important',
+      visibility: 'hidden !important',
+    },
+
     // 2. Hide all elements on the page
     'body *': {
       visibility: 'hidden !important',
@@ -93,71 +102,25 @@ const printStyles = {
       maxWidth: '100% !important',
     },
 
-    // 4. ⭐ Core: Set first page container height and layout
-    '#script-preview': {
-      // --- A. Position and size ---
+    // 4. 預覽頁容器：尺寸/縮放交給 beforeprint 處理器，這裡只管定位與分頁。
+    //    不要再強制 100vw/100vh 或 overflow:hidden，否則會重排並裁切內容。
+    '#script-preview, #script-preview-2, #script-preview-3, #script-preview-4': {
       position: 'relative !important',
       left: '0 !important',
       top: '0 !important',
-      width: '100vw !important',  // 100% print viewport width
-      height: '100vh !important', // 100% print viewport height
       margin: '0 !important',
       padding: '0 !important',
-
-      // --- B. Force no overflow ---
-      overflow: 'hidden !important', // Critical! Clip any content exceeding one page
-
-      // --- C. Page break ---
-      // Note: Force page break only when second page exists
+      overflow: 'visible !important',
       pageBreakInside: 'avoid !important',
     },
 
-    // 4.1 When second page exists, force page break on first page
-    '#script-preview:has(~ #script-preview-2)': {
+    // 4.1 有下一頁時，本頁結束後強制分頁
+    '#script-preview:has(~ #script-preview-2), #script-preview-2:has(~ #script-preview-3), #script-preview-3:has(~ #script-preview-4)': {
       pageBreakAfter: 'always !important',
     },
 
-    // 5. ⭐ Second page container
-    '#script-preview-2': {
-      position: 'relative !important',
-      left: '0 !important',
-      top: '0 !important',
-      width: '100vw !important',
-      height: '100vh !important',
-      margin: '0 !important',
-      padding: '0 !important',
-      overflow: 'hidden !important',
-      pageBreakBefore: 'always !important', // Force page break before second page
-      pageBreakInside: 'avoid !important',
-      marginTop: '0 !important', // Ensure no top margin when printing
-    },
-
-    '#script-preview-3': {
-      position: 'relative !important',
-      left: '0 !important',
-      top: '0 !important',
-      width: '100vw !important',
-      height: '100vh !important',
-      margin: '0 !important',
-      padding: '0 !important',
-      overflow: 'hidden !important',
+    '#script-preview-2, #script-preview-3, #script-preview-4': {
       pageBreakBefore: 'always !important',
-      pageBreakInside: 'avoid !important',
-      marginTop: '0 !important',
-    },
-
-    '#script-preview-4': {
-      position: 'relative !important',
-      left: '0 !important',
-      top: '0 !important',
-      width: '100vw !important',
-      height: '100vh !important',
-      margin: '0 !important',
-      padding: '0 !important',
-      overflow: 'hidden !important',
-      pageBreakBefore: 'always !important',
-      pageBreakInside: 'avoid !important',
-      marginTop: '0 !important',
     },
 
     // 6. Ensure bottom avatars and text boxes are visible when printing
@@ -295,6 +258,7 @@ const App = observer(() => {
   const [printDialogOpen, setPrintDialogOpen] = useState<boolean>(false); // Print dialog state
   const [exportJsonDialogOpen, setExportJsonDialogOpen] = useState<boolean>(false); // Export JSON options dialog
   const [exportImageDialogOpen, setExportImageDialogOpen] = useState<boolean>(false); // Export image hint dialog
+  const [isExportingImage, setIsExportingImage] = useState<boolean>(false); // 匯出圖片進行中
   const [unlockModeDialogOpen, setUnlockModeDialogOpen] = useState<boolean>(false); // Unlock mode dialog
   const [pendingEditCharacter, setPendingEditCharacter] = useState<Character | null>(null); // Pending character to edit
   const [towerImageDialogOpen, setTowerImageDialogOpen] = useState<boolean>(false);
@@ -355,6 +319,17 @@ const App = observer(() => {
       cleanupGlobalShortcuts();
     };
   }, []); // Empty dependency array, only runs once on component mount
+
+  // 列印 / 匯出 PDF：把每個預覽頁固定成桌面寬度後整頁縮放到剛好一張 A4，
+  // 讓輸出的 PDF 與畫面所見一致（不裁切、不重排、不溢出到下一頁）。
+  useEffect(() => {
+    window.addEventListener('beforeprint', applyPrintLayout);
+    window.addEventListener('afterprint', resetPrintLayout);
+    return () => {
+      window.removeEventListener('beforeprint', applyPrintLayout);
+      window.removeEventListener('afterprint', resetPrintLayout);
+    };
+  }, []);
 
   // Register save callback (update when language changes)
   useEffect(() => {
@@ -1027,10 +1002,72 @@ const App = observer(() => {
     setPrintDialogOpen(true);
   };
 
-  const handleExportImage = () => {
+  const handleExportImage = async () => {
     trackExportImage();
-    // Show export image hint dialog
-    setExportImageDialogOpen(true);
+
+    const els = EXPORT_PAGE_IDS
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => !!el && !!el.firstElementChild);
+    if (els.length === 0) return;
+
+    const scriptName = script?.title || t('export.defaultScriptName');
+    // 1px 透明佔位圖
+    const PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+    // html-to-image 會逐一 fetch 每張圖內嵌成 data URL。跨網域圖片（gstonegames OSS）
+    // 沒有 CORS 標頭 → fetch 會一直卡住直到逾時。先把它們換成佔位圖，事後還原。
+    const swapped: Array<{ img: HTMLImageElement; src: string; srcset: string }> = [];
+    for (const el of els) {
+      el.querySelectorAll('img').forEach((img) => {
+        let sameOrigin = true;
+        try {
+          sameOrigin = new URL(img.src, location.href).origin === location.origin;
+        } catch {
+          sameOrigin = false;
+        }
+        if (!sameOrigin) {
+          swapped.push({ img, src: img.getAttribute('src') || '', srcset: img.getAttribute('srcset') || '' });
+          img.removeAttribute('srcset');
+          img.src = PLACEHOLDER;
+        }
+      });
+    }
+    const restoreImages = () => {
+      for (const { img, src, srcset } of swapped) {
+        if (src) img.setAttribute('src', src);
+        if (srcset) img.setAttribute('srcset', srcset);
+      }
+    };
+
+    setIsExportingImage(true);
+    // 固定成桌面寬度重排，讓匯出的圖片與網頁畫面一致
+    els.forEach((el) => pinToDesktopWidth(el));
+    try {
+      // 等字型與版面就緒
+      if (document.fonts?.ready) await document.fonts.ready;
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+
+      for (let i = 0; i < els.length; i++) {
+        const el = els[i];
+        const img = await snapdom.toPng(el, {
+          scale: 2,
+          fast: true,
+          backgroundColor: '#F6F1DC',
+          embedFonts: true,
+        });
+        const link = document.createElement('a');
+        link.download = els.length > 1 ? `${scriptName}-${i + 1}.png` : `${scriptName}.png`;
+        link.href = img.src;
+        link.click();
+      }
+    } catch (error) {
+      console.error('Export image failed:', error);
+      alert(t('input.exportImageFailed'));
+    } finally {
+      els.forEach(resetExportLayout);
+      restoreImages();
+      setIsExportingImage(false);
+    }
   };
 
   const handleConfirmPrint = () => {
@@ -1048,7 +1085,7 @@ const App = observer(() => {
       {
         "id": "_meta",
         "author": "",
-        "name": "Custom Your Script!"
+        "name": "自訂你的劇本！"
       }
     ], null, 2);
 
@@ -1729,6 +1766,29 @@ const App = observer(() => {
         />
       )}
       </AnimatePresence>
+
+      {/* 匯出圖片進行中的遮罩 */}
+      {isExportingImage && (
+        <Box
+          className="no-print"
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 2,
+            backgroundColor: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(2px)',
+            color: '#fff',
+          }}
+        >
+          <CircularProgress color="inherit" />
+          <Typography sx={{ fontWeight: 600 }}>{t('input.exportImage')}…</Typography>
+        </Box>
+      )}
 
       {/* AI Agent (暫時隱藏不實作) */}
       {/* <AgentFAB /> */}
