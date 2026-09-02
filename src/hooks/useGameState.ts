@@ -23,7 +23,8 @@ export const useGameState = (roomId: string | undefined) => {
           setGameState(snapshot.val());
           setError(null);
         } else {
-          setError("房間已關閉或不存在");
+          setGameState(null);
+          setError("房間不存在");
         }
         setLoading(false);
       },

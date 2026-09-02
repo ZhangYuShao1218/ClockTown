@@ -290,74 +290,7 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
         </div>
       </div>
 
-      {/* 2. 說書人復盤導覽控制器 (僅在復盤模式中顯示) */}
-      {isReplayActive && (
-        <div className="p-4 bg-indigo-950/60 border-b border-indigo-500/30 shrink-0 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-amber-300 flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-              <span>全場覆盤導覽 (第 {replayMode?.currentStepIndex + 1} / {replayMode?.totalSteps} 步)</span>
-            </span>
-            <button
-              onClick={() => stopRoomReplay(roomId)}
-              className="px-3 py-1 bg-red-900/80 hover:bg-red-800 border border-red-500/50 text-white font-bold rounded-lg text-sm transition-colors shadow"
-            >
-              結束覆盤
-            </button>
-          </div>
-
-          {/* Current Event Box */}
-          <div className="p-3 bg-black/60 border border-white/15 rounded-lg space-y-1">
-            <div className="text-base font-bold text-white">{replayMode?.eventTitle}</div>
-            <div className="text-sm text-stone-300 leading-relaxed">{replayMode?.eventDescription}</div>
-          </div>
-
-          {/* Scrubber */}
-          <input
-            type="range"
-            min={0}
-            max={Math.max(0, (replayMode?.totalSteps || 1) - 1)}
-            value={replayMode?.currentStepIndex || 0}
-            onChange={(e) => {
-              setIsAutoPlaying(false);
-              setRoomReplayStep(roomId, Number(e.target.value), timeline);
-            }}
-            className="w-full cursor-pointer accent-amber-400 h-2 bg-slate-700 rounded-lg"
-          />
-
-          {/* Controls */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setIsAutoPlaying(false);
-                setRoomReplayStep(roomId, Math.max(0, (replayMode?.currentStepIndex || 0) - 1), timeline);
-              }}
-              disabled={(replayMode?.currentStepIndex || 0) <= 0}
-              className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors border border-white/10"
-            >
-              ◀ 上一步
-            </button>
-            <button
-              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors shadow ${
-                isAutoPlaying ? 'bg-amber-600 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-              }`}
-            >
-              {isAutoPlaying ? '⏸️ 暫停' : '▶️ 自動播放'}
-            </button>
-            <button
-              onClick={() => {
-                setIsAutoPlaying(false);
-                setRoomReplayStep(roomId, Math.min(timeline.length - 1, (replayMode?.currentStepIndex || 0) + 1), timeline);
-              }}
-              disabled={(replayMode?.currentStepIndex || 0) >= timeline.length - 1}
-              className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors border border-white/10"
-            >
-              下一步 ▶
-            </button>
-          </div>
-        </div>
-      )}
+      {/* 復盤導覽已移至座位區中央的懸浮視窗 */}
 
       {/* 3. 遊戲覆盤專用工作區 (大標題 + 動作 / 局勢 / 遊戲紀錄 三大分頁) */}
       <div className="flex-1 flex flex-col min-h-0">

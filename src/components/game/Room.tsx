@@ -16,7 +16,7 @@ import { Chat } from "./Chat";
 import { GameTimelineLogger } from "./GameTimelineLogger";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
-import { stopRoomReplay } from "../../services/replayService";
+import { stopRoomReplay, stepRoomReplay } from "../../services/replayService";
 
 export const Room = () => {
   const { id } = useParams<{ id: string }>();
@@ -119,14 +119,14 @@ export const Room = () => {
 
   if (error || !gameState) {
     return (
-      <div className="flex flex-col h-screen items-center justify-center space-y-4 bg-black">
-        <div className="text-red-500 font-medium">{error || "找不到房間"}</div>
-        <button 
-          onClick={() => navigate("/")}
-          className="rounded-md bg-indigo-900 px-4 py-2 text-sm text-indigo-100 hover:bg-indigo-800 transition-colors border border-indigo-500/50"
-        >
-          返回大廳
-        </button>
+      <div className="flex flex-col h-screen items-center justify-center bg-black">
+        <AlertDialog
+          isOpen={true}
+          message={error || "房間不存在"}
+          confirmText="返回大廳"
+          onConfirm={() => navigate("/")}
+          onClose={() => navigate("/")}
+        />
       </div>
     );
   }
@@ -212,28 +212,50 @@ export const Room = () => {
 
       {/* 全場同步復盤提示 (所有人可見) */}
       {isReplayActive && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-black/85 border border-red-500/60 text-white px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-            </span>
-            <span className="font-bold text-white text-sm tracking-wider">復盤中</span>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 animate-in fade-in slide-in-from-top-2 pointer-events-auto">
+          <div className="bg-black/85 border border-red-500/60 text-white px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+              </span>
+              <span className="font-bold text-white text-sm tracking-wider">
+                復盤中 ({(replayMode?.currentStepIndex ?? 0) + 1}/{replayMode?.totalSteps ?? 0})
+              </span>
+            </div>
+            {isHost && (
+              <button
+                onClick={() => stopRoomReplay(id!)}
+                className="ml-1 px-2.5 py-0.5 bg-red-900/80 hover:bg-red-800 border border-red-500/50 text-red-200 hover:text-white font-bold rounded-full text-xs transition-colors shadow"
+              >
+                結束復盤
+              </button>
+            )}
           </div>
           {isHost && (
-            <button
-              onClick={() => stopRoomReplay(id!)}
-              className="ml-1 px-2.5 py-0.5 bg-red-900/80 hover:bg-red-800 border border-red-500/50 text-red-200 hover:text-white font-bold rounded-full text-xs transition-colors shadow"
-            >
-              結束復盤
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => stepRoomReplay(id!, -1, replayMode?.currentStepIndex ?? 0)}
+                disabled={(replayMode?.currentStepIndex ?? 0) <= 0}
+                className="px-4 py-1.5 bg-black/80 hover:bg-black border border-white/20 text-white/90 hover:text-white font-bold rounded-full text-xs tracking-wider transition-colors shadow disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                上一步
+              </button>
+              <button
+                onClick={() => stepRoomReplay(id!, 1, replayMode?.currentStepIndex ?? 0)}
+                disabled={(replayMode?.currentStepIndex ?? 0) >= (replayMode?.totalSteps ?? 1) - 1}
+                className="px-4 py-1.5 bg-black/80 hover:bg-black border border-white/20 text-white/90 hover:text-white font-bold rounded-full text-xs tracking-wider transition-colors shadow disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                下一步
+              </button>
+            </div>
           )}
         </div>
       )}
 
-      {/* 復盤事件文字（置中底板呈現） */}
+      {/* 復盤事件文字（呈現在座位區中央） */}
       {isReplayActive && (replayMode?.eventTitle || replayMode?.eventDescription) && (
-        <div className="absolute top-[68px] left-1/2 -translate-x-1/2 z-40 w-[560px] max-w-[92vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-6 py-4 text-center pointer-events-none animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-[46%] left-[40%] -translate-x-1/2 -translate-y-1/2 z-40 w-max max-w-[75vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-[15px] py-4 text-center pointer-events-none animate-in fade-in zoom-in-95">
           <div className="text-lg font-bold text-white leading-snug">
             {replayMode?.eventType === 'ACTION_LOG' && (
               <span className="text-amber-400 text-xl mr-2">【動作】</span>

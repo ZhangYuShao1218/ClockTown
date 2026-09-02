@@ -226,6 +226,17 @@ export const setRoomReplayStep = async (roomId: string, stepIndex: number, timel
 };
 
 /**
+ * Step the in-room replay forward/backward by one, fetching the timeline itself.
+ * Used by the storyteller's floating replay controls.
+ */
+export const stepRoomReplay = async (roomId: string, direction: 1 | -1, currentStepIndex: number) => {
+  const replay = await getGameReplay(roomId);
+  if (!replay || replay.timeline.length === 0) return;
+  const next = Math.max(0, Math.min(replay.timeline.length - 1, currentStepIndex + direction));
+  await setRoomReplayStep(roomId, next, replay.timeline);
+};
+
+/**
  * Stop in-room replay mode and return to live game
  */
 export const stopRoomReplay = async (roomId: string) => {
