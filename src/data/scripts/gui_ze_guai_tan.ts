@@ -1,0 +1,40 @@
+import type { Script } from '../types';
+import { AllRoles } from '../roles';
+
+export const GuiZeGuaiTan: Script = {
+  id: 'gui_ze_guai_tan',
+  name: '規則怪談 Gui Ze Guai Tan',
+  description: `鐘樓劇本博物館出品。劇本作者：星火樂。以「神的不在場證明」為核心賣點——當無神論者與異端分子同時在場時，善良陣營的獲勝條件變為場上存活人數小於等於 2 人，若處決說書人會導致善良陣營失敗（說書人不能打破規則讓上述內容無效）。集結貴族、將軍、國王、解謎大師與軍團、小怪寶、牙嗻巴卜等強力惡魔。`,
+  recommendedPlayers: "7 - 15",
+  difficulty: "專家",
+  author: "星火樂",
+  roles: [
+    AllRoles['noble'],
+    AllRoles['balloonist'],
+    AllRoles['general'],
+    AllRoles['high_priestess'],
+    AllRoles['king'],
+    AllRoles['professor'],
+    AllRoles['artist'],
+    AllRoles['fisherman'],
+    AllRoles['savant'],
+    AllRoles['poppy_grower'],
+    AllRoles['magician'],
+    AllRoles['cannibal'],
+    AllRoles['atheist'],
+    AllRoles['snitch'],
+    AllRoles['plague_doctor'],
+    AllRoles['puzzlemaster'],
+    AllRoles['heretic'],
+    AllRoles['marionette'],
+    AllRoles['poisoner'],
+    AllRoles['goblin'],
+    AllRoles['mezepheles'],
+    AllRoles['lil_monsta'],
+    AllRoles['al-hadikhia'],
+    AllRoles['yaggababble'],
+    AllRoles['legion'],
+    AllRoles['sentinel'],
+    AllRoles['spirit_of_ivory'],
+  ]
+};

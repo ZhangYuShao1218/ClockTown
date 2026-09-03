@@ -1,0 +1,43 @@
+import type { Script } from '../types';
+import { AllRoles } from '../roles';
+
+export const SectsAndViolets: Script = {
+  id: 'sects_and_violets',
+  name: '夢殞春宵 Sects & Violets',
+  description: `《夢殞春宵》是官方前三個劇本套裝中最瘋狂的一個。善良的角色每晚都能得到驚人的資訊，然而邪惡陣營帶來的威脅也多種多樣，並且能製造巨大的混亂。角色能力會讓陣營發生變化，玩家的角色也會隨之改變，甚至連邪惡陣營都會在遊戲中暈頭轉向、敵我不分。這是「瘋狂」機制首次登場的劇本。\n\n難度：中等。推薦給狂野的、想要遊戲充滿驚喜，以及想挑戰極限偽裝與虛張聲勢的玩家。`,
+  recommendedPlayers: "7 - 15",
+  difficulty: "中等",
+  author: "The Pandemonium Institute",
+  roles: [
+    AllRoles['deviant'],
+    AllRoles['bone_collector'],
+    AllRoles['butcher'],
+    AllRoles['harlot'],
+    AllRoles['barista'],
+    AllRoles['clockmaker'],
+    AllRoles['dreamer'],
+    AllRoles['snake_charmer'],
+    AllRoles['mathematician'],
+    AllRoles['flowergirl'],
+    AllRoles['town_crier'],
+    AllRoles['oracle'],
+    AllRoles['savant'],
+    AllRoles['seamstress'],
+    AllRoles['philosopher'],
+    AllRoles['artist'],
+    AllRoles['juggler'],
+    AllRoles['sage'],
+    AllRoles['mutant'],
+    AllRoles['sweetheart'],
+    AllRoles['barber'],
+    AllRoles['klutz'],
+    AllRoles['evil_twin'],
+    AllRoles['witch'],
+    AllRoles['cerenovus'],
+    AllRoles['pit-hag'],
+    AllRoles['fang_gu'],
+    AllRoles['vigormortis'],
+    AllRoles['no_dashii'],
+    AllRoles['vortox'],
+  ]
+};
