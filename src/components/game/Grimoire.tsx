@@ -85,9 +85,9 @@ export const Grimoire = ({
       const currentTokens = (seatTokens || {})[tokenTargetSeat] || [];
       if (currentTokens.length >= 3) return;
       const newTokens = [...currentTokens, token];
-      const { update, ref } = await import("firebase/database");
-      const { db } = await import("../../services/firebase");
-      await update(ref(db), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${tokenTargetSeat}`]: newTokens });
+      const { update } = await import("firebase/database");
+      const { nref } = await import("../../services/firebase");
+      await update(nref(), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${tokenTargetSeat}`]: newTokens });
     } catch (e) { console.error(e); }
   };
 
@@ -96,9 +96,9 @@ export const Grimoire = ({
     try {
       const currentTokens = (seatTokens || {})[seatIdx] || [];
       const newTokens = currentTokens.filter(t => t.id !== tokenId);
-      const { update, ref } = await import("firebase/database");
-      const { db } = await import("../../services/firebase");
-      await update(ref(db), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${seatIdx}`]: newTokens });
+      const { update } = await import("firebase/database");
+      const { nref } = await import("../../services/firebase");
+      await update(nref(), { [`rooms/${roomId}/private/grimoireTokens/${userUid}/${seatIdx}`]: newTokens });
     } catch (e) { console.error(e); }
   };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
-import { db } from '../../services/firebase';
+import { onValue } from 'firebase/database';
+import { nref } from '../../services/firebase';
 import {
   recordReplayEvent,
   deleteReplayEvent,
@@ -58,7 +58,7 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
   // Subscribe to timeline
   useEffect(() => {
     if (!roomId) return;
-    const timelineRef = ref(db, `rooms/${roomId}/replay/timeline`);
+    const timelineRef = nref(`rooms/${roomId}/replay/timeline`);
     const unsubscribe = onValue(timelineRef, (snap) => {
       const data = snap.val() || {};
       const list: ReplayEvent[] = Object.entries(data).map(([key, ev]: [string, any]) => ({

@@ -1,12 +1,12 @@
-import { ref, set } from "firebase/database";
-import { db } from "../services/firebase";
+import { set } from "firebase/database";
+import { nref } from "../services/firebase";
 
 // 隨機產生假玩家名稱
 const fakeNames = ["艾莉絲", "鮑伯", "克萊兒", "大衛", "伊芙", "弗蘭克", "格蕾絲", "漢斯", "艾比", "傑克", "凱文", "莉莉"];
 
 export const generateMockRoom = async () => {
   const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = nref(`rooms/${roomId}`);
   
   const hostId = "mock-host-" + Date.now();
   
@@ -53,6 +53,6 @@ export const generateMockRoom = async () => {
 
 // 清空所有房間 (測試用)
 export const clearAllRooms = async () => {
-  const roomsRef = ref(db, "rooms");
+  const roomsRef = nref("rooms");
   await set(roomsRef, null);
 };

@@ -1,5 +1,5 @@
-import { ref, get, update, push, remove } from "firebase/database";
-import { db } from "./firebase";
+import { get, update, push, remove } from "firebase/database";
+import { nref } from "./firebase";
 
 export interface BoardSnapshot {
   seatRoles: Record<number, string>;
@@ -52,7 +52,7 @@ export interface GameReplay {
  */
 export const captureBoardSnapshot = async (roomId: string): Promise<BoardSnapshot> => {
   try {
-    const roomSnap = await get(ref(db, `rooms/${roomId}`));
+    const roomSnap = await get(nref(`rooms/${roomId}`));
     const data = roomSnap.val() || {};
 
     const seatRoles: Record<number, string> = {};
@@ -106,9 +106,9 @@ export const recordReplayEvent = async (
       snapshot
     };
 
-    const timelineRef = ref(db, `rooms/${roomId}/replay/timeline`);
+    const timelineRef = nref(`rooms/${roomId}/replay/timeline`);
     const newEventRef = push(timelineRef);
-    await update(ref(db), {
+    await update(nref(), {
       [`rooms/${roomId}/replay/timeline/${newEventRef.key}`]: {
         ...fullEvent,
         id: newEventRef.key
@@ -126,7 +126,7 @@ export const recordReplayEvent = async (
  */
 export const deleteReplayEvent = async (roomId: string, eventId: string) => {
   try {
-    await remove(ref(db, `rooms/${roomId}/replay/timeline/${eventId}`));
+    await remove(nref(`rooms/${roomId}/replay/timeline/${eventId}`));
   } catch (e) {
     console.error("Failed to delete replay event", e);
   }
@@ -137,8 +137,8 @@ export const deleteReplayEvent = async (roomId: string, eventId: string) => {
  */
 export const clearReplayTimeline = async (roomId: string) => {
   try {
-    await remove(ref(db, `rooms/${roomId}/replay/timeline`));
-    await update(ref(db), {
+    await remove(nref(`rooms/${roomId}/replay/timeline`));
+    await update(nref(), {
       [`rooms/${roomId}/public/replayMode`]: null
     });
   } catch (e) {
@@ -151,7 +151,7 @@ export const clearReplayTimeline = async (roomId: string) => {
  */
 export const getGameReplay = async (roomId: string): Promise<GameReplay | null> => {
   try {
-    const snap = await get(ref(db, `rooms/${roomId}`));
+    const snap = await get(nref(`rooms/${roomId}`));
     if (!snap.exists()) return null;
 
     const data = snap.val();
@@ -208,7 +208,7 @@ export const setRoomReplayStep = async (roomId: string, stepIndex: number, timel
   if (stepIndex < 0 || stepIndex >= timeline.length) return;
   const event = timeline[stepIndex];
 
-  await update(ref(db), {
+  await update(nref(), {
     [`rooms/${roomId}/public/replayMode`]: {
       isActive: true,
       currentStepIndex: stepIndex,
@@ -241,7 +241,7 @@ export const stepRoomReplay = async (roomId: string, direction: 1 | -1, currentS
  * Stop in-room replay mode and return to live game
  */
 export const stopRoomReplay = async (roomId: string) => {
-  await update(ref(db), {
+  await update(nref(), {
     [`rooms/${roomId}/public/replayMode/isActive`]: false,
     [`rooms/${roomId}/public/replayMode/highlightedSeats`]: []
   });

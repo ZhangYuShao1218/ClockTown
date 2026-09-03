@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ref, onValue, query, limitToLast } from "firebase/database";
-import { db } from "../../services/firebase";
+import { onValue, query, limitToLast } from "firebase/database";
+import { nref } from "../../services/firebase";
 import { createRoom, joinRoom } from "../../services/roomService";
 import { useAuth } from "../../hooks/useAuth";
 import { generateMockRoom } from "../../lib/testUtils";
@@ -27,7 +27,7 @@ export const Lobby = () => {
 
   useEffect(() => {
     // 監聽房間列表 (抓取最新的 50 個房間)
-    const roomsRef = query(ref(db, "rooms"), limitToLast(50));
+    const roomsRef = query(nref("rooms"), limitToLast(50));
     const unsubscribe = onValue(roomsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();

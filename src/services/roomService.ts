@@ -1,5 +1,5 @@
-import { ref, set, get, update, remove } from "firebase/database";
-import { db } from "./firebase";
+import { set, get, update, remove } from "firebase/database";
+import { nref } from "./firebase";
 
 const generateRoomId = () => {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -7,7 +7,7 @@ const generateRoomId = () => {
 
 export const createRoom = async (hostId: string, hostName: string): Promise<string> => {
   const roomId = generateRoomId();
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = nref(`rooms/${roomId}`);
   
   const snapshot = await get(roomRef);
   if (snapshot.exists()) {
@@ -54,7 +54,7 @@ export const createRoom = async (hostId: string, hostName: string): Promise<stri
 };
 
 export const joinRoom = async (roomId: string, userId: string, userName: string): Promise<string> => {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = nref(`rooms/${roomId}`);
   const snapshot = await get(roomRef);
   
   if (!snapshot.exists()) {
@@ -71,7 +71,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     if (userName && roomData.players[userId].name !== userName) {
       patch[`rooms/${roomId}/players/${userId}/name`] = userName;
     }
-    await update(ref(db), patch);
+    await update(nref(), patch);
     return roomId;
   }
 
@@ -91,12 +91,12 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     seat: null
   };
 
-  await update(ref(db), updates);
+  await update(nref(), updates);
   return roomId;
 };
 
 export const leaveRoom = async (roomId: string, userId: string) => {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = nref(`rooms/${roomId}`);
   const snapshot = await get(roomRef);
   if (!snapshot.exists()) return;
 
@@ -110,43 +110,43 @@ export const leaveRoom = async (roomId: string, userId: string) => {
   }
 
   // 否則僅標記為離線
-  await update(ref(db), { [`rooms/${roomId}/players/${userId}/isOnline`]: false });
+  await update(nref(), { [`rooms/${roomId}/players/${userId}/isOnline`]: false });
 };
 
 export const setPlayerSeat = async (roomId: string, userId: string, seatIndex: number | null) => {
-  await update(ref(db), { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex });
+  await update(nref(), { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex });
 };
 
 export const updateRoomScript = async (roomId: string, scriptId: string) => {
-  await update(ref(db), { [`rooms/${roomId}/public/scriptId`]: scriptId });
+  await update(nref(), { [`rooms/${roomId}/public/scriptId`]: scriptId });
 };
 
 export const updateSeatCount = async (roomId: string, seatCount: number) => {
-  await update(ref(db), { [`rooms/${roomId}/public/seatCount`]: seatCount });
+  await update(nref(), { [`rooms/${roomId}/public/seatCount`]: seatCount });
 };
 
 export const setGrimoireRole = async (roomId: string, seatIndex: number, roleId: string | null) => {
   const path = `rooms/${roomId}/private/grimoire/${seatIndex}`;
   if (roleId === null) {
-    await remove(ref(db, path));
+    await remove(nref(path));
   } else {
-    await update(ref(db), { [path]: { roleId } });
+    await update(nref(), { [path]: { roleId } });
   }
 };
 
 export const setGrimoireBluff = async (roomId: string, index: number, roleId: string | null) => {
-  await update(ref(db), { [`rooms/${roomId}/private/bluffs/${index}`]: roleId });
+  await update(nref(), { [`rooms/${roomId}/private/bluffs/${index}`]: roleId });
 };
 
 export const setCustomScript = async (roomId: string, scriptData: any) => {
-  await update(ref(db), { 
+  await update(nref(), { 
     [`rooms/${roomId}/public/scriptId`]: "custom",
     [`rooms/${roomId}/public/customScript`]: scriptData
   });
 };
 
 export const updateDistribution = async (roomId: string, distribution: number[]) => {
-  await update(ref(db), { [`rooms/${roomId}/public/distribution`]: distribution });
+  await update(nref(), { [`rooms/${roomId}/public/distribution`]: distribution });
 };
 
 export const applySetupToRoom = async (roomId: string, setup: any, setupId?: string) => {
@@ -172,19 +172,19 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
   updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs !== undefined ? setup.bluffs : null;
   updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire !== undefined ? setup.grimoire : null;
   
-  await update(ref(db), updates);
+  await update(nref(), updates);
 };
 
 export const updateRoomSettings = async (roomId: string, settings: any) => {
-  await update(ref(db), { [`rooms/${roomId}/public/settings`]: settings });
+  await update(nref(), { [`rooms/${roomId}/public/settings`]: settings });
 };
 
 export const updateFabled = async (roomId: string, fabled: string[]) => {
-  await update(ref(db), { [`rooms/${roomId}/public/fabled`]: fabled });
+  await update(nref(), { [`rooms/${roomId}/public/fabled`]: fabled });
 };
 
 export const updateFabledIndex = async (roomId: string, index: number, roleId: string | null) => {
-  await update(ref(db), { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
+  await update(nref(), { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
 };
 
 export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, seatCount: number, direction: 'cw' | 'ccw') => {
@@ -193,7 +193,7 @@ export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, se
     const sourceSeat = direction === 'cw' ? (i === 1 ? seatCount : i - 1) : (i === seatCount ? 1 : i + 1);
     updates[`rooms/${roomId}/private/grimoire/${i}`] = grimoireState[sourceSeat] || null;
   }
-  await update(ref(db), updates);
+  await update(nref(), updates);
 };
 
 export const distributeRoles = async (roomId: string, players: Record<string, any>, grimoire: any, bluffs: any[], script: any, settings: any) => {
@@ -212,7 +212,7 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
     }
   });
 
-  const hostSnapshot = await get(ref(db, `rooms/${roomId}/public/hostId`));
+  const hostSnapshot = await get(nref(`rooms/${roomId}/public/hostId`));
   const hostId = hostSnapshot.val();
 
   Object.entries(players).forEach(([uid, p]) => {
@@ -286,7 +286,7 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
     updates[`rooms/${roomId}/private/notes/${hostId}`] = hostNotes;
 
     // 複製說書人在真相的筆記標記到舞台中央
-    const grimoireTokensSnapshot = await get(ref(db, `rooms/${roomId}/private/grimoireTokens/${hostId}`));
+    const grimoireTokensSnapshot = await get(nref(`rooms/${roomId}/private/grimoireTokens/${hostId}`));
     const hostGrimoireTokens = grimoireTokensSnapshot.val() || null;
     updates[`rooms/${roomId}/private/seatTokens/${hostId}`] = hostGrimoireTokens;
   }
@@ -294,7 +294,7 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
   // 標記角色已分配（鎖定會影響排版的說書人操作，直到收回角色）
   updates[`rooms/${roomId}/public/rolesDistributed`] = true;
 
-  await update(ref(db), updates);
+  await update(nref(), updates);
 
   // 記錄復盤事件
   import("./replayService").then(({ recordReplayEvent }) => {
@@ -315,21 +315,21 @@ export const recallRoles = async (roomId: string, players: Record<string, any>) 
     updates[`rooms/${roomId}/private/notes/${uid}`] = null; // Clear all notes or just their own seat? Let's just clear roleId. Wait, better clear all notes? The user said "玩家的座位也自動放上...". If we recall roles, maybe they want to clear their role from the notes. I'll just clear the roleId from players so it counts as recalled.
   });
   updates[`rooms/${roomId}/public/rolesDistributed`] = false;
-  await update(ref(db), updates);
+  await update(nref(), updates);
 };
 
 export const updateSeatStatus = async (roomId: string, seatIndex: number, status: Partial<import('../data/types').SeatStatus>) => {
-  const currentRef = ref(db, `rooms/${roomId}/public/seatStatus/${seatIndex}`);
+  const currentRef = nref(`rooms/${roomId}/public/seatStatus/${seatIndex}`);
   const snapshot = await get(currentRef);
   const current = snapshot.val() || {};
-  await update(ref(db), { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
+  await update(nref(), { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
 
   // 記錄復盤事件 (若生死狀態改變)
   if (status.isDead !== undefined) {
     import("./replayService").then(async ({ recordReplayEvent }) => {
       const [playersSnap, pubSnap] = await Promise.all([
-        get(ref(db, `rooms/${roomId}/players`)),
-        get(ref(db, `rooms/${roomId}/public`)),
+        get(nref(`rooms/${roomId}/players`)),
+        get(nref(`rooms/${roomId}/public`)),
       ]);
       const players = playersSnap.val() || {};
       const pub = pubSnap.val() || {};
@@ -355,23 +355,23 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
 };
 
 export const updateVotingState = async (roomId: string, stateUpdate: Partial<import('../data/types').VotingState>) => {
-  const currentRef = ref(db, `rooms/${roomId}/public/votingState`);
+  const currentRef = nref(`rooms/${roomId}/public/votingState`);
   const snapshot = await get(currentRef);
   const current = snapshot.val() || {};
-  await update(ref(db), { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
+  await update(nref(), { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
 };
 
 export const updatePlayerVote = async (roomId: string, userUid: string, vote: boolean) => {
-  await update(ref(db), { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
+  await update(nref(), { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
 };
 
 
 export const addVoteRecord = async (roomId: string, record: any) => {
-  const currentRef = ref(db, `rooms/${roomId}/public/voteHistory`);
+  const currentRef = nref(`rooms/${roomId}/public/voteHistory`);
   const snapshot = await get(currentRef);
   const history = snapshot.val() || [];
   history.push(record);
-  await update(ref(db), { [`rooms/${roomId}/public/voteHistory`]: history });
+  await update(nref(), { [`rooms/${roomId}/public/voteHistory`]: history });
 
   // 記錄復盤事件
   import("./replayService").then(({ recordReplayEvent }) => {
@@ -386,7 +386,7 @@ export const addVoteRecord = async (roomId: string, record: any) => {
 };
 
 export const updateGameTime = async (roomId: string, dayNumber: number, timePhase: 'day' | 'night') => {
-  await update(ref(db), { 
+  await update(nref(), { 
     [`rooms/${roomId}/public/dayNumber`]: dayNumber,
     [`rooms/${roomId}/public/timePhase`]: timePhase,
     [`rooms/${roomId}/public/isNight`]: timePhase === 'night' 

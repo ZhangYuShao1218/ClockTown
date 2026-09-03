@@ -111,10 +111,10 @@ export const Room = () => {
   useEffect(() => {
     if (!user || !id) return;
 
-    import("firebase/database").then(({ onDisconnect, ref, update }) => {
-      import("../../services/firebase").then(({ db }) => {
-        const playerOnlineRef = ref(db, `rooms/${id}/players/${user.uid}/isOnline`);
-        update(ref(db), { [`rooms/${id}/players/${user.uid}/isOnline`]: true });
+    import("firebase/database").then(({ onDisconnect, update }) => {
+      import("../../services/firebase").then(({ nref }) => {
+        const playerOnlineRef = nref(`rooms/${id}/players/${user.uid}/isOnline`);
+        update(nref(), { [`rooms/${id}/players/${user.uid}/isOnline`]: true });
         onDisconnect(playerOnlineRef).set(false);
       });
     });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { ref, onValue } from "firebase/database";
-import { db } from "../services/firebase";
+import { onValue } from "firebase/database";
+import { nref } from "../services/firebase";
 
 export const useGameState = (roomId: string | undefined) => {
   const [gameState, setGameState] = useState<any>(null);
@@ -13,7 +13,7 @@ export const useGameState = (roomId: string | undefined) => {
       return;
     }
 
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = nref(`rooms/${roomId}`);
     
     // 遵守 Firebase Best Practices: 綁定 onValue
     const unsubscribe = onValue(
