@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { getDatabase, ref } from "firebase/database";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -18,7 +18,10 @@ const app = initializeApp(firebaseConfig);
 /**
  * App Check：只有從「已註冊網域」載入的頁面才拿得到通行 token，
  * 別人 clone 這份 code 連到本專案的 Firebase 會被 RTDB 拒絕。
- * VITE_RECAPTCHA_SITE_KEY 是公開值（可進 bundle）；留空則不啟用（例如自架者未設定時）。
+ * 使用 reCAPTCHA Enterprise（Firebase Console 已不再提供傳統 v3 註冊選項）。
+ * Firebase Console 的 App Check provider 也必須是 reCAPTCHA Enterprise。
+ * VITE_RECAPTCHA_SITE_KEY 放 Enterprise 網站金鑰的 site key，是公開值（可進 bundle）；
+ * 留空則不啟用（例如自架者未設定時）。
  */
 const recaptchaSiteKey = (import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined)?.trim();
 if (recaptchaSiteKey) {
@@ -31,7 +34,7 @@ if (recaptchaSiteKey) {
       debugToken || true;
   }
   initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+    provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
     isTokenAutoRefreshEnabled: true,
   });
 }
