@@ -364,7 +364,8 @@ export const Room = () => {
                 <>
                   <a href="/script-tool" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-purple-950/60 hover:text-purple-100 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">劇本工具</a>
                   <a href="https://wiki.bloodontheclocktower.com/Main_Page" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方WIKI</a>
-                  <a href="https://clocktower.gstonegames.com/script_tool/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方腳本工具</a>
+                  <a href="https://clocktower.gstonegames.com/script_tool/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">官方劇本工具</a>
+                  <a href="https://wiki.biligame.com/jbzlbwgwjcygf/%E5%89%A7%E6%9C%AC%E6%A3%80%E7%B4%A2" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-sky-100 hover:bg-blue-950/60 hover:text-blue-200 text-center font-bold tracking-widest text-sm border-b border-white/10 transition-colors">社群劇本</a>
                   <a href="https://anispace.zhangyushao.dev/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2.5 text-amber-400 hover:bg-amber-950/60 hover:text-amber-200 text-center font-bold tracking-widest text-sm transition-colors">AniSpace</a>
                 </>
               )}
