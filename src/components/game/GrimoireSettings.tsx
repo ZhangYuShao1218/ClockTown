@@ -23,6 +23,7 @@ interface GrimoireSettingsProps {
   setIsViewingList: (val: boolean) => void;
   settings: any;
   players: any[];
+  rolesDistributed?: boolean;
 }
 
 export const GrimoireSettings = ({ 
@@ -40,10 +41,15 @@ export const GrimoireSettings = ({
   isViewingList,
   setIsViewingList,
   settings,
-  players
+  players,
+  rolesDistributed = false
 }: GrimoireSettingsProps) => {
+  // 角色已分配後鎖定會影響排版的操作，避免說書人誤觸；按「收回角色」後解除
+  const locked = rolesDistributed;
+  const lockedBtn = "disabled:opacity-40 disabled:cursor-not-allowed";
   const [localScripts, setLocalScripts] = useState<any[]>([]);
   const [newScriptName, setNewScriptName] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
   const [isScriptSelectionOpen, setScriptSelectionOpen] = useState(false);
   const [missingSeatAlert, setMissingSeatAlert] = useState<string | null>(null);
 
@@ -64,11 +70,20 @@ export const GrimoireSettings = ({
     // 如果沒缺，正式分配角色
     const playersDict: Record<string, any> = {};
     players.forEach(p => playersDict[p.uid] = p);
-    await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script, settings || {});
+    await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script, safeSettings);
     setMissingSeatAlert("分配完成！已將角色與資訊發送給所有玩家。"); // Using the same alert just to show success, but maybe without cancel? Wait, AlertDialog has confirm button.
   };
   const [t, o, m, d, v = 0] = distribution || [0, 0, 0, 0, 0];
-  const safeSettings = settings || { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false };
+  const rawSettings = settings || {};
+  const privateMsgMode: 'none' | 'adjacent' | 'all' =
+    rawSettings.privateMsgMode ?? (rawSettings.allCanMsg ? 'all' : rawSettings.adjacentCanMsg ? 'adjacent' : 'none');
+  const safeSettings = {
+    evilKnowsEachOther: rawSettings.evilKnowsEachOther ?? true,
+    evilCanMsg: rawSettings.evilCanMsg ?? false,
+    demonKnowsBluffs: rawSettings.demonKnowsBluffs ?? true,
+    minionKnowsBluffs: rawSettings.minionKnowsBluffs ?? true,
+    privateMsgMode,
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem('botc_local_scripts');
@@ -79,45 +94,48 @@ export const GrimoireSettings = ({
 
   useEffect(() => {
     // Only auto-save if the current script is active AND Firebase has fully synced it
-    if (activeScriptId && activeScriptId === activeSetupId) {
-      setLocalScripts(prev => {
-        let isChanged = false;
-        const updated = prev.map(s => {
-          if (s.id === activeScriptId) {
-            isChanged = true;
-            return {
-              ...s,
-              data: { scriptId, seatCount, distribution, bluffs, grimoire: grimoireState, customScript, settings: safeSettings }
-            };
-          }
-          return s;
-        });
-        if (isChanged) {
-          localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
-        }
-        return updated;
-      });
-    }
+    if (!activeScriptId || activeScriptId !== activeSetupId) return;
+    const nextData = JSON.stringify({ scriptId, seatCount, distribution, bluffs, grimoire: grimoireState, customScript, settings: safeSettings });
+    setLocalScripts(prev => {
+      const target = prev.find(s => s.id === activeScriptId);
+      // 內容未變就不要重新設定 state，避免上游傳入不穩定參考造成無限 re-render
+      if (!target || JSON.stringify(target.data) === nextData) return prev;
+      const updated = prev.map(s => s.id === activeScriptId ? { ...s, data: JSON.parse(nextData) } : s);
+      localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+      return updated;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scriptId, seatCount, distribution, bluffs, grimoireState, customScript, settings, activeScriptId, activeSetupId]);
 
   const handleAddScript = () => {
-    if (!newScriptName.trim()) return;
+    const name = newScriptName.trim();
+    if (!name) {
+      setAddError("請先輸入劇本名稱");
+      return;
+    }
+    if (localScripts.some(s => s.name === name)) {
+      setAddError("已有同名劇本，請換一個名稱");
+      return;
+    }
+    setAddError(null);
     const newScript = {
       id: Date.now().toString(),
-      name: newScriptName.trim(),
-      data: { 
-        scriptId: 'trouble_brewing', 
-        seatCount: 12, 
-        distribution: [7,2,2,1], 
-        bluffs: [null,null,null], 
-        grimoire: {}, 
+      name,
+      data: {
+        scriptId: 'trouble_brewing',
+        seatCount: 12,
+        distribution: [7,2,2,1],
+        bluffs: [null,null,null],
+        grimoire: {},
         customScript: null,
         settings: { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false }
       }
     };
-    const updated = [...localScripts, newScript];
-    setLocalScripts(updated);
-    localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+    setLocalScripts(prev => {
+      const updated = [...prev, newScript];
+      localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+      return updated;
+    });
     setNewScriptName("");
   };
 
@@ -167,9 +185,12 @@ export const GrimoireSettings = ({
     }
   };
 
-  const handleSettingToggle = async (key: string) => {
-    const newSettings = { ...safeSettings, [key]: !safeSettings[key] };
-    await updateRoomSettings(roomId, newSettings);
+  type BoolSettingKey = 'evilKnowsEachOther' | 'evilCanMsg' | 'demonKnowsBluffs' | 'minionKnowsBluffs';
+  const handleSettingToggle = async (key: BoolSettingKey) => {
+    await updateRoomSettings(roomId, { ...safeSettings, [key]: !safeSettings[key] });
+  };
+  const handleMsgModeChange = async (mode: 'none' | 'adjacent' | 'all') => {
+    await updateRoomSettings(roomId, { ...safeSettings, privateMsgMode: mode });
   };
 
   const handleExportScript = () => {
@@ -207,16 +228,20 @@ export const GrimoireSettings = ({
           <h2 className="text-base font-bold text-white/80 uppercase tracking-widest">選擇劇本</h2>
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
-          <div className="flex space-x-2">
-            <input 
-              value={newScriptName} 
-              onChange={e => setNewScriptName(e.target.value)} 
-              placeholder="自訂新劇本名稱..." 
-              className="flex-1 bg-white/5 border border-white/30 rounded px-2 py-1 text-base text-white focus:outline-none focus:border-primary/50" 
-            />
-            <button onClick={handleAddScript} className="px-3 bg-blue-600/80 hover:bg-blue-500 rounded text-base text-white font-bold transition-colors">新增</button>
+          <div>
+            <div className="flex space-x-2">
+              <input
+                value={newScriptName}
+                onChange={e => { setNewScriptName(e.target.value); if (addError) setAddError(null); }}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddScript(); }}
+                placeholder="自訂新劇本名稱..."
+                className={`flex-1 bg-white/5 border rounded px-2 py-1 text-base text-white focus:outline-none ${addError ? 'border-red-500/70 focus:border-red-500' : 'border-white/30 focus:border-primary/50'}`}
+              />
+              <button onClick={handleAddScript} className="px-3 bg-blue-600/80 hover:bg-blue-500 rounded text-base text-white font-bold transition-colors">新增</button>
+            </div>
+            {addError && <p className="mt-1.5 text-sm text-red-400">{addError}</p>}
           </div>
-          
+
           <div className="space-y-2">
             {localScripts.map(s => {
               const baseScript = AllScripts[s.data?.scriptId];
@@ -252,30 +277,56 @@ export const GrimoireSettings = ({
     );
   }
 
-  const renderSettingsBlock = () => (
-    <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-3 space-y-3 mt-4 shadow-md">
+  const renderSettingsBlock = () => {
+    const boolItems: { key: BoolSettingKey; label: string }[] = [
+      { key: 'evilKnowsEachOther', label: '邪惡相認' },
+      { key: 'evilCanMsg', label: '邪惡私訊' },
+      { key: 'demonKnowsBluffs', label: '惡魔得知偽裝' },
+      { key: 'minionKnowsBluffs', label: '爪牙得知偽裝' },
+    ];
+    const msgModes: { value: 'none' | 'adjacent' | 'all'; label: string }[] = [
+      { value: 'none', label: '禁止私訊' },
+      { value: 'adjacent', label: '鄰近玩家' },
+      { value: 'all', label: '所有玩家' },
+    ];
+    return (
+    <div className={`bg-slate-900/50 border border-slate-600 rounded-lg p-3 space-y-3 mt-4 shadow-md ${locked ? 'opacity-50 pointer-events-none' : ''}`}>
       <h3 className="text-base font-bold text-slate-300 border-b border-slate-700 pb-2">遊戲設定</h3>
       <div className="grid grid-cols-2 gap-3">
-        {[
-          { key: 'evilKnowsEachOther', label: '邪惡相認' },
-          { key: 'evilCanMsg', label: '邪惡私訊' },
-          { key: 'allCanMsg', label: '所有玩家私訊' },
-          { key: 'adjacentCanMsg', label: '鄰近玩家私訊' }
-        ].map(setting => (
-          <div 
-            key={setting.key} 
+        {boolItems.map(setting => (
+          <div
+            key={setting.key}
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => handleSettingToggle(setting.key)}
           >
-            <div className={`w-5 h-5 flex items-center justify-center rounded border transition-colors shadow-sm ${safeSettings[setting.key] ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-800 border-slate-600 text-transparent group-hover:border-slate-400'}`}>
+            <div className={`w-5 h-5 flex items-center justify-center rounded border transition-colors shadow-sm shrink-0 ${safeSettings[setting.key] ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-800 border-slate-600 text-transparent group-hover:border-slate-400'}`}>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
             </div>
             <span className={`text-base font-medium transition-colors ${safeSettings[setting.key] ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'}`}>{setting.label}</span>
           </div>
         ))}
       </div>
+
+      <div className="pt-2 border-t border-slate-700">
+        <div className="text-base font-bold text-slate-300 mb-2">玩家私訊範圍</div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {msgModes.map(mode => (
+            <div
+              key={mode.value}
+              className="flex items-center space-x-3 cursor-pointer group"
+              onClick={() => handleMsgModeChange(mode.value)}
+            >
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm shrink-0 ${safeSettings.privateMsgMode === mode.value ? 'border-yellow-400' : 'border-slate-600 group-hover:border-slate-400'}`}>
+                {safeSettings.privateMsgMode === mode.value && <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />}
+              </div>
+              <span className={`text-base font-medium transition-colors ${safeSettings.privateMsgMode === mode.value ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'}`}>{mode.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden">
@@ -298,9 +349,10 @@ export const GrimoireSettings = ({
           <div className="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-600 shadow-sm relative">
             <span className="text-base font-bold text-slate-300 pr-4 shrink-0">劇本種類</span>
             <div className="relative w-full max-w-[180px]">
-              <button 
+              <button
                 onClick={() => setScriptSelectionOpen(true)}
-                className="bg-slate-950 border border-slate-600 hover:border-slate-400 rounded px-3 py-1.5 text-base font-bold text-white w-full flex justify-between items-center transition-colors"
+                disabled={locked}
+                className={`bg-slate-950 border border-slate-600 hover:border-slate-400 rounded px-3 py-1.5 text-base font-bold text-white w-full flex justify-between items-center transition-colors ${lockedBtn}`}
               >
                 <span className="truncate">{AllScripts[scriptId]?.name || "未知劇本"}</span>
                 <svg className="w-4 h-4 ml-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -318,17 +370,17 @@ export const GrimoireSettings = ({
           <div className="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-600 shadow-sm">
             <span className="text-base font-bold text-slate-300">總座位數量</span>
             <div className="flex items-center space-x-4">
-              <button onClick={() => handleSeatCountChange(-1)} className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 border border-slate-500 rounded text-xl font-bold text-white shadow-md transition-colors">-</button>
+              <button onClick={() => handleSeatCountChange(-1)} disabled={locked} className={`w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 border border-slate-500 rounded text-xl font-bold text-white shadow-md transition-colors ${lockedBtn}`}>-</button>
               <span className="text-lg font-bold text-white w-6 text-center">{seatCount}</span>
-              <button onClick={() => handleSeatCountChange(1)} className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 border border-slate-500 rounded text-xl font-bold text-white shadow-md transition-colors">+</button>
+              <button onClick={() => handleSeatCountChange(1)} disabled={locked} className={`w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 border border-slate-500 rounded text-xl font-bold text-white shadow-md transition-colors ${lockedBtn}`}>+</button>
             </div>
           </div>
         </div>
 
         <div className="flex space-x-3 pb-4 border-b border-slate-700">
-          <label className="flex-1 text-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg cursor-pointer transition-colors shadow-md">
+          <label className={`flex-1 text-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg cursor-pointer transition-colors shadow-md ${locked ? 'opacity-40 pointer-events-none' : ''}`}>
             匯入劇本
-            <input type="file" accept=".json" onChange={handleImportScript} className="hidden" />
+            <input type="file" accept=".json" onChange={handleImportScript} disabled={locked} className="hidden" />
           </label>
           <button onClick={handleExportScript} className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg transition-colors shadow-md">
             匯出劇本
@@ -351,9 +403,9 @@ export const GrimoireSettings = ({
               <div key={item.idx} className={`flex flex-col items-center justify-center p-3 rounded-lg border ${item.bg} ${item.border}`}>
                 <div className={`text-base font-bold ${item.color} mb-3 tracking-widest`}>{item.label}</div>
                 <div className="flex items-center space-x-4">
-                  <button onClick={() => handleDistChange(item.idx, -1)} className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-base font-bold text-white shadow-md transition-colors">-</button>
+                  <button onClick={() => handleDistChange(item.idx, -1)} disabled={locked} className={`w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-base font-bold text-white shadow-md transition-colors ${lockedBtn}`}>-</button>
                   <span className="text-base font-bold text-white w-4 text-center">{item.count}</span>
-                  <button onClick={() => handleDistChange(item.idx, 1)} className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-base font-bold text-white shadow-md transition-colors">+</button>
+                  <button onClick={() => handleDistChange(item.idx, 1)} disabled={locked} className={`w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-base font-bold text-white shadow-md transition-colors ${lockedBtn}`}>+</button>
                 </div>
               </div>
             ))}
@@ -363,31 +415,40 @@ export const GrimoireSettings = ({
         {renderSettingsBlock()}
 
         <div className="flex space-x-3 mt-4">
-          <button 
+          <button
             onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'cw')}
-            className="flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2"
+            disabled={locked}
+            className={`flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2 ${lockedBtn}`}
           >
             <span>順時針旋轉</span>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-1.5m1.5 0a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8 8 8 0 01-8-8z" /></svg>
           </button>
           
-          <button 
+          <button
             onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'ccw')}
-            className="flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2"
+            disabled={locked}
+            className={`flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2 ${lockedBtn}`}
           >
             <svg className="w-5 h-5 -scale-x-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-1.5m1.5 0a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8 8 8 0 01-8-8z" /></svg>
             <span>逆時針旋轉</span>
           </button>
         </div>
 
+        {locked && (
+          <p className="mt-4 text-sm text-amber-300/90 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2 text-center">
+            角色已分配，排版相關操作已鎖定。按「收回角色」即可解除。
+          </p>
+        )}
+
         <div className="flex space-x-3 mt-2">
-          <button 
+          <button
             onClick={handleDistribute}
-            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 transition-transform hover:scale-[1.02]"
+            disabled={locked}
+            className={`flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg border border-blue-400 transition-transform hover:scale-[1.02] ${lockedBtn}`}
           >
             分配角色
           </button>
-          
+
           <button 
             onClick={async () => {
               const playersDict: Record<string, any> = {};

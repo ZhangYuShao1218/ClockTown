@@ -9,6 +9,7 @@ import { RoleTooltip } from "../common/RoleTooltip";
 import { SeatTokenModal } from './SeatTokenModal';
 import type { SeatToken } from './SeatTokenModal';
 import { AllRoles } from '../../data/roles';
+import { highlightAbility } from '../../lib/highlightAbility';
 
 interface CenterStageProps {
   seats: number[];
@@ -34,6 +35,7 @@ interface CenterStageProps {
   highlightedSeats?: number[];
   replayActorSeat?: number | null;
   replayTargetSeats?: number[];
+  replayEventType?: string;
 }
 
 export const CenterStage = ({ 
@@ -59,8 +61,11 @@ export const CenterStage = ({
   seatTokens = {},
   highlightedSeats = [],
   replayActorSeat = null,
-  replayTargetSeats = []
+  replayTargetSeats = [],
+  replayEventType
 }: CenterStageProps) => {
+  // 局勢紀錄：座位只閃爍外框、不顯示「目標」文字標籤
+  const isSituationReplay = replayEventType === 'SITUATION_LOG';
 
   const [modalOpen, setModalOpen] = useState(false);
   const [targetSeat, setTargetSeat] = useState<number | null>(null);
@@ -280,7 +285,7 @@ export const CenterStage = ({
                   </div>
                   {canSeeBluffs && role && (
                     <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                      <div>{highlightAbility(role.ability)}</div>
                     </div>
                   )}
                   {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
@@ -439,17 +444,19 @@ export const CenterStage = ({
                 className="absolute group z-10"
                 style={style}
               >
-                {/* Seat Highlighting Badge */}
-                {isHighlighted && (
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
-                    {replayActorSeat === seatIndex ? '行動者' : (replayTargetSeats?.includes(seatIndex) ? '目標' : '行動目標')}
+                {/* Seat Highlighting Badge（局勢紀錄不顯示文字，只留外框閃爍） */}
+                {isHighlighted && !isSituationReplay && (replayActorSeat === seatIndex || replayTargetSeats?.includes(seatIndex)) && (
+                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${replayActorSeat === seatIndex ? 'bg-red-600' : 'bg-sky-600'}`}>
+                    {replayActorSeat === seatIndex ? '行動者' : '目標'}
                   </div>
                 )}
-                
-                <div 
+
+                <div
                   onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
-                    isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
+                    isHighlighted ? (replayActorSeat === seatIndex
+                      ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 '
+                      : 'ring-4 ring-sky-400 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(56,189,248,0.9)] scale-110 z-30 ') : ''
                   }${
                     guessedRole 
                       ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
@@ -654,11 +661,13 @@ export const CenterStage = ({
                 style={style}
               >
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto">
-                  <div 
+                  <div
                     className={`cursor-pointer font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black transition-colors ${
-                      player && player.uid === userUid 
-                        ? 'border-emerald-500 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
-                        : 'border-white/30 text-white hover:border-white/50'
+                      player && player.uid === userUid
+                        ? 'border-emerald-500 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                        : player
+                          ? 'border-sky-500 text-sky-100 shadow-[0_0_15px_rgba(56,189,248,0.5)]'
+                          : 'border-white/30 text-white hover:border-white/50'
                     }`}
                     onClick={(e) => { e.stopPropagation(); setActiveDropdownSeat(activeDropdownSeat === seatIndex ? null : seatIndex); }}
                   >

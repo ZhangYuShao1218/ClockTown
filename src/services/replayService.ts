@@ -12,6 +12,7 @@ export type ReplayEventType =
   | 'ROLE_ASSIGNED'
   | 'PHASE_CHANGE'
   | 'ACTION_LOG'
+  | 'SITUATION_LOG'
   | 'NOMINATION'
   | 'VOTE_RESULT'
   | 'EXECUTION'

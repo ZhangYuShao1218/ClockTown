@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal } from '../common/Modal';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export type SeatTokenType = 'icon' | 'text' | 'image';
 export interface SeatToken {
@@ -17,23 +17,31 @@ interface SeatTokenModalProps {
   onSave: (token: SeatToken) => void;
 }
 
-const PRESET_TOKENS = [
-  { image: '/reminders/is_drunk.png', text: '是酒鬼' },
-  { image: '/reminders/no_evil.png', text: '禁止邪惡' },
+/** 常用座位標記。image 可為 /reminders/*.png 或 /character/*.png。 */
+const PRESET_TOKENS: { image: string; text: string }[] = [
   { image: '/reminders/good.png', text: '善良' },
-  { image: '/reminders/evil.png', text: '邪惡' },
+  { image: '/character/character_spy_minion.png', text: '邪惡' },
+  { image: '/character/character_imp_demon.png', text: '是惡魔' },
+  { image: '/character/character_baron_minion.png', text: '是爪牙' },
+  { image: '/character/character_fortune_teller_townsfolk.png', text: '干擾項' },
   { image: '/reminders/poisoned.png', text: '中毒' },
-  { image: '/reminders/protected.png', text: '受保護' },
-  { image: '/reminders/dead.png', text: '死亡' },
+  { image: '/reminders/is_drunk.png', text: '是酒鬼' },
   { image: '/reminders/madness.png', text: '瘋狂' },
+  { image: '/reminders/protected.png', text: '保護' },
 ];
 
 export const SeatTokenModal: React.FC<SeatTokenModalProps> = ({ isOpen, onClose, onSave }) => {
   const [textVal, setTextVal] = useState('');
 
+  useEffect(() => {
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    if (isOpen) window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const handleImageClick = (item: { image: string, text: string }) => {
+  const handleImageClick = (item: { image: string; text: string }) => {
     onSave({ id: Date.now().toString(), type: 'image', content: item.text, image: item.image, text: item.text });
     onClose();
   };
@@ -47,51 +55,83 @@ export const SeatTokenModal: React.FC<SeatTokenModalProps> = ({ isOpen, onClose,
     }
   };
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="" noOverlay={true} maxWidth="max-w-md">
-      <div className="px-4 pb-0 -mt-5 -mb-2 flex flex-col items-center">
-        {/* Top: Text Input */}
-        <form onSubmit={handleTextSubmit} className="flex w-full gap-2 mb-6">
-          <input 
-            type="text" 
-            value={textVal} 
-            onChange={(e) => setTextVal(e.target.value)} 
-            placeholder="輸入任意文字筆記..."
-            className="flex-1 text-lg px-4 py-2 bg-slate-800 border-2 border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            autoFocus
-          />
-          <button type="submit" disabled={!textVal.trim()} className="px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg shadow-md disabled:opacity-50 transition-colors whitespace-nowrap">
-            確定
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg overflow-hidden rounded-2xl border-2 border-amber-600/50 bg-gradient-to-b from-[#1c1712] to-[#141009] shadow-[0_0_60px_rgba(0,0,0,0.75),0_0_0_1px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.06)] animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-amber-900/30 bg-white/[0.03] px-5 py-3.5">
+          <h2 className="font-serif text-lg font-bold tracking-widest text-amber-100/90">座位筆記</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md px-2 py-0.5 text-white/35 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label="關閉"
+          >
+            ✕
           </button>
-        </form>
-
-        <div className="w-full border-t border-slate-700 mb-6 relative">
-          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-slate-900 px-3 text-sm text-slate-400">
-            或選擇常用標記
-          </span>
         </div>
 
-        {/* Bottom: Preset Icons */}
-        <div className="grid grid-cols-4 gap-4 w-full">
-          {PRESET_TOKENS.map((item, idx) => (
-            <button 
-              key={idx} 
-              onClick={() => handleImageClick(item)}
-              className="relative flex flex-col items-center justify-center w-full aspect-square bg-slate-800 rounded-full border-2 border-slate-600 hover:border-amber-400 hover:scale-105 transition-all shadow-md group overflow-hidden"
-            >
-              <img src={item.image} alt={item.text} className="w-[85%] h-[85%] object-contain -mt-[16%] drop-shadow-md group-hover:scale-110 transition-transform" />
-              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-md">
-                <path id={`curve-${idx}`} d="M 12 55 A 38 38 0 0 0 88 55" fill="transparent" />
-                <text className="fill-amber-200 font-bold tracking-[4px]" style={{ fontSize: '21px', filter: 'drop-shadow(0px 2px 2px rgba(0,0,0,0.8))' }}>
-                  <textPath href={`#curve-${idx}`} startOffset="50%" textAnchor="middle">
+        <div className="flex flex-col gap-5 px-5 py-5">
+          {/* 自訂文字筆記 */}
+          <div>
+            <label className="mb-2 block text-sm font-bold uppercase tracking-widest text-amber-200/75">
+              自訂文字
+            </label>
+            <form onSubmit={handleTextSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={textVal}
+                onChange={(e) => setTextVal(e.target.value)}
+                placeholder="輸入任意文字筆記…"
+                className="min-w-0 flex-1 rounded-lg border border-amber-900/30 bg-black/40 px-4 py-2.5 text-base text-white placeholder-white/25 shadow-inner transition-colors focus:border-amber-500/60 focus:outline-none"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={!textVal.trim()}
+                className="shrink-0 rounded-lg border border-amber-500/60 bg-amber-600 px-6 py-2.5 text-base font-extrabold tracking-wider text-white shadow-md transition-colors hover:bg-amber-500 disabled:opacity-35"
+              >
+                加入
+              </button>
+            </form>
+          </div>
+
+          {/* 常用標記 */}
+          <div>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="text-sm font-bold uppercase tracking-widest text-amber-200/75">常用標記</span>
+              <span className="h-px flex-1 bg-amber-900/30" />
+            </div>
+            <div className="grid grid-cols-5 gap-x-2 gap-y-4">
+              {PRESET_TOKENS.map((item) => (
+                <button
+                  key={item.text}
+                  onClick={() => handleImageClick(item)}
+                  className="group flex flex-col items-center gap-1.5 rounded-lg p-1 transition-colors hover:bg-white/5"
+                  title={item.text}
+                >
+                  <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full border-2 border-amber-700/60 bg-gradient-to-b from-black/55 to-black/25 shadow-[0_2px_8px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(0,0,0,0.4)] transition-all group-hover:border-amber-400 group-hover:shadow-amber-500/30">
+                    <img
+                      src={item.image}
+                      alt={item.text}
+                      className="h-[82%] w-[82%] object-contain drop-shadow transition-transform group-hover:scale-110"
+                    />
+                  </span>
+                  <span className="text-[15px] font-bold leading-none text-white/90 transition-colors group-hover:text-amber-200">
                     {item.text}
-                  </textPath>
-                </text>
-              </svg>
-            </button>
-          ))}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </Modal>
+    </div>,
+    document.body
   );
 };

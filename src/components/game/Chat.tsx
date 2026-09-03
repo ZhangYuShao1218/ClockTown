@@ -15,9 +15,11 @@ interface ChatProps {
   settings?: any;
   seatCount?: number;
   onUnreadCountChange?: (count: number) => void;
+  /** 面板實際顯示中（抽屜展開且在聊天分頁）才會把當前頻道標記為已讀 */
+  isVisible?: boolean;
 }
 
-export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, isEvil, settings, seatCount = 15, onUnreadCountChange }: ChatProps) => {
+export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, isEvil, settings, seatCount = 15, onUnreadCountChange, isVisible = true }: ChatProps) => {
   const [activeChannel, setActiveChannel] = useState<string>('town_square');
   const [inputText, setInputText] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,16 +39,27 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
   }
 
   const actualSeatCount = settings?.seatCount || seatCount;
-  
+
+  // 私訊範圍：'none' | 'adjacent' | 'all'（相容舊房的 allCanMsg / adjacentCanMsg）
+  const privateMsgMode: 'none' | 'adjacent' | 'all' =
+    settings?.privateMsgMode ?? (settings?.allCanMsg ? 'all' : settings?.adjacentCanMsg ? 'adjacent' : 'none');
+
+  const mySeat = players.find(player => player.uid === userUid)?.seat ?? null;
+  const isAdjacentSeat = (a: number | null | undefined, b: number | null | undefined) => {
+    if (a == null || b == null) return false;
+    const d = Math.abs(a - b);
+    return d === 1 || d === actualSeatCount - 1;
+  };
+
   // Create an array for all seats 1 to N
   for (let i = 1; i <= actualSeatCount; i++) {
     const p = players.find(player => player.seat === i);
-    
+
     if (p) {
       if (hostPlayer && p.uid === hostPlayer.uid) continue;
-      
+
       const isSelf = p.uid === userUid;
-      const canPrivateMsg = isHost || settings?.allCanMsg;
+      const canPrivateMsg = isHost || privateMsgMode === 'all' || (privateMsgMode === 'adjacent' && isAdjacentSeat(mySeat, p.seat));
       const disabled = isSelf || !canPrivateMsg;
       
       let nameLabel = `${i}. ${p.name}`;
@@ -76,9 +89,9 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     if (hostPlayer && p.uid === hostPlayer.uid) return;
     
     const isSelf = p.uid === userUid;
-    const canPrivateMsg = isHost || settings?.allCanMsg;
+    const canPrivateMsg = isHost || privateMsgMode === 'all';
     const disabled = isSelf || !canPrivateMsg;
-    
+
     let nameLabel = `旁觀者 - ${p.name}`;
     if (isSelf) nameLabel += ' (你)';
     else if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
@@ -107,8 +120,9 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
   const [messagesByChannel, setMessagesByChannel] = useState<Record<string, any[]>>({});
   const [lastRead, setLastRead] = useState<Record<string, number>>({});
 
-  // Sync availableChannels to string so we can use it in dependency array safely
-  const availableChannelsStr = availableChannels.map(c => c.id).join(',');
+  // Sync availableChannels to string so we can use it in dependency array safely.
+  // 一併帶入 disabled 狀態，讓頻道由停用轉為開放時能重新訂閱。
+  const availableChannelsStr = availableChannels.map(c => `${c.id}:${c.disabled ? 0 : 1}`).join(',');
 
   useEffect(() => {
     if (!roomId) return;
@@ -138,12 +152,14 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
   }, [roomId, availableChannelsStr, userUid, isHost, hostPlayer?.uid]);
 
   useEffect(() => {
-    // When active channel changes, mark it as read
+    // 只有面板實際顯示中才標記已讀；抽屜收起時即使停在該頻道也不算已讀。
+    // isVisible 由 false→true（抽屜展開）時也會觸發，補標當前頻道為已讀。
+    if (!isVisible) return;
     setLastRead(prev => ({ ...prev, [activeChannel]: Date.now() }));
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
-  }, [activeChannel, messagesByChannel[activeChannel]]);
+  }, [activeChannel, messagesByChannel[activeChannel], isVisible]);
 
   const [totalUnread, setTotalUnread] = useState(0);
 

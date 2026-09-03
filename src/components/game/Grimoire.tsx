@@ -4,6 +4,7 @@ import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
+import { highlightAbility } from "../../lib/highlightAbility";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { SeatTokenModal } from './SeatTokenModal';
 import type { SeatToken } from './SeatTokenModal';
@@ -27,6 +28,7 @@ interface GrimoireProps {
   highlightedSeats?: number[];
   replayActorSeat?: number | null;
   replayTargetSeats?: number[];
+  replayEventType?: string;
 }
 
 export const Grimoire = ({ 
@@ -47,8 +49,11 @@ export const Grimoire = ({
   seatTokens = {},
   highlightedSeats = [],
   replayActorSeat = null,
-  replayTargetSeats = []
+  replayTargetSeats = [],
+  replayEventType
 }: GrimoireProps) => {
+  // 局勢紀錄：座位只閃爍外框、不顯示「目標」文字標籤
+  const isSituationReplay = replayEventType === 'SITUATION_LOG';
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
   const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
@@ -182,7 +187,7 @@ export const Grimoire = ({
                   </div>
                   {role && (
                     <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div dangerouslySetInnerHTML={{ __html: role.abilityHTML || role.ability }} />
+                      <div>{highlightAbility(role.ability)}</div>
                     </div>
                   )}
                   {role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
@@ -315,16 +320,18 @@ export const Grimoire = ({
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
               >
-                {/* Seat Highlighting Badge */}
-                {isHighlighted && (
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40">
-                    {replayActorSeat === seatIndex ? '行動者' : (replayTargetSeats?.includes(seatIndex) ? '目標' : '行動目標')}
+                {/* Seat Highlighting Badge（局勢紀錄不顯示文字，只留外框閃爍） */}
+                {isHighlighted && !isSituationReplay && (replayActorSeat === seatIndex || replayTargetSeats?.includes(seatIndex)) && (
+                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${replayActorSeat === seatIndex ? 'bg-red-600' : 'bg-sky-600'}`}>
+                    {replayActorSeat === seatIndex ? '行動者' : '目標'}
                   </div>
                 )}
 
                 <div onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: role, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                     className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
-                      isHighlighted ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 ' : ''
+                      isHighlighted ? (replayActorSeat === seatIndex
+                        ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 '
+                        : 'ring-4 ring-sky-400 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(56,189,248,0.9)] scale-110 z-30 ') : ''
                     }${
                       role 
                         ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
@@ -497,7 +504,11 @@ export const Grimoire = ({
                 style={style}
               >
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max text-center z-50">
-                  <div className="font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border border-white/30 shadow-[0_0_10px_rgba(0,0,0,1)] text-white">
+                  <div className={`font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border shadow-[0_0_10px_rgba(0,0,0,1)] ${
+                    player
+                      ? 'border-sky-500 text-sky-100 shadow-[0_0_15px_rgba(56,189,248,0.5)]'
+                      : 'border-white/30 text-white'
+                  }`}>
                     <span className="text-amber-400 text-lg mr-1 tracking-wider">{seatIndex}.</span>
                     <span className="text-gray-100 text-lg">{player ? player.name : '空座位'}</span>
                   </div>

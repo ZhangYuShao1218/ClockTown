@@ -23,6 +23,13 @@ export const createRoom = async (hostId: string, hostName: string): Promise<stri
       customScript: null,
       seatCount: 12,
       distribution: [7, 2, 2, 1], // Default for 12 players
+      settings: {
+        evilKnowsEachOther: true,
+        evilCanMsg: false,
+        demonKnowsBluffs: true,
+        minionKnowsBluffs: true,
+        privateMsgMode: 'none', // 'none' | 'adjacent' | 'all'
+      },
       createdAt: Date.now()
     },
     players: {
@@ -58,8 +65,13 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
 
   // 如果玩家已經在裡面（斷線重連）
   if (roomData.players && roomData.players[userId]) {
-    // 標記為上線並允許進入，即使遊戲已經開始
-    await update(ref(db), { [`rooms/${roomId}/players/${userId}/isOnline`]: true });
+    // 標記為上線並允許進入，即使遊戲已經開始；
+    // 順便補寫名字 —— 若先前的 entry 是被 sitDown 等操作建立、沒有 name，會導致座位空白 / 顯示「未知玩家」
+    const patch: Record<string, any> = { [`rooms/${roomId}/players/${userId}/isOnline`]: true };
+    if (userName && roomData.players[userId].name !== userName) {
+      patch[`rooms/${roomId}/players/${userId}/name`] = userName;
+    }
+    await update(ref(db), patch);
     return roomId;
   }
 
@@ -147,8 +159,9 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
   updates[`rooms/${roomId}/public/settings`] = setup.settings || {
     evilKnowsEachOther: true,
     evilCanMsg: false,
-    allCanMsg: false,
-    adjacentCanMsg: false
+    demonKnowsBluffs: true,
+    minionKnowsBluffs: true,
+    privateMsgMode: 'none', // 'none' | 'adjacent' | 'all'
   };
   updates[`rooms/${roomId}/public/fabled`] = setup.fabled || [];
   
@@ -229,9 +242,16 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
              const eRole = script?.roles.find((r: any) => r.id === e.roleId);
              chatMsg += `第 ${e.seat} 號座位：${e.name} (${eRole ? eRole.name : '未知'})\n`;
           });
-          if (roleDef.type === 'demon' && bluffs && bluffs.length > 0) {
-             const bluffNames = bluffs.map(b => script?.roles.find((r:any)=>r.id===b)?.name || b).filter(Boolean);
-             chatMsg += `\n你的偽裝牌是：${bluffNames.join('、')}`;
+        }
+
+        // 偽裝牌：依「惡魔/爪牙得知偽裝」設定決定（不再依人數），預設開啟
+        const knowsBluffs =
+          (roleDef.type === 'demon' && settings?.demonKnowsBluffs !== false) ||
+          (roleDef.type === 'minion' && settings?.minionKnowsBluffs !== false);
+        if (knowsBluffs && bluffs && bluffs.length > 0) {
+          const bluffNames = bluffs.map(b => script?.roles.find((r: any) => r.id === b)?.name || b).filter(Boolean);
+          if (bluffNames.length > 0) {
+            chatMsg += `\n\n你的偽裝牌是：${bluffNames.join('、')}`;
           }
         }
         
@@ -271,6 +291,9 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
     updates[`rooms/${roomId}/private/seatTokens/${hostId}`] = hostGrimoireTokens;
   }
   
+  // 標記角色已分配（鎖定會影響排版的說書人操作，直到收回角色）
+  updates[`rooms/${roomId}/public/rolesDistributed`] = true;
+
   await update(ref(db), updates);
 
   // 記錄復盤事件
@@ -291,6 +314,7 @@ export const recallRoles = async (roomId: string, players: Record<string, any>) 
     updates[`rooms/${roomId}/players/${uid}/roleId`] = null;
     updates[`rooms/${roomId}/private/notes/${uid}`] = null; // Clear all notes or just their own seat? Let's just clear roleId. Wait, better clear all notes? The user said "玩家的座位也自動放上...". If we recall roles, maybe they want to clear their role from the notes. I'll just clear the roleId from players so it counts as recalled.
   });
+  updates[`rooms/${roomId}/public/rolesDistributed`] = false;
   await update(ref(db), updates);
 };
 
@@ -356,7 +380,7 @@ export const addVoteRecord = async (roomId: string, record: any) => {
       timePhase: 'day',
       type: 'VOTE_RESULT',
       title: `投票結果：${record.nomineeName} (${record.totalVotes} 票)`,
-      description: `${record.nominatorName} 提名 ${record.nomineeName}，得票數：${record.totalVotes} 票。`
+      description: `${record.nominatorName} 提名 ${record.nomineeName}\n得票數：${record.totalVotes} 票。`
     }).catch(console.error);
   });
 };

@@ -173,7 +173,7 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
     await recordReplayEvent(roomId, {
       dayNumber,
       timePhase,
-      type: 'ACTION_LOG',
+      type: 'SITUATION_LOG',
       title: title.slice(0, 30),
       description: title,
       targetSeats: numericTargets,
@@ -612,9 +612,9 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
                         </div>
                       </div>
 
-                      <div className="font-bold text-base text-white">{ev.title}</div>
+                      <div className="font-bold text-base text-white whitespace-pre-line">{ev.title}</div>
                       {ev.description && ev.description !== ev.title && (
-                        <div className="text-sm text-stone-300 mt-0.5">{ev.description}</div>
+                        <div className="text-sm text-stone-300 mt-0.5 whitespace-pre-line">{ev.description}</div>
                       )}
                     </div>
                   );

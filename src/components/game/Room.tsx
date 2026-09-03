@@ -18,6 +18,10 @@ import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
 import { stopRoomReplay, stepRoomReplay } from "../../services/replayService";
 
+// 穩定參考：避免每次 render 產生新陣列，觸發子元件無限 re-render
+const DEFAULT_DISTRIBUTION = [7, 2, 2, 1];
+const DEFAULT_BLUFFS = [null, null, null];
+
 export const Room = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -88,15 +92,18 @@ export const Room = () => {
 
   useEffect(() => {
     if (!user || !id || !gameState || hasJoinedRef.current) return;
-    
-    // Auto join if not in players list
+
     const name = localStorage.getItem("botc_player_name");
-    if (name && !gameState.players?.[user.uid]) {
+    if (!name) return;
+
+    const existing = gameState.players?.[user.uid];
+    // 尚未加入，或 entry 名字缺失 / 與本機名字不符 → 呼叫 joinRoom（會補寫名字，idempotent）
+    if (!existing || !existing.name || existing.name !== name) {
       hasJoinedRef.current = true;
       import("../../services/roomService").then(({ joinRoom }) => {
-         joinRoom(id, user.uid, name).catch(console.error);
+        joinRoom(id, user.uid, name).catch(console.error);
       });
-    } else if (gameState.players?.[user.uid]) {
+    } else {
       hasJoinedRef.current = true;
     }
   }, [id, user, gameState]);
@@ -139,12 +146,14 @@ export const Room = () => {
   const currentScript = gameState?.public?.scriptId ? Object.values(AllScripts).find(s => s.id === gameState?.public?.scriptId) : undefined;
   const seatCount = gameState?.public?.seatCount || 10;
   const seats = Array.from({ length: seatCount }, (_, i) => i + 1);
-  const bluffs = gameState?.private?.bluffs || [null, null, null];
+  const bluffs = gameState?.private?.bluffs || DEFAULT_BLUFFS;
   
   const myPlayer = user ? players[user.uid] : null;
   const myRoleInfo = myPlayer?.roleId ? currentScript?.roles.find(r => r.id === myPlayer.roleId) : null;
   const isEvil = myRoleInfo?.type === 'demon' || myRoleInfo?.type === 'minion';
-  const canSeeBluffs = isHost || isEvil;
+  const canSeeBluffs = isHost
+    || (myRoleInfo?.type === 'demon' && gameState?.public?.settings?.demonKnowsBluffs !== false)
+    || (myRoleInfo?.type === 'minion' && gameState?.public?.settings?.minionKnowsBluffs !== false);
 
   const getPlayerInSeat = (seatIndex: number) => {
     const entry = Object.entries(players).find(([_, p]: [string, any]) => p.seat === seatIndex);
@@ -154,6 +163,12 @@ export const Room = () => {
 
   const handleTakeSeat = async (seatIndex: number) => {
     if (!user) return;
+    // 保險：確保 player entry 帶名字（避免只寫 seat 造成座位空白）
+    const name = localStorage.getItem("botc_player_name");
+    if (name && (!players[user.uid] || !players[user.uid].name)) {
+      const { joinRoom } = await import("../../services/roomService");
+      await joinRoom(id!, user.uid, name).catch(console.error);
+    }
     await setPlayerSeat(id!, user.uid, seatIndex);
   };
 
@@ -254,21 +269,30 @@ export const Room = () => {
       )}
 
       {/* 復盤事件文字（呈現在座位區中央） */}
-      {isReplayActive && (replayMode?.eventTitle || replayMode?.eventDescription) && (
+      {isReplayActive && (replayMode?.eventTitle || replayMode?.eventDescription) && (() => {
+        // 提名／投票結果：座位號碼（如「07.」「02 號」）用藍色，與玩家名字做區隔
+        const colorizeSeats = replayMode?.eventType === 'VOTE_RESULT' || replayMode?.eventType === 'NOMINATION';
+        const renderText = (text: string) =>
+          colorizeSeats
+            ? text.split(/(\d{1,2}\s*[.．]|\d{1,2}\s*號)/g).map((part, i) =>
+                /^\d{1,2}\s*([.．]|號)$/.test(part)
+                  ? <span key={i} className="text-sky-400 font-bold">{part}</span>
+                  : part,
+              )
+            : text;
+        return (
         <div className="absolute top-[46%] left-[40%] -translate-x-1/2 -translate-y-1/2 z-40 w-max max-w-[75vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-[15px] py-4 text-center pointer-events-none animate-in fade-in zoom-in-95">
-          <div className="text-lg font-bold text-white leading-snug">
-            {replayMode?.eventType === 'ACTION_LOG' && (
-              <span className="text-amber-400 text-xl mr-2">【動作】</span>
-            )}
-            {replayMode?.eventTitle}
+          <div className="text-xl font-bold text-amber-400 leading-snug whitespace-pre-line">
+            {renderText(replayMode?.eventTitle || '')}
           </div>
           {replayMode?.eventDescription && replayMode.eventDescription !== replayMode.eventTitle && (
-            <div className={`mt-1.5 text-white/85 ${replayMode?.eventType === 'ACTION_LOG' ? 'text-lg' : 'text-base'}`}>
-              {replayMode.eventDescription}
+            <div className="mt-1.5 text-lg text-white/85 whitespace-pre-line">
+              {renderText(replayMode.eventDescription)}
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Top Left Nav */}
       <div className="absolute top-4 left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
@@ -382,6 +406,7 @@ export const Room = () => {
             highlightedSeats={replayMode?.highlightedSeats || []}
             replayActorSeat={replayMode?.actorSeat ?? null}
             replayTargetSeats={replayMode?.targetSeats || []}
+            replayEventType={replayMode?.eventType}
           />
         ) : (
           isHost ? (
@@ -393,7 +418,7 @@ export const Room = () => {
                 
                 grimoireState={isReplayActive ? replayGrimoireState : gameState.private?.grimoire}
                 bluffs={bluffs}
-                distribution={gameState?.public?.distribution || [7,2,2,1]}
+                distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
                 seats={seats}
                 getPlayerInSeat={getPlayerInSeat}
                 fabled={gameState?.public?.fabled || []}
@@ -406,6 +431,7 @@ export const Room = () => {
                 highlightedSeats={replayMode?.highlightedSeats || []}
                 replayActorSeat={replayMode?.actorSeat ?? null}
                 replayTargetSeats={replayMode?.targetSeats || []}
+                replayEventType={replayMode?.eventType}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-white/50 h-full"><p>真相仍在迷霧之中...</p></div>
@@ -445,15 +471,16 @@ export const Room = () => {
           <h2 className="text-lg font-bold text-white tracking-widest">
             {isHost && activeTab === 'truth' ? '說書人面版' : (
               <>
-                <span className="text-amber-400">{myPlayer?.name || user?.displayName || '未知玩家'}</span>
+                <span className="text-amber-400">{myPlayer?.name || localStorage.getItem('botc_player_name') || user?.displayName || '未知玩家'}</span>
                 <span className="text-white"> - 玩家面板</span>
               </>
             )}
           </h2>
           {isHost && activeTab === 'truth' && activeScriptId && !isViewingList && (
-            <button 
-              onClick={() => setIsViewingList(true)} 
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors text-sm font-bold flex items-center"
+            <button
+              onClick={() => setIsViewingList(true)}
+              disabled={!!gameState?.public?.rolesDistributed}
+              className="bg-slate-800 hover:bg-slate-700 border border-slate-500 text-white px-3 py-1.5 rounded-lg shadow-md transition-colors text-sm font-bold flex items-center disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
               劇本列表
@@ -461,15 +488,17 @@ export const Room = () => {
           )}
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar p-0 min-h-0">
-          {activeTab === 'truth' && isHost ? (
-            <GrimoireSettings 
+          {/* 說書人面板與訊息面板都常駐掛載，切換舞台中央／鐘樓真相只切換顯示，避免 Chat 重新掛載使已讀訊息重新變未讀 */}
+          {isHost && (
+            <div className={`h-full ${activeTab === 'truth' ? '' : 'hidden'}`}>
+            <GrimoireSettings
               roomId={id!}
               seatCount={seatCount}
               scriptId={gameState?.public?.scriptId}
               
               script={currentScript}
               bluffs={bluffs}
-              distribution={gameState?.public?.distribution || [7,2,2,1]}
+              distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
               grimoireState={gameState.private?.grimoire}
               customScript={gameState?.public?.customScript}
               activeScriptId={activeScriptId}
@@ -478,10 +507,12 @@ export const Room = () => {
               isViewingList={isViewingList}
               setIsViewingList={setIsViewingList}
               settings={gameState?.public?.settings}
+              rolesDistributed={!!gameState?.public?.rolesDistributed}
               players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...(p || {}) }))}
             />
-          ) : (
-            <div className="flex flex-col h-full">
+            </div>
+          )}
+          <div className={`flex flex-col h-full ${activeTab === 'truth' && isHost ? 'hidden' : ''}`}>
               {isHost && (
                 <div className="flex border-b border-white/10 shrink-0 bg-black/40">
                   <button 
@@ -499,8 +530,8 @@ export const Room = () => {
                 </div>
               )}
 
-              {(!isHost || hostDrawerTab === 'chat') ? (
-                <>
+              {/* 聊天與遊戲進程兩個面板都常駐掛載，切換頁籤只改變顯示，避免 Chat 重新掛載導致已讀訊息重新變未讀 */}
+              <div className={`flex flex-col flex-1 min-h-0 ${(!isHost || hostDrawerTab === 'chat') ? '' : 'hidden'}`}>
                   <div className="mb-4 p-4 bg-white/5 border-b border-white/10 shrink-0">
                     {!isHost && !myRoleInfo && (
                       <h3 className="text-base font-bold text-white/50 mb-3 border-b border-white/10 pb-2">你的角色</h3>
@@ -558,23 +589,24 @@ export const Room = () => {
                     )}
                   </div>
                   <div className="flex-1 min-h-0 border-t border-white/10 overflow-hidden shadow-inner">
-                    <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} />
+                    <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} isVisible={isDrawerOpen && !(activeTab === 'truth' && isHost) && (!isHost || hostDrawerTab === 'chat')} />
                   </div>
-                </>
-              ) : (
-                <GameTimelineLogger
-                  roomId={id!}
-                  dayNumber={dayNumber}
-                  timePhase={timePhase}
-                  seats={seats}
-                  players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))}
-                  grimoireState={gameState.private?.grimoire}
-                  isReplayActive={isReplayActive}
-                  replayMode={replayMode}
-                />
+              </div>
+              {isHost && (
+                <div className={`flex-1 min-h-0 ${hostDrawerTab === 'controls' ? '' : 'hidden'}`}>
+                  <GameTimelineLogger
+                    roomId={id!}
+                    dayNumber={dayNumber}
+                    timePhase={timePhase}
+                    seats={seats}
+                    players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))}
+                    grimoireState={gameState.private?.grimoire}
+                    isReplayActive={isReplayActive}
+                    replayMode={replayMode}
+                  />
+                </div>
               )}
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
