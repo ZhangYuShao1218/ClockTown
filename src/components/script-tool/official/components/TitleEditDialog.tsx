@@ -23,8 +23,13 @@ import {
   FormatAlignCenter as AlignCenterIcon,
   FormatAlignRight as AlignRightIcon,
 } from '@mui/icons-material';
+import { observer } from 'mobx-react-lite';
 import { useTranslation } from '../utils/i18n';
 import { uiConfigStore } from '../stores/UIConfigStore';
+
+// 專案設計字型（與 UIConfigStore 的 PROJECT_FONT 一致）
+const PROJECT_FONT =
+  '"Source Han Serif TC", "Noto Serif TC", "Source Han Serif", "Noto Serif CJK TC", "思源宋體", "PingFang TC", "Microsoft JhengHei", "微軟正黑體", serif';
 
 interface TitleEditDialogProps {
   open: boolean;
@@ -51,7 +56,7 @@ interface TitleEditDialogProps {
   }) => void;
 }
 
-const TitleEditDialog = ({
+const TitleEditDialog = observer(({
   open,
   title,
   titleImage,
@@ -339,42 +344,56 @@ const TitleEditDialog = ({
             )}
           </Box>
 
-          {/* 作者欄位開關與輸入 */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={uiConfigStore.config.showAuthor}
-                onChange={(e) => uiConfigStore.updateConfig({ showAuthor: e.target.checked })}
-                color="primary"
-              />
-            }
-            label="顯示作者資訊 (Show Author)"
-          />
-
-          {uiConfigStore.config.showAuthor && (
-            <TextField
-              fullWidth
-              label={t('title.author')}
-              value={formData.author}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, author: e.target.value }))
+          {/* 作者 & 適合人數 */}
+          <Box>
+            <FormControlLabel
+              sx={{ mb: 1, ml: 0 }}
+              control={
+                <Switch
+                  size="small"
+                  checked={uiConfigStore.config.showAuthor}
+                  onChange={(e) => uiConfigStore.updateConfig({ showAuthor: e.target.checked })}
+                  color="primary"
+                />
               }
-              placeholder={t('input.authorPlaceholder')}
-              size="small"
+              label={<Typography variant="body2" color="text.secondary">在劇本上顯示作者</Typography>}
             />
-          )}
-
-          {/* 玩家人数 */}
-          <TextField
-            fullWidth
-            label={t('title.playerCount')}
-            value={formData.playerCount}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, playerCount: e.target.value }))
-            }
-            placeholder={t('title.playerCount')}
-            size="small"
-          />
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              {uiConfigStore.config.showAuthor && (
+                <TextField
+                  sx={{ flex: 1 }}
+                  label={t('title.author')}
+                  value={formData.author}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, author: e.target.value }))}
+                  placeholder={t('input.authorPlaceholder')}
+                  size="small"
+                  InputProps={{ sx: { fontFamily: PROJECT_FONT } }}
+                />
+              )}
+              <TextField
+                sx={{ flex: 1 }}
+                label={t('title.playerCount')}
+                value={formData.playerCount}
+                onChange={(e) => setFormData((prev) => ({ ...prev, playerCount: e.target.value }))}
+                placeholder="例：7–15 人"
+                size="small"
+                InputProps={{ sx: { fontFamily: PROJECT_FONT } }}
+              />
+            </Box>
+            <Box sx={{ mt: 1.5 }}>
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                作者 / 人數 字級：{uiConfigStore.authorInfoFontSize.toFixed(2)}rem
+              </Typography>
+              <Slider
+                value={uiConfigStore.authorInfoFontSize}
+                onChange={(_, v) => uiConfigStore.updateConfig({ authorInfoFontSize: v as number })}
+                min={0.6}
+                max={2}
+                step={0.05}
+                valueLabelDisplay="auto"
+              />
+            </Box>
+          </Box>
 
           {/* Title text alignment */}
           <Box>
@@ -434,6 +453,6 @@ const TitleEditDialog = ({
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 export default TitleEditDialog;

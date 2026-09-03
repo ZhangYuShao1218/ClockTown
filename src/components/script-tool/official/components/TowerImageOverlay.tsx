@@ -9,6 +9,8 @@ interface TowerImageOverlayProps {
   onDelete: (id: string) => void;
   onDoubleClick?: () => void;
   containerRef: React.RefObject<HTMLElement | null>;
+  /** 主題染色 filter（把塔樓剪影染成主題色） */
+  filter?: string;
 }
 
 export default function TowerImageOverlay({
@@ -17,6 +19,7 @@ export default function TowerImageOverlay({
   onDelete,
   onDoubleClick,
   containerRef,
+  filter,
 }: TowerImageOverlayProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -134,7 +137,8 @@ export default function TowerImageOverlay({
     maxWidth: '100%' as const,
     maxHeight: { xs: '35vh', sm: '50vh', md: '60vh' },
     pointerEvents: 'auto' as const,
-  }), []);
+    filter,
+  }), [filter]);
 
   const deleteBtnSx = useMemo(() => ({
     position: 'absolute' as const,

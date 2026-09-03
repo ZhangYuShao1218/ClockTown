@@ -91,22 +91,8 @@ const ScriptRenderer = observer(({
     const scriptRef = useRef<HTMLDivElement>(null);
     const page2ContainerRef = useRef<HTMLDivElement>(null);
     const page3ContainerRef = useRef<HTMLDivElement>(null);
-    const authorImageInputRef = useRef<HTMLInputElement>(null);
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [titleHovered, setTitleHovered] = useState<boolean>(false);
-
-    // 上传作者头像（base64 存入 _meta.authorImage）
-    const handleAuthorImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const dataUrl = ev.target?.result as string;
-            if (dataUrl) scriptStore.setAuthorImage(dataUrl);
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
-    };
 
     // 按语言选择展示标题：英文优先使用 titleEn；否则回退到第二页标题文本或主标题
     const displayedTitle = useMemo(() => {
@@ -425,6 +411,7 @@ const ScriptRenderer = observer(({
                     {/* 装饰花纹（紧凑模式隐藏） */}
                     {!compact && (() => {
                       const cf = uiConfigStore.cornerFlowers;
+                      const decorFilter = uiConfigStore.themeDecorFilter || undefined;
                       const blSrc = cf?.bl || '/imgs/images/sources/flowers/flower3_2.png';
                       const brSrc = cf?.br || '/imgs/images/sources/flowers/flower4.png';
                       const trSrc = cf?.tr || '/imgs/images/sources/flowers/flower7.png';
@@ -446,6 +433,7 @@ const ScriptRenderer = observer(({
                             zIndex: backgroundIndex,
                             userSelect: 'none',
                             WebkitUserDrag: 'none',
+                            filter: decorFilter,
                         }}
                     />
                     <CharacterImage
@@ -461,6 +449,7 @@ const ScriptRenderer = observer(({
                             zIndex: backgroundIndex,
                             userSelect: 'none',
                             WebkitUserDrag: 'none',
+                            filter: decorFilter,
                         }}
                     />
                     <CharacterImage
@@ -476,6 +465,7 @@ const ScriptRenderer = observer(({
                             zIndex: backgroundIndex,
                             userSelect: 'none',
                             WebkitUserDrag: 'none',
+                            filter: decorFilter,
                         }}
                     />
                     <CharacterImage
@@ -492,106 +482,10 @@ const ScriptRenderer = observer(({
                             zIndex: backgroundIndex,
                             userSelect: 'none',
                             WebkitUserDrag: 'none',
+                            filter: decorFilter,
                         }}
                     />
                     </>})()}
-
-                    {/* 美术设计 + 作者 头像盒子 - 仅在非只读模式下显示 */}
-                    {!readOnly && uiConfigStore.config.showAuthor && (
-                        <Box sx={{
-                            position: 'absolute',
-                            top: { xs: 12, sm: 16, md: 95 },
-                            left: { xs: 12, sm: 16, md: 140 },
-                            zIndex: 5,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'flex-start',
-                            gap: { xs: 0.5, sm: 0.8, md: 1 },
-                            pointerEvents: 'none',
-                        }}>
-                            {/* 作者頭像 (Author) - 點擊上傳 */}
-                            <Box sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                position: 'relative',
-                                zIndex: 1,
-                                '@media print': { display: script.authorImage ? 'flex' : 'none' },
-                            }}>
-                                {script.authorImage ? (
-                                    <Box
-                                        component="img"
-                                        src={script.authorImage}
-                                        alt={script.author || t('credits.author')}
-                                        onClick={() => authorImageInputRef.current?.click()}
-                                        sx={{
-                                            width: { xs: 50, sm: 60, md: 70 },
-                                            height: { xs: 50, sm: 60, md: 70 },
-                                            borderRadius: '50%',
-                                            border: '2px solid #d4af37',
-                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                                            objectFit: 'cover',
-                                            position: 'relative',
-                                            zIndex: 2,
-                                            cursor: 'pointer',
-                                            pointerEvents: 'auto',
-                                        }}
-                                    />
-                                ) : (
-                                    <Box
-                                        onClick={() => authorImageInputRef.current?.click()}
-                                        sx={{
-                                            width: { xs: 50, sm: 60, md: 70 },
-                                            height: { xs: 50, sm: 60, md: 70 },
-                                            borderRadius: '50%',
-                                            border: '2px dashed #bbb',
-                                            backgroundColor: 'rgba(200,200,200,0.35)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            position: 'relative',
-                                            zIndex: 2,
-                                            cursor: 'pointer',
-                                            pointerEvents: 'auto',
-                                        }}
-                                    >
-                                        <AddIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: '#999' }} />
-                                    </Box>
-                                )}
-                                <Box sx={{
-                                    pt: { xs: 0.75, sm: 1, md: 1.25 },
-                                    pb: { xs: 0.5, sm: 0.75, md: 1 },
-                                    minWidth: { xs: '80px', sm: '90px', md: '100px' },
-                                }}>
-                                    <Typography sx={{
-                                        fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.85rem' },
-                                        color: '#404040ff',
-                                        fontWeight: 700,
-                                        textAlign: 'center',
-                                        whiteSpace: 'nowrap',
-                                    }}>
-                                        {script.author || t('credits.author')}
-                                    </Typography>
-                                    <Typography sx={{
-                                        fontSize: { xs: '0.6rem', sm: '0.68rem', md: '0.75rem' },
-                                        color: '#666',
-                                        textAlign: 'center',
-                                        whiteSpace: 'nowrap',
-                                    }}>
-                                        {t('credits.author')}
-                                    </Typography>
-                                </Box>
-                            </Box>
-
-                            <input
-                                ref={authorImageInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAuthorImageUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </Box>
-                    )}
 
                     {/* 左侧 - 首个夜晚 */}
                     {!isMobile && (
@@ -878,7 +772,10 @@ const ScriptRenderer = observer(({
                                 <Typography
                                     sx={{
                                         color: THEME_COLORS.paper.secondary,
-                                        fontSize: { xs: '0.75rem', sm: '0.95rem' },
+                                        fontSize: {
+                                            xs: `${uiConfigStore.authorInfoFontSize * 0.8}rem`,
+                                            sm: `${uiConfigStore.authorInfoFontSize}rem`,
+                                        },
                                         mt: 0.5,
                                         textAlign: (script as any).authorAlignment || 'center',
                                     }}
@@ -1017,7 +914,24 @@ const ScriptRenderer = observer(({
                         {/* Background decoration - Tower Image Overlays */}
                         {!compact && (
                           <>
-                            {uiConfigStore.config.theme === 'sakura' ? (
+                            {uiConfigStore.themeBottomScene ? (
+                              <CharacterImage
+                                component="img"
+                                src={uiConfigStore.themeBottomScene}
+                                alt="theme-scene"
+                                sx={{
+                                  position: "absolute",
+                                  left: "0%",
+                                  bottom: "0",
+                                  width: "100%",
+                                  zIndex: backgroundIndex,
+                                  opacity: 0.72,
+                                  pointerEvents: 'none',
+                                  userSelect: 'none',
+                                  WebkitUserDrag: 'none',
+                                }}
+                              />
+                            ) : uiConfigStore.config.theme === 'sakura' ? (
                               <CharacterImage
                                 component="img"
                                 src="/imgs/images/background/back_cherry.jpg"
@@ -1042,6 +956,7 @@ const ScriptRenderer = observer(({
                                   onDelete={(id) => uiConfigStore.removeTowerImage(id)}
                                   onDoubleClick={onOpenTowerImageDialog}
                                   containerRef={page2ContainerRef}
+                                  filter={uiConfigStore.themeDecorFilter || undefined}
                                 />
                               ))
                             )}
@@ -1134,6 +1049,7 @@ const ScriptRenderer = observer(({
                         {/* 装饰花纹 */}
                         {(() => {
                           const cf = uiConfigStore.cornerFlowers;
+                          const decorFilter = uiConfigStore.themeDecorFilter || undefined;
                           const blSrc = cf?.bl || '/imgs/images/sources/flowers/flower3_2.png';
                           const brSrc = cf?.br || '/imgs/images/sources/flowers/flower4.png';
                           const trSrc = cf?.tr || '/imgs/images/sources/flowers/flower7.png';
@@ -1155,6 +1071,7 @@ const ScriptRenderer = observer(({
                                 zIndex: backgroundIndex,
                                 userSelect: 'none',
                                 WebkitUserDrag: 'none',
+                                filter: decorFilter,
                             }}
                         />
                         <CharacterImage
@@ -1170,6 +1087,7 @@ const ScriptRenderer = observer(({
                                 zIndex: backgroundIndex,
                                 userSelect: 'none',
                                 WebkitUserDrag: 'none',
+                                filter: decorFilter,
                             }}
                         />
                         <CharacterImage
@@ -1185,6 +1103,7 @@ const ScriptRenderer = observer(({
                                 zIndex: backgroundIndex,
                                 userSelect: 'none',
                                 WebkitUserDrag: 'none',
+                                filter: decorFilter,
                             }}
                         />
                         <CharacterImage
@@ -1201,6 +1120,7 @@ const ScriptRenderer = observer(({
                                 zIndex: backgroundIndex,
                                 userSelect: 'none',
                                 WebkitUserDrag: 'none',
+                                filter: decorFilter,
                             }}
                         />
                         </>})()}
@@ -1284,7 +1204,24 @@ const ScriptRenderer = observer(({
                             </DndContext>
 
                             {/* Background decoration - Tower Image Overlays */}
-                            {uiConfigStore.config.theme === 'sakura' ? (
+                            {uiConfigStore.themeBottomScene ? (
+                              <CharacterImage
+                                component="img"
+                                src={uiConfigStore.themeBottomScene}
+                                alt="theme-scene"
+                                sx={{
+                                  position: "absolute",
+                                  left: "0%",
+                                  bottom: "0",
+                                  width: "100%",
+                                  zIndex: backgroundIndex,
+                                  opacity: 0.72,
+                                  userSelect: 'none',
+                                  WebkitUserDrag: 'none',
+                                  pointerEvents: 'none',
+                                }}
+                              />
+                            ) : uiConfigStore.config.theme === 'sakura' ? (
                               <CharacterImage
                                 component="img"
                                 src="/imgs/images/background/back_cherry.jpg"

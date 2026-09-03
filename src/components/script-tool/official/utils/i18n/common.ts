@@ -10,7 +10,7 @@ export const cn = {
   'common.save': '儲存',
   'common.example': '範例：',
   'common.comingSoon': '敬請期待',
-  'common.backToTypeSelection': '← 返回選擇類型',
+  'common.backToTypeSelection': '← 返回選擇型別',
   'addCustomRule.templateHint': '選擇一個模板開始，或直接新增空白規則',
   'addCustomRule.blankRule': '空白規則',
   'addCustomRule.blankRuleDesc': '從頭開始建立自訂規則',

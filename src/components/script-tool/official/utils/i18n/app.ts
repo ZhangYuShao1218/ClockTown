@@ -2,7 +2,7 @@ export const cn = {
   'app.title': '血染鐘樓劇本生成器',
   'app.scriptRepository': '劇本倉庫',
   'app.allCharacters': '全員謎語人 · Oops! All Amnesiacs',
-  'app.emptyState': '請在上方輸入劇本 JSON 並點擊「生成劇本」按鈕',
+  'app.emptyState': '請在上方輸入劇本 JSON 並點選「生成劇本」按鈕',
   'allChars.title': '全員謎語人 · Oops! All Amnesiacs',
   'allChars.subtitle': '213 個血染鐘樓官方角色總覽',
   'allChars.description': '特殊玩法：全員謎語人。說書人從此參考池中挑選角色構成實際劇本，玩家在遊戲中逐步推理自身能力。',

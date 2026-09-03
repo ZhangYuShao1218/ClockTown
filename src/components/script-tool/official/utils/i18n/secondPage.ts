@@ -1,13 +1,13 @@
 export const cn = {
-  'secondPage.addComponent': '添加组件',
-  'secondPage.title': '第二页标题',
-  'secondPage.playerTable1': '玩家配置表（标准）',
+  'secondPage.addComponent': '新增元件',
+  'secondPage.title': '第二頁標題',
+  'secondPage.playerTable1': '玩家配置表（標準）',
   'secondPage.playerTable2': '玩家配置表（6-9人）',
-  'playerTable.playerCount': '玩家数量',
-  'playerTable.townsfolk': '镇民',
-  'playerTable.outsider': '外来者',
+  'playerTable.playerCount': '玩家數量',
+  'playerTable.townsfolk': '鎮民',
+  'playerTable.outsider': '外來者',
   'playerTable.minion': '爪牙',
-  'playerTable.demon': '恶魔',
+  'playerTable.demon': '惡魔',
 } as const;
 
 export const en = {

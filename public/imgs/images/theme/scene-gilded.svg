@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" width="1400" height="420" preserveAspectRatio="xMidYMax meet">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="1" r="0.8">
+      <stop offset="0" stop-color="#e7c76a" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#e7c76a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6e551f"/>
+      <stop offset="1" stop-color="#33260c"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="700" cy="420" rx="700" ry="300" fill="url(#glow)"/>
+  <circle cx="700" cy="120" r="50" fill="#f2e2ab" opacity="0.5"/>
+  <!-- deco skyline, symmetric-ish -->
+  <g fill="#7c6122" opacity="0.5">
+    <rect x="40" y="300" width="60" height="120"/><rect x="150" y="260" width="46" height="160"/>
+    <rect x="250" y="320" width="70" height="100"/><rect x="1080" y="320" width="70" height="100"/>
+    <rect x="1204" y="260" width="46" height="160"/><rect x="1300" y="300" width="60" height="120"/>
+  </g>
+  <g fill="#5f4a1a" opacity="0.85">
+    <rect x="360" y="280" width="80" height="140"/>
+    <rect x="500" y="230" width="60" height="190"/><polygon points="500,230 530,190 560,230"/>
+    <rect x="840" y="230" width="60" height="190"/><polygon points="840,230 870,190 900,230"/>
+    <rect x="960" y="280" width="80" height="140"/>
+  </g>
+  <!-- central clock tower -->
+  <g fill="url(#near)">
+    <rect x="636" y="150" width="128" height="270"/>
+    <polygon points="628,150 700,60 772,150"/>
+    <rect x="672" y="80" width="56" height="56" transform="rotate(45 700 108)"/>
+    <circle cx="700" cy="240" r="26" fill="#e7c76a" opacity="0.55"/>
+    <rect x="618" y="410" width="164" height="10"/>
+  </g>
+  <path d="M0 420 L0 370 L220 335 L420 375 L620 340 L780 375 L960 335 L1160 375 L1400 340 L1400 420 Z" fill="url(#near)"/>
+</svg>

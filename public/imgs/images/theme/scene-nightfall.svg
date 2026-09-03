@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" width="1400" height="420" preserveAspectRatio="xMidYMax meet">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="1" r="0.75">
+      <stop offset="0" stop-color="#7d6ad6" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#7d6ad6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2252"/>
+      <stop offset="1" stop-color="#120d28"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="700" cy="410" rx="680" ry="300" fill="url(#glow)"/>
+  <g opacity="0.5">
+    <circle cx="700" cy="120" r="54" fill="#d5cdf5"/>
+    <circle cx="682" cy="108" r="54" fill="#171130"/>
+  </g>
+  <!-- far ridge -->
+  <path d="M0 300 L150 230 L320 285 L480 200 L640 275 L760 205 L920 280 L1090 215 L1250 285 L1400 240 L1400 420 L0 420 Z" fill="#463a7c" opacity="0.5"/>
+  <!-- mid ridge -->
+  <path d="M0 340 L180 265 L360 325 L520 250 L660 330 L800 255 L980 325 L1140 260 L1320 330 L1400 295 L1400 420 L0 420 Z" fill="#312a58" opacity="0.85"/>
+  <!-- central gothic spire -->
+  <g fill="url(#near)">
+    <path d="M645 420 L645 190 L662 110 L672 70 L682 110 L699 190 L699 420 Z"/>
+    <path d="M700 420 L700 250 L714 185 L728 250 L728 420 Z"/>
+    <path d="M614 420 L614 265 L628 220 L642 265 L642 420 Z"/>
+    <rect x="600" y="300" width="132" height="120"/>
+    <polygon points="600,300 666,255 732,300"/>
+    <circle cx="666" cy="150" r="6" fill="#d5cdf5" opacity="0.7"/>
+  </g>
+  <!-- near ridge -->
+  <path d="M0 420 L0 355 L200 305 L400 360 L560 310 L640 360 L740 360 L840 305 L1040 365 L1240 310 L1400 360 L1400 420 Z" fill="url(#near)"/>
+</svg>

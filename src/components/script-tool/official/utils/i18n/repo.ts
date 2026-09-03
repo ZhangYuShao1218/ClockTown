@@ -1,17 +1,17 @@
 export const cn = {
-  'repo.title': '剧本仓库',
-  'repo.subtitle': '浏览和预览血染钟楼剧本',
-  'repo.searchPlaceholder': '搜索剧本名称、作者...',
-  'repo.noResults': '未找到匹配的剧本',
-  'repo.backToGenerator': '返回剧本生成器',
-  'repo.backToRepository': '返回剧本仓库',
-  'repo.exportJson': '导出JSON',
+  'repo.title': '劇本倉庫',
+  'repo.subtitle': '瀏覽和預覽血染鐘樓劇本',
+  'repo.searchPlaceholder': '搜尋劇本名稱、作者...',
+  'repo.noResults': '未找到匹配的劇本',
+  'repo.backToGenerator': '返回劇本生成器',
+  'repo.backToRepository': '返回劇本倉庫',
+  'repo.exportJson': '匯出JSON',
   'repo.author': '作者',
   'repo.unknownAuthor': '未知',
-  'repo.aboutAndThanks': '关于 & 致谢',
-  'repo.categoryOfficial': '官方剧本',
-  'repo.categoryOfficialMix': '官混剧本',
-  'repo.categoryCustom': '自定义剧本',
+  'repo.aboutAndThanks': '關於 & 致謝',
+  'repo.categoryOfficial': '官方劇本',
+  'repo.categoryOfficialMix': '官混劇本',
+  'repo.categoryCustom': '自定義劇本',
 } as const;
 
 export const en = {

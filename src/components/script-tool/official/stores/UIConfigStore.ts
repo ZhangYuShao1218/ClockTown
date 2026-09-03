@@ -12,6 +12,10 @@ interface ThemePreset {
   cornerFlowers: ThemeCornerFlowers | null;
   /** 相剋規則小方框底色 */
   jinxTint: string;
+  /** 套在角花 / 塔樓等裝飾圖上的 CSS filter，把它們染成主題色（null = 不染） */
+  decorFilter: string | null;
+  /** 頁面底部的主題剪影場景（山脈 / 鐘樓 / 火山…）；null = 用預設塔樓圖 */
+  bottomScene: string | null;
 }
 
 const CHERRY_FLOWERS: ThemeCornerFlowers = {
@@ -21,6 +25,12 @@ const CHERRY_FLOWERS: ThemeCornerFlowers = {
   tl: '/imgs/images/sources/flowers/cherry-blossom3.png',
 };
 
+/** 同一張 SVG 角花貼四角（元件會自動鏡射 / 翻轉） */
+const flourish = (name: string): ThemeCornerFlowers => {
+  const u = `/imgs/images/theme/flourish-${name}.svg`;
+  return { bl: u, br: u, tr: u, tl: u };
+};
+
 /** 具名主題預設值；以現有資產組合而成，不需新增圖片。 */
 export const THEME_PRESETS: Record<Exclude<ThemeName, 'none' | 'custom'>, ThemePreset> = {
   sakura: {
@@ -28,24 +38,32 @@ export const THEME_PRESETS: Record<Exclude<ThemeName, 'none' | 'custom'>, ThemeP
     nightOrderBackground: '/imgs/images/night_order/order_back_pink.jpg',
     cornerFlowers: CHERRY_FLOWERS,
     jinxTint: 'rgba(255, 218, 224, 0.5)',
+    decorFilter: null, // 櫻花主題有專屬素材，不染色
+    bottomScene: null, // 沿用既有的 back_cherry 底圖處理
   },
   nightfall: {
     mainBackground: '/imgs/images/background/back_v2.jpg',
     nightOrderBackground: '/imgs/images/night_order/order_back_purple.jpg',
-    cornerFlowers: null,
+    cornerFlowers: flourish('nightfall'),
     jinxTint: 'rgba(226, 222, 240, 0.55)',
+    decorFilter: null,
+    bottomScene: '/imgs/images/theme/scene-nightfall.svg',
   },
   ember: {
     mainBackground: '/imgs/images/background/back_v2.jpg',
     nightOrderBackground: '/imgs/images/night_order/order_back_red.jpg',
-    cornerFlowers: null,
+    cornerFlowers: flourish('ember'),
     jinxTint: 'rgba(244, 222, 212, 0.6)',
+    decorFilter: null,
+    bottomScene: '/imgs/images/theme/scene-ember.svg',
   },
   gilded: {
     mainBackground: '/imgs/images/background/back_classic.jpg',
     nightOrderBackground: '/imgs/images/night_order/order_back_yellow2.jpg',
-    cornerFlowers: null,
+    cornerFlowers: flourish('gilded'),
     jinxTint: 'rgba(244, 236, 214, 0.62)',
+    decorFilter: null,
+    bottomScene: '/imgs/images/theme/scene-gilded.svg',
   },
 };
 
@@ -121,6 +139,9 @@ export interface UIConfig {
     sm: string;
     md: string;
   };
+
+  // 標題下方「作者 · 適合人數」文字的字級（rem）
+  authorInfoFontSize: number;
 
   // Font settings
   fonts: {
@@ -245,6 +266,8 @@ const DEFAULT_UI_CONFIG: UIConfig = {
     sm: '1.6rem',
     md: '4.5rem',
   },
+
+  authorInfoFontSize: 0.95,
 
   // Font settings - 統一使用 sans-serif
   fonts: {
@@ -674,6 +697,16 @@ class UIConfigStore {
     return this.activeThemePreset?.jinxTint ?? null;
   }
 
+  /** 裝飾圖（角花 / 塔樓）的主題染色 filter；null = 不套用 */
+  get themeDecorFilter(): string | null {
+    return this.activeThemePreset?.decorFilter ?? null;
+  }
+
+  /** 頁面底部的主題剪影場景 URL；null = 用預設塔樓圖 */
+  get themeBottomScene(): string | null {
+    return this.activeThemePreset?.bottomScene ?? null;
+  }
+
   get nightOrderBackgroundUrl() {
     // Theme override
     if (this.activeThemePreset) {
@@ -795,6 +828,10 @@ class UIConfigStore {
 
   get specialRuleContentFont() {
     return this.config.fonts.specialRuleContent;
+  }
+
+  get authorInfoFontSize() {
+    return this.config.authorInfoFontSize ?? 0.95;
   }
 
   get specialRuleTitleFontSize() {

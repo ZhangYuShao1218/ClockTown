@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -20,7 +19,6 @@ import { AllScripts } from '../../../../data/scripts';
 import { Cloud } from 'lucide-react';
 import SettingsIcon from '@mui/icons-material/Settings';
 import InfoIcon from '@mui/icons-material/Info';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import {
   Upload,
   Download,
@@ -66,7 +64,6 @@ interface InputPanelProps {
 }
 
 const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJson, onExportOriginalJson, onShare, onClear, onOpenUISettings, onAddCustomRule, onOpenAboutDialog, onJsonChange, hasScript, currentJson, jsonParseError }: InputPanelProps) => {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const [jsonInput, setJsonInput] = useState('');
   const [titleInput, setTitleInput] = useState('');
@@ -638,24 +635,7 @@ const InputPanel = observer(({ onGenerate, onExportPDF, onExportImage, onExportJ
             flexWrap: { sm: 'wrap' },
           }}
         >
-          <Button
-            variant="outlined"
-            startIcon={<AutoAwesomeIcon />}
-            onClick={() => navigate('/image-gen')}
-            sx={{
-              width: { xs: '100%', sm: 'auto' },
-              boxSizing: 'border-box',
-              whiteSpace: { xs: 'normal', sm: 'nowrap' },
-              borderColor: '#9c27b0',
-              color: '#9c27b0',
-              '&:hover': {
-                borderColor: '#7b1fa2',
-                backgroundColor: 'rgba(156, 39, 176, 0.08)',
-              },
-            }}
-          >
-            {t('imageGen.nav.imageGen')}
-          </Button>
+          {/* ImageGen 入口暫時隱藏（見 AutoAwesomeIcon import 亦已移除） */}
           <Button
             variant="outlined"
             startIcon={<LibraryBooks />}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" width="1400" height="420" preserveAspectRatio="xMidYMax meet">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="1" r="0.8">
+      <stop offset="0" stop-color="#e2603a" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#b23a22" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#b23a22" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a1c14"/>
+      <stop offset="1" stop-color="#1e0a07"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="700" cy="420" rx="700" ry="320" fill="url(#glow)"/>
+  <g opacity="0.55">
+    <circle cx="700" cy="120" r="52" fill="#f0b48f"/>
+  </g>
+  <!-- far jagged ridge -->
+  <path d="M0 320 L120 240 L200 300 L320 190 L420 290 L540 210 L660 300 L780 180 L900 290 L1020 220 L1140 300 L1260 230 L1400 300 L1400 420 L0 420 Z" fill="#7a2e1e" opacity="0.5"/>
+  <!-- mid volcanic ridge -->
+  <path d="M0 360 L160 280 L280 350 L420 250 L560 350 L640 300
+           L680 250 L700 210 L720 250 L760 300 L840 350 L980 260 L1120 355 L1280 275 L1400 350 L1400 420 L0 420 Z" fill="#5a2216" opacity="0.9"/>
+  <!-- central volcano -->
+  <g fill="url(#near)">
+    <path d="M540 420 L672 150 L676 138 L680 150 L812 420 Z"/>
+    <path d="M636 220 q 20 30 40 0 q 20 -34 -8 -46 q 4 26 -32 46 Z" fill="#e2603a" opacity="0.7"/>
+  </g>
+  <!-- near ridge -->
+  <path d="M0 420 L0 360 L200 305 L380 365 L540 320 L700 365 L860 315 L1040 370 L1220 315 L1400 365 L1400 420 Z" fill="url(#near)"/>
+</svg>
