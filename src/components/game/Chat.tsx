@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { ref, push, onValue, serverTimestamp } from 'firebase/database';
-import { db } from '../../services/firebase';
+import { push, onValue, serverTimestamp, query, limitToLast } from 'firebase/database';
+import { nref } from '../../services/firebase';
 
 
 
@@ -131,8 +131,9 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     availableChannels.forEach(ch => {
       if (ch.disabled) return;
       const channelId = getChannelId(ch.id);
-      const messagesRef = ref(db, `rooms/${roomId}/messages/${channelId}`);
-      
+      // 只訂閱最近 200 則，避免長局時每來一則新訊息就重抓整包歷史（流量隨訊息數平方成長）。
+      const messagesRef = query(nref(`rooms/${roomId}/messages/${channelId}`), limitToLast(200));
+
       const unsub = onValue(messagesRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -186,7 +187,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     }
     
     const channelId = getChannelId(activeChannel);
-    const messagesRef = ref(db, `rooms/${roomId}/messages/${channelId}`);
+    const messagesRef = nref(`rooms/${roomId}/messages/${channelId}`);
     
     push(messagesRef, {
       senderUid: userUid,
