@@ -22,9 +22,14 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   const roleById = new Map<string, Role>();
   for (const r of validRoles) roleById.set(r.id, r);
 
-  /** 取得某角色在「當前劇本」中生效的相剋規則（雙方都在場才算）。
+  /** 陣營位階（對齊劇本工具 CharacterCard）：數字大者優先顯示相剋全文。 */
+  const TEAM_JINX_RANK: Record<string, number> = {
+    townsfolk: 4, outsider: 3, minion: 2, demon: 1, traveler: 5, fabled: 6, loric: 7,
+  };
+
+  /** 某角色在「當前劇本」中所有生效的相剋對象（雙方都在場才算，尚未做單邊過濾）。
    *  相剋資料不保證雙向登記，所以正向、反向都要查。 */
-  const getActiveJinxes = (roleId: string): Array<{ other: Role; reason: string }> => {
+  const getJinxPartners = (roleId: string): Array<{ other: Role; reason: string }> => {
     const out: Array<{ other: Role; reason: string }> = [];
     const seen = new Set<string>();
     for (const j of OfficialJinxes[roleId] ?? []) {
@@ -40,6 +45,22 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
     }
     return out;
   };
+
+  /** 相剋規則要「顯示在哪一方」的判斷，對齊劇本工具 CharacterCard.shouldShowFullText：
+   *  1. 相剋數量多的一方  2. 陣營位階高的一方  3. id 字典序較小的一方。 */
+  const jinxShownHere = (self: Role, other: Role): boolean => {
+    const cSelf = getJinxPartners(self.id).length;
+    const cOther = getJinxPartners(other.id).length;
+    if (cSelf !== cOther) return cSelf > cOther;
+    const rSelf = TEAM_JINX_RANK[self.type] ?? 8;
+    const rOther = TEAM_JINX_RANK[other.type] ?? 8;
+    if (rSelf !== rOther) return rSelf > rOther;
+    return self.id < other.id;
+  };
+
+  /** 單邊顯示：只回傳「應顯示在此角色下」的相剋規則。 */
+  const getActiveJinxes = (role: Role): Array<{ other: Role; reason: string }> =>
+    getJinxPartners(role.id).filter(j => jinxShownHere(role, j.other));
 
   const townsfolk = validRoles.filter(r => r.type === 'townsfolk');
   const outsider = validRoles.filter(r => r.type === 'outsider');
@@ -121,7 +142,7 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {group.roles.map(role => {
-                    const jinxes = getActiveJinxes(role.id);
+                    const jinxes = getActiveJinxes(role);
                     return (
                     <div key={role.id} className={`flex flex-col p-1.5 rounded-lg border ${group.border} ${group.bg} shadow-sm relative z-10 group/tooltip`}>
                       <div className="flex items-start">
