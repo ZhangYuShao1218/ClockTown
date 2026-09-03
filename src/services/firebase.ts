@@ -23,9 +23,12 @@ const app = initializeApp(firebaseConfig);
 const recaptchaSiteKey = (import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined)?.trim();
 if (recaptchaSiteKey) {
   if (import.meta.env.DEV) {
-    // 本機開發：SDK 會產生一組 debug token 印在 console，
-    // 貼進 Firebase Console → App Check → Manage debug tokens 即可讓這台電腦通過。
-    (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    // 本機開發：用固定的 debug token（VITE_APPCHECK_DEBUG_TOKEN）比較好管理——
+    // 把同一串貼進 Firebase Console → App Check → Manage debug tokens 即可。
+    // 未設定時退回 true，由 SDK 隨機產生一組並印在 console。
+    const debugToken = (import.meta.env.VITE_APPCHECK_DEBUG_TOKEN as string | undefined)?.trim();
+    (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean | string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+      debugToken || true;
   }
   initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(recaptchaSiteKey),
