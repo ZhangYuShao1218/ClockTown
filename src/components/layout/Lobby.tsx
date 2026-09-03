@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { onValue, query, limitToLast } from "firebase/database";
+import { onValue, query, limitToLast, remove } from "firebase/database";
 import { nref } from "../../services/firebase";
 import { createRoom, joinRoom } from "../../services/roomService";
 import { useAuth } from "../../hooks/useAuth";
@@ -28,19 +28,31 @@ export const Lobby = () => {
   useEffect(() => {
     // 監聽房間列表 (抓取最新的 50 個房間)
     const roomsRef = query(nref("rooms"), limitToLast(50));
+    // 超過這個時間沒有任何寫入（lastActivityAt）的房間視為死房
+    const STALE_MS = 8 * 60 * 60 * 1000;
+    const isStale = (room: any, now: number) =>
+      now - (room?.public?.lastActivityAt ?? room?.public?.createdAt ?? 0) > STALE_MS;
+
     const unsubscribe = onValue(roomsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-        // 超過 8 小時沒有任何寫入的房間視為死房，不顯示（實際刪除交給排程 function）
-        const STALE_MS = 8 * 60 * 60 * 1000;
         const now = Date.now();
+
+        // 順手清掃：把死房直接刪掉（不論房內有無玩家、不論 lobby/playing/finished）。
+        // 已登入 + App Check，規則允許刪除；刪已不存在的房是無害的 no-op。
+        Object.entries(data).forEach(([id, room]) => {
+          if (isStale(room, now)) {
+            remove(nref(`rooms/${id}`)).catch(() => {});
+          }
+        });
+
         const availableRooms = Object.keys(data)
           .map(key => ({
             id: key,
             ...data[key]
           }))
           .filter(room => room.public?.status === "lobby") // 只顯示等待中的房間
-          .filter(room => now - (room.public?.lastActivityAt ?? room.public?.createdAt ?? 0) < STALE_MS)
+          .filter(room => !isStale(room, now))
           .map(room => {
             const hostName = room.players?.[room.public.hostId]?.name || "未知說書人";
             const playerCount = room.players ? Object.keys(room.players).length : 0;
