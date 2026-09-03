@@ -1,8 +1,18 @@
-import { set, get, update, remove } from "firebase/database";
+import { set, get, update, remove, serverTimestamp } from "firebase/database";
 import { nref } from "./firebase";
 
 const generateRoomId = () => {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
+};
+
+/**
+ * 寫入房間資料，並順手把 public/lastActivityAt 設為伺服器時間。
+ * 排程清理（functions/cleanupStaleRooms）用這個欄位判斷「多久沒動過」的死房。
+ * 註：presence 類型的寫入（如離線標記）不該經過這裡，否則死房會被續命。
+ */
+const touchAndUpdate = (roomId: string, updates: Record<string, any>) => {
+  updates[`rooms/${roomId}/public/lastActivityAt`] = serverTimestamp();
+  return update(nref(), updates);
 };
 
 export const createRoom = async (hostId: string, hostName: string): Promise<string> => {
@@ -30,7 +40,8 @@ export const createRoom = async (hostId: string, hostName: string): Promise<stri
         minionKnowsBluffs: true,
         privateMsgMode: 'none', // 'none' | 'adjacent' | 'all'
       },
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      lastActivityAt: serverTimestamp()
     },
     players: {
       [hostId]: {
@@ -71,7 +82,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     if (userName && roomData.players[userId].name !== userName) {
       patch[`rooms/${roomId}/players/${userId}/name`] = userName;
     }
-    await update(nref(), patch);
+    await touchAndUpdate(roomId, patch);
     return roomId;
   }
 
@@ -91,7 +102,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     seat: null
   };
 
-  await update(nref(), updates);
+  await touchAndUpdate(roomId, updates);
   return roomId;
 };
 
@@ -101,52 +112,56 @@ export const leaveRoom = async (roomId: string, userId: string) => {
   if (!snapshot.exists()) return;
 
   const roomData = snapshot.val();
-  
-  // 如果在 lobby 階段，且離開的是最後一個玩家或房主，可以直接刪除房間來維持乾淨
-  // 為了簡化，如果是房主離開且還在 lobby，直接解散房間
-  if (roomData.public.status === "lobby" && roomData.public.hostId === userId) {
+
+  // 房主在 lobby 階段離開 → 直接解散房間
+  if (roomData.public?.status === "lobby" && roomData.public?.hostId === userId) {
     await remove(roomRef);
     return;
   }
 
-  // 否則僅標記為離線
+  // 標記為離線（presence，不更新 lastActivityAt，才不會續命死房）
   await update(nref(), { [`rooms/${roomId}/players/${userId}/isOnline`]: false });
+
+  // 若這次離開後房裡已無任何在線玩家 → 刪掉整個房間
+  const players: Record<string, any> = roomData.players || {};
+  const someoneElseOnline = Object.entries(players).some(
+    ([uid, p]) => uid !== userId && (p as any)?.isOnline
+  );
+  if (!someoneElseOnline) {
+    await remove(roomRef);
+  }
 };
 
 export const setPlayerSeat = async (roomId: string, userId: string, seatIndex: number | null) => {
-  await update(nref(), { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex });
 };
 
 export const updateRoomScript = async (roomId: string, scriptId: string) => {
-  await update(nref(), { [`rooms/${roomId}/public/scriptId`]: scriptId });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/scriptId`]: scriptId });
 };
 
 export const updateSeatCount = async (roomId: string, seatCount: number) => {
-  await update(nref(), { [`rooms/${roomId}/public/seatCount`]: seatCount });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/seatCount`]: seatCount });
 };
 
 export const setGrimoireRole = async (roomId: string, seatIndex: number, roleId: string | null) => {
   const path = `rooms/${roomId}/private/grimoire/${seatIndex}`;
-  if (roleId === null) {
-    await remove(nref(path));
-  } else {
-    await update(nref(), { [path]: { roleId } });
-  }
+  await touchAndUpdate(roomId, { [path]: roleId === null ? null : { roleId } });
 };
 
 export const setGrimoireBluff = async (roomId: string, index: number, roleId: string | null) => {
-  await update(nref(), { [`rooms/${roomId}/private/bluffs/${index}`]: roleId });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/private/bluffs/${index}`]: roleId });
 };
 
 export const setCustomScript = async (roomId: string, scriptData: any) => {
-  await update(nref(), { 
+  await touchAndUpdate(roomId, { 
     [`rooms/${roomId}/public/scriptId`]: "custom",
     [`rooms/${roomId}/public/customScript`]: scriptData
   });
 };
 
 export const updateDistribution = async (roomId: string, distribution: number[]) => {
-  await update(nref(), { [`rooms/${roomId}/public/distribution`]: distribution });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/distribution`]: distribution });
 };
 
 export const applySetupToRoom = async (roomId: string, setup: any, setupId?: string) => {
@@ -172,19 +187,19 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
   updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs !== undefined ? setup.bluffs : null;
   updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire !== undefined ? setup.grimoire : null;
   
-  await update(nref(), updates);
+  await touchAndUpdate(roomId, updates);
 };
 
 export const updateRoomSettings = async (roomId: string, settings: any) => {
-  await update(nref(), { [`rooms/${roomId}/public/settings`]: settings });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/settings`]: settings });
 };
 
 export const updateFabled = async (roomId: string, fabled: string[]) => {
-  await update(nref(), { [`rooms/${roomId}/public/fabled`]: fabled });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/fabled`]: fabled });
 };
 
 export const updateFabledIndex = async (roomId: string, index: number, roleId: string | null) => {
-  await update(nref(), { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
 };
 
 export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, seatCount: number, direction: 'cw' | 'ccw') => {
@@ -193,7 +208,7 @@ export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, se
     const sourceSeat = direction === 'cw' ? (i === 1 ? seatCount : i - 1) : (i === seatCount ? 1 : i + 1);
     updates[`rooms/${roomId}/private/grimoire/${i}`] = grimoireState[sourceSeat] || null;
   }
-  await update(nref(), updates);
+  await touchAndUpdate(roomId, updates);
 };
 
 export const distributeRoles = async (roomId: string, players: Record<string, any>, grimoire: any, bluffs: any[], script: any, settings: any) => {
@@ -294,7 +309,7 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
   // 標記角色已分配（鎖定會影響排版的說書人操作，直到收回角色）
   updates[`rooms/${roomId}/public/rolesDistributed`] = true;
 
-  await update(nref(), updates);
+  await touchAndUpdate(roomId, updates);
 
   // 記錄復盤事件
   import("./replayService").then(({ recordReplayEvent }) => {
@@ -315,14 +330,14 @@ export const recallRoles = async (roomId: string, players: Record<string, any>) 
     updates[`rooms/${roomId}/private/notes/${uid}`] = null; // Clear all notes or just their own seat? Let's just clear roleId. Wait, better clear all notes? The user said "玩家的座位也自動放上...". If we recall roles, maybe they want to clear their role from the notes. I'll just clear the roleId from players so it counts as recalled.
   });
   updates[`rooms/${roomId}/public/rolesDistributed`] = false;
-  await update(nref(), updates);
+  await touchAndUpdate(roomId, updates);
 };
 
 export const updateSeatStatus = async (roomId: string, seatIndex: number, status: Partial<import('../data/types').SeatStatus>) => {
   const currentRef = nref(`rooms/${roomId}/public/seatStatus/${seatIndex}`);
   const snapshot = await get(currentRef);
   const current = snapshot.val() || {};
-  await update(nref(), { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
 
   // 記錄復盤事件 (若生死狀態改變)
   if (status.isDead !== undefined) {
@@ -358,11 +373,11 @@ export const updateVotingState = async (roomId: string, stateUpdate: Partial<imp
   const currentRef = nref(`rooms/${roomId}/public/votingState`);
   const snapshot = await get(currentRef);
   const current = snapshot.val() || {};
-  await update(nref(), { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
 };
 
 export const updatePlayerVote = async (roomId: string, userUid: string, vote: boolean) => {
-  await update(nref(), { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/votingState/votes/${userUid}`]: vote });
 };
 
 
@@ -371,7 +386,7 @@ export const addVoteRecord = async (roomId: string, record: any) => {
   const snapshot = await get(currentRef);
   const history = snapshot.val() || [];
   history.push(record);
-  await update(nref(), { [`rooms/${roomId}/public/voteHistory`]: history });
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/voteHistory`]: history });
 
   // 記錄復盤事件
   import("./replayService").then(({ recordReplayEvent }) => {
@@ -386,7 +401,7 @@ export const addVoteRecord = async (roomId: string, record: any) => {
 };
 
 export const updateGameTime = async (roomId: string, dayNumber: number, timePhase: 'day' | 'night') => {
-  await update(nref(), { 
+  await touchAndUpdate(roomId, { 
     [`rooms/${roomId}/public/dayNumber`]: dayNumber,
     [`rooms/${roomId}/public/timePhase`]: timePhase,
     [`rooms/${roomId}/public/isNight`]: timePhase === 'night' 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { push, onValue, serverTimestamp, query, limitToLast } from 'firebase/database';
+import { push, onValue, serverTimestamp, query, limitToLast, update } from 'firebase/database';
 import { nref } from '../../services/firebase';
 
 
@@ -195,7 +195,9 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
       text: inputText.trim(),
       timestamp: serverTimestamp()
     });
-    
+    // 聊天也算活動，更新 lastActivityAt 讓排程清理不會誤刪進行中的房
+    update(nref(), { [`rooms/${roomId}/public/lastActivityAt`]: serverTimestamp() });
+
     setInputText('');
   };
 

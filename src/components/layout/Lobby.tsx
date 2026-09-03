@@ -31,12 +31,16 @@ export const Lobby = () => {
     const unsubscribe = onValue(roomsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
+        // 超過 8 小時沒有任何寫入的房間視為死房，不顯示（實際刪除交給排程 function）
+        const STALE_MS = 8 * 60 * 60 * 1000;
+        const now = Date.now();
         const availableRooms = Object.keys(data)
           .map(key => ({
             id: key,
             ...data[key]
           }))
           .filter(room => room.public?.status === "lobby") // 只顯示等待中的房間
+          .filter(room => now - (room.public?.lastActivityAt ?? room.public?.createdAt ?? 0) < STALE_MS)
           .map(room => {
             const hostName = room.players?.[room.public.hostId]?.name || "未知說書人";
             const playerCount = room.players ? Object.keys(room.players).length : 0;
