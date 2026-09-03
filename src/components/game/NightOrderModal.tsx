@@ -27,17 +27,17 @@ const RolePill = ({ item, isBottom, setHoveredRoleTooltip }: { item: any; isBott
   const type = role?.type || item.type || 'info';
   const style = pillStyles[type] || pillStyles['info'];
 
-  let reminderHTML = isBottom 
-    ? (role?.otherNightReminder || item.otherNightReminder || '') 
+  let reminderText = isBottom
+    ? (role?.otherNightReminder || item.otherNightReminder || '')
     : (role?.firstNightReminder || item.firstNightReminder || '');
-    
-  if (!reminderHTML) {
-    reminderHTML = role?.abilityHTML || role?.ability || item.abilityHTML || item.ability || '';
+
+  if (!reminderText) {
+    reminderText = role?.ability || item.ability || '';
   }
 
   const tooltipRole = {
     ...(role || item),
-    abilityHTML: reminderHTML
+    ability: reminderText,
   };
 
   return (

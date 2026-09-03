@@ -12,7 +12,6 @@ export interface Role {
   description?: string;
   recommendedPlayers?: string;
   difficulty?: string;
-  abilityHTML?: string;
   flavor?: string;
   firstNight?: number;
   otherNight?: number;

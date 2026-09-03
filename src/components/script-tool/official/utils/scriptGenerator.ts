@@ -18,6 +18,7 @@ import {
   getJinx,
 } from '../data';
 import { THEME_COLORS } from '../theme/colors';
+import { highlightAbilityHtml } from '../../../../lib/highlightAbility';
 import { isSameCharacter, normalizeCharacterId } from '../data/utils/characterIdMapping';
 import { configStore } from '../stores/ConfigStore';
 import type { Language } from './languages';
@@ -753,24 +754,16 @@ export function highlightAbilityText(text: string, language: Language = 'cn'): s
     return '';
   }
 
-  // Chinese keywords (MUST stay in Chinese - these are used to match Chinese game text)
-  const redKeywordsCN = [
-    '未正常生效', '选择或影响', '死于处决', '恶魔角色', '爪牙角色',
-    '邪恶玩家', '邪恶阵营', '邪恶角色', '"是恶魔"', '负面能力',
-    '小恶魔', '小怪宝', '维齐尔', '被处决', '杀死',
-    '死亡', '邪恶', '落败', '中毒', '爪牙', '恶魔', '处决',
-    '错误', '自杀', '暴乱', '军团', '代价', '伪装',
-    '作弊',
-  ];
-
-  const blueKeywordsCN = [
-    '外来者角色', '善良玩家', '善良阵营', '善良角色', '镇民角色',
-    '恢复健康', '起死回生', '落难少女', '有且只有', '有多准确',
-    '守夜人', '外来者', '农夫', '书生', '疯子', '国王',
-    '醉酒', '复活', '反刍', '镇民', '善良', '正确', '存活', '获胜', '大法官', '暗影筹码', '梭哈',
-  ];
-
-  const purpleKeywordsCN = ['非旅行者', '旅行者', '疯狂'];
+  // 中文：改用主專案的單一資料源關鍵字（繁體），並用標籤感知的方式包裝（避免巢狀 span）。
+  // sanitizer 會移除 class，因此改用 inline style。
+  if (language === 'cn') {
+    const colorOf = (kind: 'red' | 'blue' | 'gold') =>
+      kind === 'red' ? THEME_COLORS.evil : kind === 'blue' ? THEME_COLORS.good : THEME_COLORS.purple;
+    return highlightAbilityHtml(
+      text,
+      (kw, kind) => `<span style="color: ${colorOf(kind)}; font-weight: 700;">${kw}</span>`,
+    );
+  }
 
   // English keywords for text highlighting
   const redKeywordsEN = [
@@ -807,74 +800,29 @@ export function highlightAbilityText(text: string, language: Language = 'cn'): s
 
   const purpleKeywordsES = ['Viajero', 'Viajeros', 'loco', 'locura'];
 
-  // Select keyword list based on language
-  let redKeywords = language === 'cn' ? redKeywordsCN : language === 'es' ? redKeywordsES : redKeywordsEN;
-  let blueKeywords = language === 'cn' ? blueKeywordsCN : language === 'es' ? blueKeywordsES : blueKeywordsEN;
-  let purpleKeywords = language === 'cn' ? purpleKeywordsCN : language === 'es' ? purpleKeywordsES : purpleKeywordsEN;
+  // en / es：維持原本的整字比對（cn 已在函式前段回傳）
+  let redKeywords = [...(language === 'es' ? redKeywordsES : redKeywordsEN)].sort((a, b) => b.length - a.length);
+  let blueKeywords = [...(language === 'es' ? blueKeywordsES : blueKeywordsEN)].sort((a, b) => b.length - a.length);
+  let purpleKeywords = [...(language === 'es' ? purpleKeywordsES : purpleKeywordsEN)].sort((a, b) => b.length - a.length);
 
-  // Helper function to escape regex special characters
-  const escapeRegex = (str: string) => {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  };
-
-  // For non-Chinese languages, sort by length (longest first) to avoid short words being replaced before longer phrases
-  if (language !== 'cn') {
-    redKeywords = [...redKeywords].sort((a, b) => b.length - a.length);
-    blueKeywords = [...blueKeywords].sort((a, b) => b.length - a.length);
-    purpleKeywords = [...purpleKeywords].sort((a, b) => b.length - a.length);
-  }
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   let result = text;
-
-  // Non-Chinese uses word boundary matching; Chinese uses direct replacement
-  if (language !== 'cn') {
-    // Latin-script languages: use regex to ensure only whole words match
-    redKeywords.forEach((keyword) => {
-      const escapedKeyword = escapeRegex(keyword);
-      const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
-      result = result.replace(regex, (match) =>
-        `<span style="color: ${THEME_COLORS.evil}; font-weight: 700;">${match}</span>`
-      );
-    });
-
-    blueKeywords.forEach((keyword) => {
-      const escapedKeyword = escapeRegex(keyword);
-      const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
-      result = result.replace(regex, (match) =>
-        `<span style="color: ${THEME_COLORS.good}; font-weight: 700;">${match}</span>`
-      );
-    });
-
-    purpleKeywords.forEach((keyword) => {
-      const escapedKeyword = escapeRegex(keyword);
-      const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'gi');
-      result = result.replace(regex, (match) =>
-        `<span style="color: ${THEME_COLORS.purple}; font-weight: 700;">${match}</span>`
-      );
-    });
-  } else {
-    // Chinese: direct replacement
-    redKeywords.forEach((keyword) => {
-      result = result.replaceAll(
-        keyword,
-        `<span style="color: ${THEME_COLORS.evil}; font-weight: 700;">${keyword}</span>`
-      );
-    });
-
-    blueKeywords.forEach((keyword) => {
-      result = result.replaceAll(
-        keyword,
-        `<span style="color: ${THEME_COLORS.good}; font-weight: 700;">${keyword}</span>`
-      );
-    });
-
-    purpleKeywords.forEach((keyword) => {
-      result = result.replaceAll(
-        keyword,
-        `<span style="color: ${THEME_COLORS.purple}; font-weight: 700;">${keyword}</span>`
-      );
-    });
-  }
+  redKeywords.forEach((keyword) => {
+    result = result.replace(new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'gi'), (match) =>
+      `<span style="color: ${THEME_COLORS.evil}; font-weight: 700;">${match}</span>`
+    );
+  });
+  blueKeywords.forEach((keyword) => {
+    result = result.replace(new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'gi'), (match) =>
+      `<span style="color: ${THEME_COLORS.good}; font-weight: 700;">${match}</span>`
+    );
+  });
+  purpleKeywords.forEach((keyword) => {
+    result = result.replace(new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'gi'), (match) =>
+      `<span style="color: ${THEME_COLORS.purple}; font-weight: 700;">${match}</span>`
+    );
+  });
 
   return result;
 }

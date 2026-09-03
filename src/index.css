@@ -124,3 +124,9 @@
 .animate-breathe {
   animation: breathe 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* 角色能力重點字（深色背景用亮色） */
+.botc-kw { font-weight: 600; }
+.botc-kw-red  { color: #f87171; }
+.botc-kw-blue { color: #7dd3fc; }
+.botc-kw-gold { color: #fcd34d; }

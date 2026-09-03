@@ -3,6 +3,7 @@ import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { AllRoles } from "../../data/roles";
+import { highlightAbility } from "../../lib/highlightAbility";
 
 interface TravelerFabledModalProps {
   isOpen: boolean;
@@ -75,11 +76,7 @@ export const TravelerFabledModal = ({ isOpen, onClose, script }: TravelerFabledM
                     </div>
                     <div className="flex flex-col min-w-0 flex-1 justify-center">
                       <span className={`text-[16px] leading-tight font-bold ${current.color} whitespace-nowrap mb-0.5`}>{role.name}</span>
-                      {role.abilityHTML ? (
-                        <span className="text-[13px] leading-snug text-white/80" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
-                      ) : (
-                        <span className="text-[13px] leading-snug text-white/80">{role.ability}</span>
-                      )}
+                      <span className="text-[13px] leading-snug text-white/80">{highlightAbility(role.ability)}</span>
                     </div>
                   </div>
                 ))}

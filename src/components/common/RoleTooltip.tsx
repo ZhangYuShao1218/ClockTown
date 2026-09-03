@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
+import { highlightAbility } from "../../lib/highlightAbility";
 
 interface RoleTooltipProps {
   hoveredRole: { role: any, x: number, y: number } | null;
@@ -51,11 +52,12 @@ export const RoleTooltip = ({ hoveredRole }: RoleTooltipProps) => {
         visibility: pos.x === 0 ? 'hidden' : 'visible' // Hide until measured
       }}
     >
-      <div 
-        className="text-white/90 font-bold leading-relaxed text-justify" 
+      <div
+        className="text-white/90 font-bold leading-relaxed text-justify"
         style={{ wordBreak: 'normal', wordWrap: 'break-word' }}
-        dangerouslySetInnerHTML={{ __html: hoveredRole.role.abilityHTML || hoveredRole.role.ability }} 
-      />
+      >
+        {highlightAbility(hoveredRole.role.ability)}
+      </div>
     </div>,
     document.body
   );

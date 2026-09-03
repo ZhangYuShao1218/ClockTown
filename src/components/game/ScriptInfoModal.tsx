@@ -1,6 +1,7 @@
 import { Modal } from "../common/Modal";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
+import { highlightAbility } from "../../lib/highlightAbility";
 
 interface ScriptInfoModalProps {
   isOpen: boolean;
@@ -51,11 +52,7 @@ export const ScriptInfoModal = ({ isOpen, onClose, script }: ScriptInfoModalProp
                       {/* Tooltip for ability */}
                       <div className="absolute top-[105%] left-1/2 -translate-x-1/2 mt-1 w-56 bg-slate-900 border border-slate-500 text-white p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
                         <div className={`font-bold mb-1 ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>{role.name}</div>
-                        {role.abilityHTML ? (
-                          <div className="text-xs text-white/90 leading-relaxed text-left" dangerouslySetInnerHTML={{ __html: role.abilityHTML }} />
-                        ) : (
-                          <div className="text-xs text-white/90 leading-relaxed text-left">{role.ability}</div>
-                        )}
+                        <div className="text-xs text-white/90 leading-relaxed text-left">{highlightAbility(role.ability)}</div>
                       </div>
                     </div>
                   );
