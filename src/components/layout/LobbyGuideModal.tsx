@@ -153,10 +153,10 @@ export const LobbyGuideModal = ({ open, onClose }: LobbyGuideModalProps) => {
           </h2>
           <button
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-red-400/50 bg-red-900/80 text-white shadow-lg transition-colors hover:bg-red-700"
             aria-label="關閉"
           >
-            ✕
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
