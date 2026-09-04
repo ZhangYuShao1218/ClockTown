@@ -176,13 +176,13 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
         {isImageViewOpen && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm" onClick={() => setIsImageViewOpen(false)}>
             <div className="relative max-w-[95vw] max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
-              <img 
-                src={`/drama/Drama_${script.id}_info.png`} 
-                alt={`${script.name} 劇本圖片`} 
+              <img
+                src={`/drama/rules/Rule_${script.id}.png`}
+                alt={`${script.name} 圖片版劇本`}
                 className="max-w-full max-h-[95vh] object-contain rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)]"
-                onError={(e) => { 
-                  // If info image doesn't exist, fallback to regular logo or a placeholder
-                  e.currentTarget.src = `/drama/Drama_${script.id}.png`; 
+                onError={(e) => {
+                  // 沒有對應圖片版時退回劇本封面
+                  e.currentTarget.src = `/drama/Drama_${script.id}.png`;
                 }}
               />
               <button 
