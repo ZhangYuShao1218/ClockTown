@@ -501,6 +501,8 @@ export const Room = () => {
               bluffs={bluffs}
               distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
               grimoireState={gameState.private?.grimoire}
+              hostId={gameState?.public?.hostId || null}
+              hostGrimoireTokens={gameState?.private?.grimoireTokens?.[gameState?.public?.hostId] || null}
               customScript={gameState?.public?.customScript}
               activeScriptId={activeScriptId}
               activeSetupId={gameState?.public?.activeSetupId || null}

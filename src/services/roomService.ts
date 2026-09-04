@@ -202,11 +202,28 @@ export const updateFabledIndex = async (roomId: string, index: number, roleId: s
   await touchAndUpdate(roomId, { [`rooms/${roomId}/public/fabled/${index}`]: roleId });
 };
 
-export const rotateGrimoireRoles = async (roomId: string, grimoireState: any, seatCount: number, direction: 'cw' | 'ccw') => {
+export const rotateGrimoireRoles = async (
+  roomId: string,
+  grimoireState: any,
+  seatCount: number,
+  direction: 'cw' | 'ccw',
+  extra?: {
+    hostId?: string | null;
+    tokens?: Record<number, any> | null;
+  },
+) => {
   const updates: Record<string, any> = {};
+  const hostId = extra?.hostId;
+  const tokens = extra?.tokens || null;
   for (let i = 1; i <= seatCount; i++) {
     const sourceSeat = direction === 'cw' ? (i === 1 ? seatCount : i - 1) : (i === seatCount ? 1 : i + 1);
-    updates[`rooms/${roomId}/private/grimoire/${i}`] = grimoireState[sourceSeat] || null;
+    updates[`rooms/${roomId}/private/grimoire/${i}`] = grimoireState?.[sourceSeat] || null;
+    // 鐘樓真相分頁：說書人放在座位上的提醒標記（grimoireTokens）跟著角色一起旋轉。
+    // 只動說書人（hostId）在鐘樓真相分頁的 grimoireTokens，不碰 public、其他玩家、
+    // 也不碰 seatTokens / notes（那是舞台中央用的）→ 舞台中央完全不受影響。
+    if (hostId && tokens) {
+      updates[`rooms/${roomId}/private/grimoireTokens/${hostId}/${i}`] = tokens[sourceSeat] || null;
+    }
   }
   await touchAndUpdate(roomId, updates);
 };

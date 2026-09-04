@@ -15,6 +15,8 @@ interface GrimoireSettingsProps {
   bluffs: (string | null)[];
   distribution: number[];
   grimoireState: any;
+  hostId?: string | null;
+  hostGrimoireTokens?: Record<number, any> | null;
   customScript: any;
   activeScriptId: string | null;
   activeSetupId: string | null;
@@ -34,6 +36,8 @@ export const GrimoireSettings = ({
   bluffs, 
   distribution,
   grimoireState,
+  hostId = null,
+  hostGrimoireTokens = null,
   customScript,
   activeScriptId,
   activeSetupId,
@@ -416,7 +420,7 @@ export const GrimoireSettings = ({
 
         <div className="flex space-x-3 mt-4">
           <button
-            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'cw')}
+            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'cw', { hostId, tokens: hostGrimoireTokens })}
             disabled={locked}
             className={`flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2 ${lockedBtn}`}
           >
@@ -425,7 +429,7 @@ export const GrimoireSettings = ({
           </button>
           
           <button
-            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'ccw')}
+            onClick={() => rotateGrimoireRoles(roomId, grimoireState || {}, seatCount, 'ccw', { hostId, tokens: hostGrimoireTokens })}
             disabled={locked}
             className={`flex-1 bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg shadow-lg border border-emerald-500/50 transition-colors flex items-center justify-center space-x-2 ${lockedBtn}`}
           >
