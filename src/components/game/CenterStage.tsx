@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
+import { useElementSize } from "../../hooks/useElementSize";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
@@ -73,6 +74,8 @@ export const CenterStage = ({
 
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
+  // 窄屏：惡魔偽裝 / 傳奇 / 房間 合併為分頁視窗
+  const [infoTab, setInfoTab] = useState<'bluffs' | 'fabled' | 'room'>('bluffs');
 
   const handleSaveSeatToken = async (token: SeatToken) => {
     if (tokenTargetSeat === null || !userUid || !roomId) return;
@@ -198,28 +201,41 @@ export const CenterStage = ({
 
   const totalSeats = seats.length;
 
+  // 圓桌等比縮放：量測外框可用區，取內接正方形當作圓桌，座位 = min(桌機上限, 板寬 * 比例)。
+  // 桌機板寬夠大時吃到「上限」= 與原本尺寸一致；窄屏則依比例縮小但仍保有可讀大小。
+  const [boardWrapRef, boardWrap] = useElementSize<HTMLDivElement>();
+  const boardPx = Math.min(boardWrap.width, boardWrap.height) || 0;
+
   const getSeatConfig = () => {
     const count = totalSeats;
-    if (count <= 6) return { size: 170, radius: 40, badgeClass: 'w-11 h-11 text-xl' };
-    if (count <= 8) return { size: 160, radius: 41.5, badgeClass: 'w-10 h-10 text-lg' };
-    if (count <= 10) return { size: 150, radius: 42.5, badgeClass: 'w-9 h-9 text-base' };
-    if (count <= 12) return { size: 140, radius: 43.5, badgeClass: 'w-9 h-9 text-base' };
-    if (count <= 14) return { size: 130, radius: 44.5, badgeClass: 'w-8 h-8 text-sm' };
-    return { size: 120, radius: 45, badgeClass: 'w-8 h-8 text-sm' };
+    // frac ≈ 讓相鄰座位相接的比例；radius 是座位離圓心的距離（%）；
+    // 6 人與 8 人用相同 frac（手機上不再放大，中間留給筆記）；13 人以上維持原樣。
+    if (count <= 6) return { max: 460, frac: 0.248, floor: 58, radius: 34 };
+    if (count <= 8) return { max: 500, frac: 0.248, floor: 58, radius: 36 };
+    if (count <= 10) return { max: 420, frac: 0.206, floor: 50, radius: 37 };
+    if (count <= 12) return { max: 360, frac: 0.177, floor: 46, radius: 38 };
+    if (count <= 15) return { max: 300, frac: 0.150, floor: 38, radius: 40 };
+    return { max: 232, frac: 0.115, floor: 32, radius: 41 };
   };
 
+  const seatCfg = getSeatConfig();
+  // 桌機（板寬 ≥ 560）且 ≤12 人時，座位縮 0.82 → 間隔加大、較不擁擠；窄屏與 13+ 不受影響
+  const gapFactor = boardPx >= 560 && totalSeats <= 12 ? 0.82 : 1;
+  const seatPx = Math.min(seatCfg.max, Math.max(seatCfg.floor, (boardPx || 720) * seatCfg.frac * gapFactor));
+  const badgePx = Math.max(18, seatPx * 0.32);
+
   const getSeatStyle = (index: number) => {
-    const angleDeg = (index / totalSeats) * 360 - 90;
+    const angleDeg = ((index - 1) / totalSeats) * 360 - 90;
     const angleRad = (angleDeg * Math.PI) / 180;
-    const { size, radius } = getSeatConfig(); 
+    const { radius } = seatCfg;
     const x = 50 + radius * Math.cos(angleRad);
     const y = 50 + radius * Math.sin(angleRad);
-    return { 
-      left: `${x}%`, 
-      top: `${y}%`, 
+    return {
+      left: `${x}%`,
+      top: `${y}%`,
       transform: 'translate(-50%, -50%)',
-      width: `${size}px`,
-      height: `${size}px`
+      width: `${seatPx}px`,
+      height: `${seatPx}px`
     };
   };
 
@@ -228,48 +244,58 @@ export const CenterStage = ({
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       
-      {/* 右側浮動資訊柱 (佔據 20% 寬度) */}
-      <div className="absolute right-0 top-4 bottom-4 flex flex-col space-y-4 items-end pointer-events-none z-20 overflow-visible pb-6 w-[20%] pr-4 pl-4">
-        
-        {/* 陣營人數與生存資訊 */}
-        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl py-3 px-2 shadow-lg pointer-events-auto backdrop-blur-md w-full shrink-0 flex flex-col items-center z-30 relative">
-          <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-3">
-            <div className="flex-1"><div className="text-lg font-bold text-blue-300">民</div><div className="text-lg font-bold text-white">{t}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-blue-300">外</div><div className="text-lg font-bold text-white">{o}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-red-400">爪</div><div className="text-lg font-bold text-white">{m}</div></div>
-            <div className="flex-1"><div className="text-lg font-bold text-red-400">惡</div><div className="text-lg font-bold text-white">{d}</div></div>
-            {v > 0 && <div className="flex-1"><div className="text-lg font-bold text-purple-400">旅</div><div className="text-lg font-bold text-white">{v}</div></div>}
+      {/* 資訊卡：桌機為右側直欄（自身寬度、不隨螢幕拉寬）；窄屏 = 陣營(右上) + 分頁視窗(右下) */}
+      <div className="contents lg:absolute lg:z-20 lg:pointer-events-none lg:flex lg:flex-col lg:items-stretch lg:gap-4 lg:right-4 lg:top-4 lg:bottom-4 lg:w-64 2xl:w-72">
+
+        {/* 陣營人數與生存資訊（窄屏右上角） */}
+        <div className="absolute z-20 top-2.5 right-2.5 w-[160px] lg:static lg:w-full bg-stone-800/80 border-2 border-white/40 rounded-xl py-2 px-2 lg:py-2.5 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center">
+          <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-2 lg:mb-3">
+            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-blue-300">民</div><div className="text-sm lg:text-lg font-bold text-white">{t}</div></div>
+            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-blue-300">外</div><div className="text-sm lg:text-lg font-bold text-white">{o}</div></div>
+            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-red-400">爪</div><div className="text-sm lg:text-lg font-bold text-white">{m}</div></div>
+            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-red-400">惡</div><div className="text-sm lg:text-lg font-bold text-white">{d}</div></div>
+            {v > 0 && <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-purple-400">旅</div><div className="text-sm lg:text-lg font-bold text-white">{v}</div></div>}
           </div>
 
-          <div className="w-[80%] h-px bg-white/20 mb-3" />
+          <div className="w-[80%] h-px bg-white/20 mb-2 lg:mb-3" />
 
-          <div className="flex justify-between items-center w-full px-2 text-center">
-            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="總玩家數">
-              <img src="/assets/ui/HumanCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="總數" />
-              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
+          <div className="flex justify-between items-center w-full px-0 lg:px-2 text-center">
+            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="總玩家數">
+              <img src="/assets/ui/HumanCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-md" alt="總數" />
+              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
             </div>
-            <div className="w-px h-10 bg-white/20 mx-2"></div>
-            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="存活玩家數">
-              <img src="/assets/ui/LiveCount.png" className="w-[34px] h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
-              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - seats.filter(s => seatStatus[s]?.isDead).length}</span>
+            <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="存活玩家數">
+              <img src="/assets/ui/LiveCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
+              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - seats.filter(s => seatStatus[s]?.isDead).length}</span>
             </div>
-            <div className="w-px h-10 bg-white/20 mx-2"></div>
-            <div className="flex flex-row justify-center items-center gap-2 flex-1 group" title="擁有死亡票數">
-              <img src="/assets/ui/DeathVote.png" className="w-[34px] h-[34px] object-contain drop-shadow-md" alt="死亡票" />
-              <span className="text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.filter(s => seatStatus[s]?.isDead && seatStatus[s]?.hasGhostVote).length}</span>
+            <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
+            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="擁有死亡票數">
+              <img src="/assets/ui/DeathVote.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-md" alt="死亡票" />
+              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.filter(s => seatStatus[s]?.isDead && seatStatus[s]?.hasGhostVote).length}</span>
             </div>
           </div>
         </div>
 
+        {/* 惡魔偽裝 / 傳奇 / 房間：桌機各自獨立卡；窄屏合併為右下角分頁視窗 */}
+        <div className="absolute z-20 bottom-7 right-0.5 w-[236px] flex flex-col lg:static lg:w-auto lg:contents">
+
+        {/* 分頁按鈕（僅窄屏） */}
+        <div className="flex lg:hidden rounded-t-xl overflow-hidden border-2 border-b-0 border-white/30 text-sm font-bold pointer-events-auto shadow-lg">
+          {([['bluffs', '偽裝'], ['fabled', '傳奇'], ['room', '房間']] as const).map(([k, label]) => (
+            <button key={k} onClick={() => setInfoTab(k)} className={`flex-1 py-1.5 transition-colors ${infoTab === k ? 'bg-stone-700 text-white' : 'bg-stone-900/85 text-white/45'}`}>{label}</button>
+          ))}
+        </div>
+
         {/* 惡魔的偽裝 */}
-        <div className="flex flex-col items-center space-y-2 pointer-events-auto bg-stone-800/80 border-2 border-rose-900/80 p-3 pb-2 rounded-xl shadow-lg backdrop-blur-md w-full shrink-0 relative z-30">
-          <h3 className="text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
-          <div className="flex justify-center w-full gap-2">
+        <div className={`${infoTab === 'bluffs' ? 'flex' : 'hidden'} lg:flex flex-col items-center space-y-2 pointer-events-auto bg-stone-800/80 border-2 border-rose-900/80 p-3 pb-2 rounded-b-xl lg:rounded-xl shadow-lg backdrop-blur-md`}>
+          <h3 className="hidden lg:block text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
+          <div className="grid grid-cols-3 gap-2 w-full">
             {[0, 1, 2].map(i => {
               const roleId = bluffs[i];
               const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
               return (
-                <div key={i} className="flex flex-col items-center flex-1 group relative hover:z-[9999]">
+                <div key={i} className="flex flex-col items-center min-w-0 group relative hover:z-[9999]">
                   <div 
                     className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
                   >
@@ -295,18 +321,18 @@ export const CenterStage = ({
           </div>
         </div>
 
-        {/* 傳奇角色 */}
-        {fabled.filter(f => f).length > 0 && (
-          <div className="bg-stone-800/80 border-2 border-yellow-400 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col w-full shrink-0 relative z-20">
-            <h3 className="text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
-            <div className="flex flex-wrap gap-2 justify-center">
+        {/* 傳奇角色（無傳奇時桌機隱藏，窄屏分頁仍顯示提示） */}
+        <div className={`${infoTab === 'fabled' ? 'flex' : 'hidden'} ${fabled.filter(f => f).length > 0 ? 'lg:flex' : 'lg:hidden'} flex-col bg-stone-800/80 border-2 border-yellow-400 rounded-b-xl lg:rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md`}>
+            <h3 className="hidden lg:block text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
+            {fabled.filter(f => f).length === 0 && <div className="text-center text-white/40 text-sm py-3">尚無傳奇角色</div>}
+            <div className="grid grid-cols-3 gap-2 w-full">
               {fabled.filter(f => f).map(fId => {
                 const role = Object.values(AllRoles).find(r => r.id === fId);
                 if (!role) return null;
                 return (
-                  <div 
-                    key={fId} 
-                    className="flex flex-col items-center flex-1 min-w-[30%] group relative hover:z-[9999]"
+                  <div
+                    key={fId}
+                    className="flex flex-col items-center min-w-0 group relative hover:z-[9999]"
                     onMouseEnter={(e) => { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); }}
                     onMouseLeave={() => setHoveredRoleTooltip(null)}
                   >
@@ -318,14 +344,13 @@ export const CenterStage = ({
                 );
               })}
             </div>
-          </div>
-        )}
+        </div>
 
-        {/* Spacer to push the rest to bottom */}
-        <div className="flex-1 min-h-[1rem]" />
+        {/* Spacer to push the rest to bottom（僅直欄模式） */}
+        <div className="hidden lg:block flex-1 min-h-[1rem]" />
 
         {/* 房間資訊 */}
-        <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center w-full space-y-3 shrink-0">
+        <div className={`${infoTab === 'room' ? 'flex' : 'hidden'} lg:flex flex-col items-center bg-stone-800/80 border-2 border-white/40 rounded-b-xl lg:rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md space-y-3`}>
           <div className="flex justify-start w-full items-center">
             <span className="text-lg text-white/50 tracking-widest uppercase mr-2">Room :</span>
             <span className="font-mono text-white text-lg font-bold">{roomId}</span>
@@ -378,11 +403,15 @@ export const CenterStage = ({
             離開房間
           </button>
         </div>
+        </div>
       </div>
 
-      {/* 座位區 (左側 80% 置中計算，保留 5% 邊距，無底盤) */}
-      <div className="absolute left-0 top-0 bottom-0 w-[80%] flex items-center justify-center pointer-events-none p-0 pt-6 pb-16">
-        <div className="relative w-full h-full max-w-[95vh] max-h-[95vh] aspect-square flex items-center justify-center pointer-events-none">
+      {/* 座位區：外框量測可用區，內接正方形當圓桌 */}
+      <div ref={boardWrapRef} className="absolute left-0 right-0 top-[82px] bottom-[150px] lg:left-0 lg:right-[17rem] 2xl:right-[19rem] lg:top-2 lg:bottom-1 flex items-center justify-center pointer-events-none">
+        <div
+          className="relative flex items-center justify-center pointer-events-none"
+          style={{ width: `${boardPx}px`, height: `${boardPx}px` }}
+        >
           {/* 中央劇本圖示 */}
           {script?.id && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-80">
@@ -414,9 +443,9 @@ export const CenterStage = ({
             {seats.map((seatIndex) => {
             const style = getSeatStyle(seatIndex);
                         
-            const angleDeg = (seatIndex / totalSeats) * 360 - 90;
+            const angleDeg = ((seatIndex - 1) / totalSeats) * 360 - 90;
             const angleRad = (angleDeg * Math.PI) / 180;
-              const { radius } = getSeatConfig();
+              const { radius } = seatCfg;
               const x = 50 + radius * Math.cos(angleRad);
               const y = 50 + radius * Math.sin(angleRad);
             
@@ -489,7 +518,7 @@ export const CenterStage = ({
                     </div>
                   ) : (
                     <div className="w-full h-full relative flex flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]">
-                      <span className="text-[#503214]/30 text-4xl font-bold">{seatIndex}</span>
+                      <span className="text-[#503214]/30 font-bold leading-none" style={{ fontSize: `${seatPx * 0.38}px` }}>{seatIndex}</span>
                     </div>
                   )}
                   
@@ -528,16 +557,17 @@ export const CenterStage = ({
 
             {/* Tokens */}
             {seats.map((seatIndex) => {
-              const { radius, size } = getSeatConfig();
-              const tokenSize = size * 0.5;
-              const angleDeg = (seatIndex / totalSeats) * 360 - 90;
+              const { radius } = seatCfg;
+              const size = seatPx;
+              const tokenSize = size * 0.38;
+              const angleDeg = ((seatIndex - 1) / totalSeats) * 360 - 90;
               const angleRad = (angleDeg * Math.PI) / 180;
-              
+
               const currentTokens = (seatTokens || {})[seatIndex] || [];
               const elements: React.ReactNode[] = [];
               const seatRadiusPx = size / 2;
               const tokenRadiusPx = tokenSize / 2;
-              
+
               const getPosition = (i: number) => {
                 const distPx = seatRadiusPx + 5 + tokenRadiusPx + (i * (tokenSize + 1));
                 const baseX = 50 + radius * Math.cos(angleRad);
@@ -627,21 +657,21 @@ export const CenterStage = ({
               if (!firstNum && !otherNum) return null;
 
               const style = getSeatStyle(seatIndex);
-              const { badgeClass } = getSeatConfig();
+              const badgeStyle = { width: `${badgePx}px`, height: `${badgePx}px`, fontSize: `${badgePx * 0.55}px` };
 
               return (
-                <div 
+                <div
                   key={`badge-${seatIndex}`}
                   className="absolute pointer-events-none z-30"
                   style={style}
                 >
                   {firstNum && (
-                    <div className={`absolute left-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 rounded-full bg-blue-900 border-2 border-blue-400 text-blue-100 flex items-center justify-center font-bold shadow-xl" style={badgeStyle}>
                       {firstNum}
                     </div>
                   )}
                   {otherNum && (
-                    <div className={`absolute right-[-10px] top-1/2 -translate-y-1/2 ${badgeClass} rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl`}>
+                    <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 rounded-full bg-red-900 border-2 border-red-400 text-red-100 flex items-center justify-center font-bold shadow-xl" style={badgeStyle}>
                       {otherNum}
                     </div>
                   )}
@@ -660,9 +690,12 @@ export const CenterStage = ({
                 className={`absolute pointer-events-none ${activeDropdownSeat === seatIndex ? 'z-[1000]' : 'z-50'}`}
                 style={style}
               >
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto">
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-max flex flex-col items-center justify-center pointer-events-auto"
+                  style={{ top: `calc(100% + ${Math.max(1, seatPx * 0.04)}px)`, fontSize: `${Math.max(11, Math.min(20, seatPx * 0.15))}px` }}
+                >
                   <div
-                    className={`cursor-pointer font-bold bg-black/80 px-2.5 py-1 rounded-md text-base whitespace-nowrap border shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black transition-colors ${
+                    className={`cursor-pointer font-bold bg-black/80 px-2 py-0.5 rounded-md max-w-[38vw] lg:max-w-none truncate border shadow-[0_0_10px_rgba(0,0,0,1)] hover:bg-black transition-colors ${
                       player && player.uid === userUid
                         ? 'border-emerald-500 text-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
                         : player
@@ -671,8 +704,8 @@ export const CenterStage = ({
                     }`}
                     onClick={(e) => { e.stopPropagation(); setActiveDropdownSeat(activeDropdownSeat === seatIndex ? null : seatIndex); }}
                   >
-                    <span className="text-amber-400 text-lg mr-1 tracking-wider">{seatIndex}.</span>
-                    <span className="text-gray-100 text-lg">{player ? player.name : '空座位'}</span>
+                    <span className="text-amber-400 mr-1 tracking-wider">{seatIndex}.</span>
+                    <span className="text-gray-100">{player ? player.name : '空座位'}</span>
                   </div>
                   
                   {activeDropdownSeat === seatIndex && (
@@ -738,7 +771,7 @@ export const CenterStage = ({
       </div>
 
       {/* 左下角說書人資訊 */}
-      <div className="absolute left-[36px] bottom-[1px] z-20 w-[220px] pointer-events-none pb-6 flex flex-col justify-end">
+      <div className="absolute left-0.5 bottom-7 lg:left-[36px] lg:bottom-[1px] z-20 w-[220px] pointer-events-none lg:pb-6 hidden lg:flex flex-col justify-end">
         <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
            <div className="w-12 h-12 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
              <span className="text-xl font-serif text-blue-200">GM</span>

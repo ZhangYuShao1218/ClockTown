@@ -294,19 +294,19 @@ export const Room = () => {
         );
       })()}
 
-      {/* Top Left Nav */}
-      <div className="absolute top-4 left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
+      {/* Top Left Nav（窄屏擠到選單鈕右邊） */}
+      <div className="absolute top-2.5 left-[68px] lg:top-4 lg:left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
         <div className="flex space-x-1 bg-black/60 p-1 rounded-lg border border-white/20 backdrop-blur-md">
           <button 
             onClick={() => setActiveTab('stage')} 
-            className={`px-4 py-1.5 rounded-md font-bold tracking-widest transition-colors text-lg ${activeTab === 'stage' ? 'bg-white/20 text-white shadow-md' : 'text-white/80 bg-white/5 hover:text-white hover:bg-white/20'}`}
+            className={`px-2 py-1 lg:px-4 lg:py-1.5 rounded-md font-bold tracking-wider lg:tracking-widest transition-colors text-sm lg:text-lg ${activeTab === 'stage' ? 'bg-white/20 text-white shadow-md' : 'text-white/80 bg-white/5 hover:text-white hover:bg-white/20'}`}
           >
             舞台中央
           </button>
           {isHost && currentScript && (
             <button 
               onClick={() => setActiveTab('truth')} 
-              className={`px-4 py-1.5 rounded-md font-bold tracking-widest transition-colors text-lg ${activeTab === 'truth' ? 'bg-red-900/80 text-red-100 shadow-md' : 'text-red-300/80 bg-red-900/20 hover:text-red-100 hover:bg-red-900/40'}`}
+              className={`px-2 py-1 lg:px-4 lg:py-1.5 rounded-md font-bold tracking-wider lg:tracking-widest transition-colors text-sm lg:text-lg ${activeTab === 'truth' ? 'bg-red-900/80 text-red-100 shadow-md' : 'text-red-300/80 bg-red-900/20 hover:text-red-100 hover:bg-red-900/40'}`}
             >
               鐘樓真相
             </button>
@@ -314,8 +314,8 @@ export const Room = () => {
         </div>
       </div>
 
-      {/* 獨立選單按鈕 (位於右上角) */}
-      <div className="absolute right-[20%] top-4 z-40 pointer-events-auto flex flex-col items-end">
+      {/* 獨立選單按鈕：窄屏在左上角、桌機在右欄左側 */}
+      <div className="absolute left-2.5 top-2.5 lg:left-auto lg:right-[313px] lg:top-4 z-40 pointer-events-auto flex flex-col items-start lg:items-end">
         <button 
           onClick={() => {
             if (!isTopMenuOpen) {
@@ -328,8 +328,8 @@ export const Room = () => {
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
         
-        {/* 下拉選單 */}
-        <div className={`absolute top-full right-0 pt-2 transition-all duration-200 transform origin-top-right ${isTopMenuOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}>
+        {/* 下拉選單：窄屏往右展開、桌機往左展開（避免跑出畫面） */}
+        <div className={`absolute top-full left-0 right-auto lg:left-auto lg:right-0 pt-2 transition-all duration-200 transform origin-top-left lg:origin-top-right ${isTopMenuOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}>
           <div className="bg-black/95 border border-white/20 rounded-lg shadow-2xl backdrop-blur-md flex flex-col w-40 overflow-hidden relative z-50">
             {/* 分頁標籤 */}
             <div className="flex border-b border-white/20">
@@ -443,24 +443,27 @@ export const Room = () => {
         )}
       </div>
 
-      {/* Left Drawer */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-full sm:w-96 bg-slate-800 border-r-2 border-slate-600 shadow-[10px_0_30px_rgba(0,0,0,0.9)] transform transition-transform duration-300 ease-in-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-[calc(100%-25px)]'}`}>
-        
-        {/* Toggle Bookmark Button attached to drawer */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-full z-50 pointer-events-auto">
-          <button 
+      {/* Drawer：桌機從左側滑入；窄屏從下方滑入（樣式一致） */}
+      <div className={`fixed z-50 bg-slate-800 border-slate-600 shadow-[0_-10px_30px_rgba(0,0,0,0.9)] sm:shadow-[10px_0_30px_rgba(0,0,0,0.9)] transform transition-transform duration-300 ease-in-out flex flex-col
+        inset-x-0 bottom-0 h-[72vh] border-t-2 rounded-t-2xl
+        sm:inset-x-auto sm:inset-y-0 sm:left-0 sm:h-auto sm:w-96 sm:border-t-0 sm:border-r-2 sm:rounded-none
+        ${isDrawerOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-[calc(100%-21px)] sm:translate-y-0 sm:-translate-x-[calc(100%-20px)]'}`}>
+
+        {/* Toggle Bookmark Button attached to drawer（窄屏黏在 sheet 左上角） */}
+        <div className="absolute z-50 pointer-events-auto left-4 bottom-full sm:left-full sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
+          <button
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-            className="px-[10px] py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-r-xl border-y-2 border-r-2 border-l-0 border-slate-600 shadow-[10px_0_20px_rgba(0,0,0,0.8)] transition-all flex flex-col items-center justify-center cursor-pointer"
+            className="px-4 py-1.5 sm:px-[10px] sm:py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-t-xl sm:rounded-t-none sm:rounded-r-xl border-2 border-b-0 sm:border-b-2 sm:border-l-0 border-slate-600 shadow-[0_-10px_20px_rgba(0,0,0,0.8)] sm:shadow-[10px_0_20px_rgba(0,0,0,0.8)] transition-all flex flex-row sm:flex-col items-center justify-center cursor-pointer gap-2 sm:gap-0"
           >
               <div className="relative">
-                <span className="mb-2 text-lg">☰</span>
+                <span className="sm:mb-2 text-lg">☰</span>
                 {totalUnreadCount > 0 && (
                   <div className="absolute -top-[32px] -right-[28px] text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.9)] z-10">
                     <svg className="w-7 h-7 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" fill="currentColor" viewBox="0 0 20 20"><path d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" /></svg>
                   </div>
                 )}
               </div>
-              <div className="flex flex-col items-center gap-1 text-lg tracking-widest font-serif mt-2">
+              <div className="flex flex-row sm:flex-col items-center gap-0.5 sm:gap-1 text-base sm:text-lg tracking-widest font-serif sm:mt-2">
               {(isHost && activeTab === "truth" ? "說書人面版" : "遊戲訊息").split('').map((char, i) => (
                 <span key={i} className="leading-none">{char}</span>
               ))}

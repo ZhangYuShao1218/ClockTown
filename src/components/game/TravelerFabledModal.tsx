@@ -32,11 +32,12 @@ export const TravelerFabledModal = ({ isOpen, onClose, script }: TravelerFabledM
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth="max-w-[80vw]"
+      maxWidth="max-w-[95vw] md:max-w-[80vw]"
       noOverlay={true}
+      fullBleedOnMobile={true}
       title={""}
     >
-      <div className="relative w-full h-[75vh] flex flex-col -mt-5 -mb-5">
+      <div className="relative w-full h-[78svh] sm:h-[75vh] flex flex-col -mt-5 -mb-5">
 
         {/* Floating Title — 隨頁籤變化 */}
         <div className="absolute -top-[15px] right-2 z-50 pointer-events-none drop-shadow-xl text-right">

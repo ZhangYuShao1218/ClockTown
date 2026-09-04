@@ -53,7 +53,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   if (phase === 'voting' && startTime && typeof nomineeSeat === 'number') {
     const elapsed = currentTime - startTime;
     const totalTime = totalSeats * timePerPlayerMs;
-    const startAngle = (nomineeSeat / totalSeats) * 360 - 90;
+    const startAngle = ((nomineeSeat - 1) / totalSeats) * 360 - 90;
     
     if (elapsed >= totalTime) {
       isVotingFinished = true;
@@ -190,7 +190,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
           className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-md"
           style={{ 
             height: `${blueHeight}%`,
-            transform: `translate(-50%, -20%) rotate(${((nominatorSeat / totalSeats) * 360) + 180}deg)`
+            transform: `translate(-50%, -20%) rotate(${(((nominatorSeat - 1) / totalSeats) * 360) + 180}deg)`
           }}
           alt="pointer"
         />
@@ -203,7 +203,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
           className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-10 drop-shadow-md"
           style={{ 
             height: `${redHeight}%`,
-            transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : (((typeof nomineeSeat === 'number' ? nomineeSeat : nominatorSeat) / totalSeats) * 360 - 90)) + 270}deg)`,
+            transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : ((((typeof nomineeSeat === 'number' ? nomineeSeat : nominatorSeat) - 1) / totalSeats) * 360 - 90)) + 270}deg)`,
             transition: phase === 'voting' ? `transform ${Math.max(timePerPlayerMs * 0.5, timePerPlayerMs - 500)}ms ease-in-out` : 'none'
           }}
           alt="pointer"

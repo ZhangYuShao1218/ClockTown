@@ -73,8 +73,8 @@ export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProp
   if (!isOpen || !script) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[90vw]" noOverlay={true} title={""}>
-      <div className="relative w-full h-auto max-h-[85vh] flex flex-col">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-[95vw] md:max-w-[90vw]" noOverlay={true} fullBleedOnMobile={true} title={""}>
+      <div className="relative w-full h-auto max-h-[82svh] sm:max-h-[85vh] flex flex-col">
         {/* Floating Title */}
         <div className="absolute -top-[30px] right-2 z-50 pointer-events-none drop-shadow-xl text-right">
           <h2 className="text-2xl md:text-3xl font-bold text-[#ff6b6b] opacity-90 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
