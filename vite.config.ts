@@ -9,6 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // 監聽 0.0.0.0，讓同一區網（同 Wi-Fi）的手機可用「電腦區網 IP:5173」連入
+  server: {
+    host: true,
+  },
   resolve: {
     alias: {
       "@": path.resolve(process.cwd(), "./src"),
