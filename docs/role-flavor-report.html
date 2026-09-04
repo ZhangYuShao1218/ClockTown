@@ -1,0 +1,2241 @@
+<title>角色開場白總覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Noto+Serif+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f2ecde;
+    --surface: #fbf8f0;
+    --surface-2: #f6f1e3;
+    --ink: #241f1a;
+    --ink-soft: #6d6355;
+    --ink-faint: #928676;
+    --line: #ddd1b9;
+    --gold: #9c6f2c;
+    --gold-bright: #b9893b;
+    --good: #45597c;
+    --evil: #8c3324;
+    --neutral: #6f6047;
+    --shadow: 0 1px 2px rgba(40,32,20,.06), 0 8px 24px rgba(40,32,20,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15131a;
+      --surface: #1e1b24;
+      --surface-2: #24202b;
+      --ink: #ece4d6;
+      --ink-soft: #a79d90;
+      --ink-faint: #7c7264;
+      --line: #332e3c;
+      --gold: #ca9a52;
+      --gold-bright: #e0b666;
+      --good: #8fa6ca;
+      --evil: #d9705f;
+      --neutral: #b7a684;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15131a;
+    --surface: #1e1b24;
+    --surface-2: #24202b;
+    --ink: #ece4d6;
+    --ink-soft: #a79d90;
+    --ink-faint: #7c7264;
+    --line: #332e3c;
+    --gold: #ca9a52;
+    --gold-bright: #e0b666;
+    --good: #8fa6ca;
+    --evil: #d9705f;
+    --neutral: #b7a684;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Serif TC", Georgia, "Songti TC", serif;
+    line-height: 1.7;
+    margin: 0;
+  }
+  a { color: inherit; }
+
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 22px 96px; }
+
+  header.masthead {
+    padding: 60px 0 30px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: "Cinzel", "Noto Serif TC", serif;
+    font-weight: 600;
+    font-size: clamp(30px, 6vw, 44px);
+    line-height: 1.15;
+    letter-spacing: .01em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 60ch;
+    margin: 0;
+  }
+  .meta {
+    margin-top: 20px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 14px 0;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+  nav.toc a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: border-color .18s, background .18s;
+  }
+  nav.toc a:hover { border-color: var(--gold); background: var(--surface-2); }
+  nav.toc a em {
+    font-style: normal;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  .cat { margin: 0 0 56px; scroll-margin-top: 64px; }
+  .cat__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent, var(--neutral));
+    margin-bottom: 22px;
+  }
+  .cat[data-align="good"] { --accent: var(--good); }
+  .cat[data-align="evil"] { --accent: var(--evil); }
+  .cat[data-align="neutral"] { --accent: var(--neutral); }
+  .cat__head h2 { margin: 0; display: flex; align-items: baseline; gap: 12px; }
+  .cat__zh {
+    font-family: "Cinzel", "Noto Serif TC", serif;
+    font-weight: 600;
+    font-size: 24px;
+    color: var(--accent);
+  }
+  .cat__en {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .cat__count {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .roles { display: flex; flex-direction: column; gap: 4px; }
+  .role {
+    padding: 16px 4px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .role:last-child { border-bottom: 0; }
+  .role__head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 7px;
+  }
+  .role__head h3 {
+    margin: 0;
+    font-family: "Noto Serif TC", serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .role__head code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+  .role__ability {
+    margin: 0 0 9px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .role__flavor {
+    margin: 0;
+    padding-left: 15px;
+    border-left: 2px solid var(--gold-bright);
+    font-size: 15.5px;
+    color: var(--ink);
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 560px) {
+    .cat__head { flex-direction: column; gap: 4px; align-items: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">NewClockTown · 魔典文案</p>
+    <h1>角色開場白總覽</h1>
+    <p class="lede">說書人分配角色後，系統自動私訊給玩家的第一段「flavor」台詞。哥德／克蘇魯風、無血腥、第二人稱，貼合各自能力。此頁供快速校閱之用。</p>
+    <p class="meta">共 243 個角色 · 來源 src/data/roles/*.ts · 發送格式見 roomService.ts</p>
+  </header>
+
+  <nav class="toc">
+      <a href="#townsfolk"><span>鎮民</span><em>100</em></a>
+      <a href="#outsider"><span>外來者</span><em>30</em></a>
+      <a href="#minion"><span>爪牙</span><em>36</em></a>
+      <a href="#demon"><span>惡魔</span><em>28</em></a>
+      <a href="#traveler"><span>旅行者</span><em>19</em></a>
+      <a href="#fabled"><span>傳奇</span><em>19</em></a>
+      <a href="#loric"><span>奇遇</span><em>11</em></a>
+  </nav>
+
+    <section id="townsfolk" class="cat" data-align="good">
+      <div class="cat__head">
+        <h2><span class="cat__zh">鎮民</span><span class="cat__en">Townsfolk</span></h2>
+        <span class="cat__count">100 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>事務官</h3>
+          <code>steward</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一名善良玩家。</p>
+        <p class="role__flavor">你掌管鐘鎮的名冊，識得誰的手是乾淨的。今夜，一位善良之人向你顯露身分。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>侍女</h3>
+          <code>chambermaid</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你以外的兩名存活的玩家：你會得知他們中有幾人在當晚因其自身能力而被喚醒。</p>
+        <p class="role__flavor">你在走廊間穿梭，聽得見誰在夜裡沒有闔眼。被喚醒的靈魂，瞞不過你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>侍臣</h3>
+          <code>courtier</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇一個角色：如果該角色在場，該角色之一從當晚開始醉酒三天三夜。</p>
+        <p class="role__flavor">你在宮廷的杯觥交錯間長大。一盞下了手腳的酒，足以讓某個角色沉醉三日三夜。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>俑匠</h3>
+          <code>yongjiang</code>
+        </div>
+        <p class="role__ability">如果已死亡玩家中沒有邪惡玩家，你只會死於處決。</p>
+        <p class="role__flavor">你以陶土塑造守墓的俑人。只要亡者之中沒有惡人，你便只會死於眾人的審判。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>修行者</h3>
+          <code>shugenja</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知距離最近的邪惡玩家位於你的順時針還是逆時針方向。如果兩側的邪惡玩家與你距離相等，你得知的資訊由說書人決定。</p>
+        <p class="role__flavor">你盤坐誦經，感應四方的濁氣。最近的邪祟，在你左手或右手的方向。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>偃師</h3>
+          <code>yanshi</code>
+        </div>
+        <p class="role__ability">如果你在夜晚死亡，你與一名存活爪牙玩家交換角色。</p>
+        <p class="role__flavor">你以機關木偶亂人耳目。你若死於長夜，會與一名爪牙悄然對調身分。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>傳教士</h3>
+          <code>preacher</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：如果你選中了爪牙，他會得知被傳教士選中。所有被你選中的爪牙失去能力。</p>
+        <p class="role__flavor">你的佈道聲穿透濃霧。被你點名的爪牙，將在神諭前啞口無言、失去獠牙。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>僧侶</h3>
+          <code>monk</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇除你以外的一名玩家：當晚惡魔的負面能力對他無效。</p>
+        <p class="role__flavor">你的信仰與祈禱化作堅不可摧的護盾。今夜，你的庇護將讓惡魔的利爪無功而返。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>公主</h3>
+          <code>princess</code>
+        </div>
+        <p class="role__ability">在你的首個白天，如果你提名並處決了一名玩家，當晚惡魔不會造成死亡。</p>
+        <p class="role__flavor">你錦衣玉食，卻不諳世事。若你在首日親手送人上絞架，惡魔今夜便不敢造次。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>共情者</h3>
+          <code>empath</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會得知與你鄰近的兩名存活的玩家中邪惡玩家的數量。</p>
+        <p class="role__flavor">你的心跳能與周遭的靈魂共鳴。鄰座的邪惡氣息，是你在黑夜中揮之不去的夢魘。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>刀客</h3>
+          <code>daoke</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一個在場的爪牙角色。每局遊戲限一次，你可以在白天公開選擇一名玩家：如果他是你得知的角色，他死亡。</p>
+        <p class="role__flavor">你的刀只出鞘一次。你已看清一名爪牙的臉，總有一天你會當眾了結他。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>半仙</h3>
+          <code>banxian</code>
+        </div>
+        <p class="role__ability">任何在夜晚使用自身能力選擇你的其他玩家，會改為選中另一名邪惡玩家作為替代。</p>
+        <p class="role__flavor">你半隻腳踏在人間之外。任何在夜裡摸向你的手，都會被引向另一個邪惡之人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>半獸人</h3>
+          <code>lycanthrope</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名存活玩家：如果他是善良的，他死亡，並且當晚惡魔不會造成死亡。會有一名善良玩家始終被當作邪惡陣營。</p>
+        <p class="role__flavor">月圓之夜，你體內的野性甦醒。你的爪子若撕開善人，惡魔今夜便無從下手。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>博學者</h3>
+          <code>savant</code>
+        </div>
+        <p class="role__ability">每個白天，你可以私下詢問說書人以得知兩條資訊：一個是正確的，一個是錯誤的。</p>
+        <p class="role__flavor">你博覽群書，卻也深知書中真偽參半。每個白晝，說書人給你兩句話——一真一假。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>占卜師</h3>
+          <code>fortune_teller</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇兩名玩家：你會得知他們之中是否有惡魔。會有一名善良玩家始終被你的能力當作惡魔。</p>
+        <p class="role__flavor">星辰與水晶球映照出血紅的未來。你的占卜能準確地指出惡魔的所在，即便偶爾會被命運開個玩笑。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>史官</h3>
+          <code>shiguan</code>
+        </div>
+        <p class="role__ability">每個夜晚*，如果今天白天有玩家死於處決，你會得知存活鎮民的數量。</p>
+        <p class="role__flavor">你為鐘鎮修史。每逢白晝有人被處決，你便清點還剩多少鎮民尚在人世。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>吟遊詩人</h3>
+          <code>minstrel</code>
+        </div>
+        <p class="role__ability">當一名爪牙死於處決時，除了你和旅行者以外的所有其他玩家醉酒直到明天黃昏。</p>
+        <p class="role__flavor">你的琴音安撫人心。當一名爪牙被吊上絞架，你的旋律會讓眾人沉醉一整日。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>和尚</h3>
+          <code>heshang</code>
+        </div>
+        <p class="role__ability">每個夜晚，當有邪惡玩家的能力首次選擇或影響與你鄰近的存活玩家時，改為此次能力不生效並持續至下個黎明，且你會得知你的能力被觸發。</p>
+        <p class="role__flavor">你在鐘樓旁清修。每一夜，第一道伸向你鄰座的邪惡之力，都會被你化解於無形。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>和平主義者</h3>
+          <code>pacifist</code>
+        </div>
+        <p class="role__ability">被處決的善良玩家可能不會死亡。</p>
+        <p class="role__flavor">你厭惡無謂的殺戮。在你的斡旋下，善良之人縱使被處決，也可能逃過一死。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>哲學家</h3>
+          <code>philosopher</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇一個善良角色：你獲得該角色的能力。如果這個角色在場，他醉酒。</p>
+        <p class="role__flavor">你窮盡一生思索善惡的邊界。今夜，你可以借來他人的智慧，讓真理在你舌尖重生。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>唱詩男孩</h3>
+          <code>choirboy</code>
+        </div>
+        <p class="role__ability">如果惡魔殺死了國王，你會得知哪名玩家是惡魔。[+國王]</p>
+        <p class="role__flavor">你在鐘樓唱詩班侍奉國王。若惡魔膽敢弒君，你會親眼看清兇手的臉。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>國王</h3>
+          <code>king</code>
+        </div>
+        <p class="role__ability">每個夜晚，如果死亡的玩家數量大於或等於存活的玩家數量，你會得知一個存活的角色。惡魔知道你是國王。</p>
+        <p class="role__flavor">王冠沉重，鐘樓的每一次崩塌你都感同身受。當亡者多過生者，真相會來到你耳邊。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>圖書管理員</h3>
+          <code>librarian</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩名玩家和一個外來者角色：這兩名玩家之一是該角色（或者你會得知沒有外來者在場）。</p>
+        <p class="role__flavor">在泛黃的書卷中，記錄著被遺忘的詛咒。你熟知鎮上每一個外來者的秘密，即便他們自己也一無所知。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>城鎮公告員</h3>
+          <code>town_crier</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你會得知在今天白天時是否有爪牙發起過提名。</p>
+        <p class="role__flavor">你敲鑼宣讀鎮上的告示。今天是否有爪牙開口提名，你聽得一清二楚。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>報喪女妖</h3>
+          <code>banshee</code>
+        </div>
+        <p class="role__ability">如果惡魔殺死了你，所有玩家都會得知此事。從現在開始，你每天可以發起兩次提名，每次投票時可以投兩票。</p>
+        <p class="role__flavor">你的哭嚎預告死亡。若惡魔取你性命，全鎮都會聽見——而你將以雙倍的聲量歸來。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>士兵</h3>
+          <code>soldier</code>
+        </div>
+        <p class="role__ability">惡魔的負面能力對你無效。</p>
+        <p class="role__flavor">身經百戰的你，有著無法被撼動的意志。惡魔的爪牙在你面前，不過是徒勞的掙扎。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>失憶者</h3>
+          <code>amnesiac</code>
+        </div>
+        <p class="role__ability">你不知道你的能力是什麼。每個白天你可以找說書人猜測一次，你會得知你的猜測有多準確。</p>
+        <p class="role__flavor">你在鐘樓下醒來，記不得自己是誰。每個白晝，你都向說書人叩問著遺忘的能力。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>女祭司</h3>
+          <code>high_priestess</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會得知一名說書人認為你最應該與其交流的玩家。</p>
+        <p class="role__flavor">你聆聽鐘樓深處的低語。每夜，神意指向一個你最該與之交談的人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>女裁縫</h3>
+          <code>seamstress</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇除你以外的兩名玩家：你會得知他們是否為同一陣營。</p>
+        <p class="role__flavor">你以絲線縫合命運的裂縫。一針落下，你便知曉兩人是否出自同一匹布。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>守夜人</h3>
+          <code>nightwatchman</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇一名玩家：他會得知你是守夜人。</p>
+        <p class="role__flavor">你提著風燈巡行長夜。你可以向一人現身，讓他記住你舉燈的模樣。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>守鴉人</h3>
+          <code>ravenkeeper</code>
+        </div>
+        <p class="role__ability">如果你在夜晚死亡，你會被喚醒，然後你要選擇一名玩家：你會得知他的角色。</p>
+        <p class="role__flavor">群鴉是你的眼線，死亡是你的代價。當你倒下的那一刻，真相將向你徹底敞開。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>寵妃</h3>
+          <code>chongfei</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，說書人會在關於你的事情上打破規則。隨後，你會秘密得知說書人為此做了什麼。</p>
+        <p class="role__flavor">你受盡恩寵，連規則都願為你破例一次。事後，你會悄悄得知那份偏愛的代價。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>將軍</h3>
+          <code>general</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會得知說書人認為哪個陣營當前更有優勢（善良/邪惡/均勢）。</p>
+        <p class="role__flavor">你在無數戰役中嗅得出勝負的氣味。每夜，說書人都會向你透露戰局的天秤傾向何方。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>小精靈</h3>
+          <code>pixie</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一個在場的鎮民角色。如果你“瘋狂”地證明你是該角色，當他死亡時你獲得該角色的能力。</p>
+        <p class="role__flavor">你窺見了某個鎮民靈魂的形狀。若你瘋狂地扮演他，他殞落時力量會流入你體內。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>巡察</h3>
+          <code>xuncha</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇兩個善良角色（與上個夜晚不同）：如果他們都存活，他們當晚不會死亡。</p>
+        <p class="role__flavor">你夜巡鐘鎮的街巷。你選定的兩個善良身影，只要都還活著，今夜便安然無恙。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>巡山人</h3>
+          <code>huntsman</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇一名存活的玩家：如果你選中了落難少女，她會變成一個不在場的鎮民角色。[+落難少女]</p>
+        <p class="role__flavor">你在迷霧的山徑追蹤已久。若你尋獲那位落難少女，她將被賦予嶄新的面孔。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>工程師</h3>
+          <code>engineer</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時，你可以選擇讓惡魔變成你選擇的惡魔角色，或讓所有爪牙變成你選擇的爪牙角色。</p>
+        <p class="role__flavor">你拆解過最精密的殺人機關。今夜，你能親手重組這場噩夢的齒輪。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>店小二</h3>
+          <code>dianxiaoer</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩名善良玩家。他們之中會有一人醉酒，即使你已死亡。</p>
+        <p class="role__flavor">你在客棧招呼往來旅人，記得每張善良的臉。只是其中一位，早已醉得糊塗。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>廚師</h3>
+          <code>chef</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知場上鄰座的邪惡玩家有多少對。</p>
+        <p class="role__flavor">爐火的溫度與廚房的氣味，讓你對周圍的邪惡有著敏銳的直覺。相鄰的黑暗，總會露出馬腳。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>弄臣</h3>
+          <code>fool</code>
+        </div>
+        <p class="role__ability">當你首次將要死亡時，你不會死亡。</p>
+        <p class="role__flavor">你在鐘樓的宴席上插科打諢。死神第一次來找你時，會被你的笑話打發走。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>引路人</h3>
+          <code>yinluren</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇至多三名玩家：你會得知今晚是否有邪惡玩家的能力選擇或影響了他們之中的玩家。</p>
+        <p class="role__flavor">你在迷霧中為旅人掌燈。你能察覺，今夜是否有黑手撥動了你所護送的人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>悟道者</h3>
+          <code>wudaozhe</code>
+        </div>
+        <p class="role__ability">你以為你是一個外來者，但你實際上不是。如果有邪惡玩家的能力選擇或影響了你，在該效果生效前你會變成一個不在場的鎮民角色。</p>
+        <p class="role__flavor">你自以為是個局外之人，直到頓悟的那一刻。邪惡若沾上你，你會化為一個從未現身的鎮民。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>戲子</h3>
+          <code>xizi</code>
+        </div>
+        <p class="role__ability">所有戲子互相認識。不論在場的戲子數量多少或存活與否，勝負結果會被對調。[所有善良玩家都是戲子]</p>
+        <p class="role__flavor">帷幕之後，所有善良的靈魂都是同一齣戲的伶人。你們演的，是一場顛倒的結局。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>戲法師</h3>
+          <code>alsaahir</code>
+        </div>
+        <p class="role__ability">每個白天，你可以公開進行一次誰是爪牙，誰是惡魔的猜測。如果你猜對，善良陣營獲勝。</p>
+        <p class="role__flavor">你以戲法揭穿騙局。若你能當眾點破誰是爪牙、誰是惡魔，光明便就此得勝。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>打更人</h3>
+          <code>dagengren</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要猜測今晚首個死亡的玩家與你的距離。如果你猜測正確，則除你以外的所有玩家今晚不會死亡，但你可能會死亡。</p>
+        <p class="role__flavor">你提燈打更，數著死亡與你的距離。若你猜中了，今夜眾人平安，代價或許由你獨自承擔。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>掮客</h3>
+          <code>qianke</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇兩名存活玩家：如果他們陣營相同，今晚任何玩家使用自身能力選擇他們之一作為目標時，改為選中另一名玩家。</p>
+        <p class="role__flavor">你在暗處交換著命運的籌碼。你選定的兩人若同心，今夜射向他們的箭都會偏轉。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>提刑官</h3>
+          <code>tixingguan</code>
+        </div>
+        <p class="role__ability">在你首次提名玩家後，你會在當晚得知他的角色。惡魔會被你的能力當作善良角色。</p>
+        <p class="role__flavor">你審案問供，明察秋毫。你首次提名之人，其真面目會在當夜向你揭曉——惡魔卻能瞞過你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>教授</h3>
+          <code>professor</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時*，你可以選擇一名死亡的玩家：如果他是鎮民，你會將他起死回生。</p>
+        <p class="role__flavor">你鑽研生死的邊界。這一局，你可以將一位長眠的鎮民，從死亡中喚回。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>數學家</h3>
+          <code>mathematician</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會得知有多少名玩家的能力因為其他角色的能力而未正常生效。（從上個黎明到你被喚醒時）</p>
+        <p class="role__flavor">你以冰冷的數字丈量這場騙局。有多少能力今夜失了準頭，你算得分毫不差。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>方士</h3>
+          <code>fangshi</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇一個數字。在該數字對應的那一個夜晚，你會得知對應數量的在場角色。</p>
+        <p class="role__flavor">你掐指推算天機。你選定一個數字，在那一夜，對應數量的在場角色會向你顯現。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>旅店老闆</h3>
+          <code>innkeeper</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇兩名玩家：他們當晚不會死亡，但其中一人會醉酒到下個黃昏。</p>
+        <p class="role__flavor">你為旅人闔上房門。今夜你庇護的兩人不會死去，只是其中一位會宿醉到黃昏。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>村夫</h3>
+          <code>village_idiot</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：你會得知他的陣營。[+0~2村夫，複數村夫中有一人醉酒]</p>
+        <p class="role__flavor">眾人笑你痴傻，你卻只管指著誰問一句善惡。答案未必準，但你問得認真。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>染坊坊主</h3>
+          <code>ranfangfangzhu</code>
+        </div>
+        <p class="role__ability">如果你在夜晚死亡，惡魔的能力變成“每個夜晚*，可能會有一名玩家死亡。”</p>
+        <p class="role__flavor">你的染缸浸過無數布料。你若死於夜晚，惡魔的殺意將變得遲疑而不定。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>欽天監</h3>
+          <code>qintianjian</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知離你最近的邪惡玩家位於你的哪一側（左/右/相同）。如果與你鄰近的玩家中有邪惡陣營，你會得知錯誤資訊。</p>
+        <p class="role__flavor">你夜觀星象，卜算邪祟的方位。只是身旁若有惡人，星盤也會欺騙你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>歌伶</h3>
+          <code>geling</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在白天時，你可以提議所有玩家觀看你的演出，並從同意參加的玩家中選擇你的觀眾。如果惡魔成為了觀眾，你會在當晚死亡。</p>
+        <p class="role__flavor">你的歌聲傾城。若你邀眾人聽戲，而惡魔混進了觀眾席，這將是你最後一次登台。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>氣球駕駛員</h3>
+          <code>balloonist</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會得知一名與上個夜晚得知的玩家角色類型不同的玩家。[+0~1外來者]</p>
+        <p class="role__flavor">你乘著熱氣球俯瞰鐘樓。每一夜，一種與昨夜不同的身影落入你的眼底。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>水手</h3>
+          <code>sailor</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名存活的玩家：你或他之一會醉酒直到下個黃昏。你不會死亡。</p>
+        <p class="role__flavor">你航過無數暗湧的黑海，醉意是你的護身符。風浪奪不走你的命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>洗衣婦</h3>
+          <code>washerwoman</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩名玩家和一個鎮民角色：這兩名玩家之一是該角色。</p>
+        <p class="role__flavor">水流洗淨了鎮民的衣裳，卻洗不淨暗處的血跡。你的雙眼，總能看透那被隱藏的真實身分。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>漁夫</h3>
+          <code>fisherman</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在白天時，你可以讓說書人給你一些能幫助你的陣營獲勝的建議。</p>
+        <p class="role__flavor">你在迷霧的碼頭撒網半生。這一局，你可以向說書人討一句指引方向的箴言。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>無神論者</h3>
+          <code>atheist</code>
+        </div>
+        <p class="role__ability">說書人可以打破遊戲規則。如果說書人被處決，善良陣營獲勝，即使你已死亡。[無邪惡角色在場]</p>
+        <p class="role__flavor">你不信有惡魔，也不信鐘樓的詛咒。若說書人本身被處決，你的懷疑便是勝利。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>熊孩子</h3>
+          <code>xionghaizi</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一個鎮民角色：他們的能力會產生錯誤資訊，直到下個黃昏。</p>
+        <p class="role__flavor">你天生愛惡作劇。被你盯上的鎮民，明天說出口的話全成了謊。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>狸貓</h3>
+          <code>limao</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：如果他是善良角色且當晚被邪惡角色殺死，你和他交換角色。</p>
+        <p class="role__flavor">你善於偷天換日。你守護的善人若在夜裡被害，你會與他悄悄調換身分。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>獵手</h3>
+          <code>slayer</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，你可以在白天時公開選擇一名玩家：如果他是惡魔，他死亡。</p>
+        <p class="role__flavor">你的弩箭淬過聖水，一生只射一次。若箭尖對準的是惡魔，它便會應聲倒下。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>異教領袖</h3>
+          <code>cult_leader</code>
+        </div>
+        <p class="role__ability">每個夜晚，你會轉變為與你鄰近的一名存活的玩家的陣營。每個白天，你可以提議所有玩家加入你的教派，如果所有善良玩家同意加入，你的陣營獲勝。</p>
+        <p class="role__flavor">你渴望信眾。每一夜，你的信仰隨鄰座的靈魂搖擺；若眾人皆入教，黑暗便為你加冕。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>知府</h3>
+          <code>zhifu</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你會得知今天是否有非鎮民且非旅行者的玩家死亡。</p>
+        <p class="role__flavor">你坐鎮衙門，掌管生死簿。每逢夜盡，你便知曉今日是否有非鎮民之人殞命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>祖母</h3>
+          <code>grandmother</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一名善良玩家和他的角色。如果惡魔殺死了他，你也會死亡。</p>
+        <p class="role__flavor">你惦記著血脈中最年幼的那個孩子。若惡魔奪走他，你也將隨他而去。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>神諭者</h3>
+          <code>oracle</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你會得知有多少名死亡的玩家是邪惡的。</p>
+        <p class="role__flavor">你與亡者的低語相通。每一夜，你都知曉死者之中有幾人心懷邪惡。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>秉筆</h3>
+          <code>bingbi</code>
+        </div>
+        <p class="role__ability">如果你在白天死亡，當晚你會得知一名善良玩家。如果你在夜晚死亡，當晚你會得知一名邪惡玩家。</p>
+        <p class="role__flavor">你執筆記錄鐘鎮的興亡。死於白晝，你尋得一位善人；死於長夜，你揪出一名惡徒。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>築夢師</h3>
+          <code>dreamer</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你及旅行者以外的一名玩家：你會得知一個善良角色和一個邪惡角色，該玩家是其中一個角色。</p>
+        <p class="role__flavor">你潛入他人的夢境。每一夜，一善一惡兩張臉在夢中浮現，其一屬於你所窺探的人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>罌粟種植者</h3>
+          <code>poppy_grower</code>
+        </div>
+        <p class="role__ability">爪牙和惡魔互相不認識。如果你死亡，當晚他們會互相認識。</p>
+        <p class="role__flavor">你的花田散發著令人遺忘的芬芳。只要你還在，黑暗中的同謀便認不出彼此。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>舞蛇人</h3>
+          <code>snake_charmer</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名存活的玩家：如果你選中了惡魔，你和他交換角色和陣營，然後他中毒。</p>
+        <p class="role__flavor">你的笛聲能馴服最毒的蛇。若你的旋律纏上惡魔，你們將交換彼此的皮囊與立場。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>茶藝師</h3>
+          <code>tea_lady</code>
+        </div>
+        <p class="role__ability">如果與你鄰近的兩名存活的玩家是善良的，他們不會死亡。</p>
+        <p class="role__flavor">你為街坊奉茶。只要你兩側的鄰座都心懷善念，死亡便繞過他們。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>藝術家</h3>
+          <code>artist</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在白天時，你可以私下詢問說書人一個是非問題，你會得知該問題的答案。</p>
+        <p class="role__flavor">你以畫筆勾勒真相的輪廓。這一局，你可以向說書人索取一個無法迴避的答案。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>調查員</h3>
+          <code>investigator</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩名玩家和一個爪牙角色：這兩名玩家之一是該角色（或者你會得知沒有爪牙在場）。</p>
+        <p class="role__flavor">每一個細微的線索，都指向潛藏的邪惡。爪牙的陰影在你的追蹤下無所遁形。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>變臉師</h3>
+          <code>bianlianshi</code>
+        </div>
+        <p class="role__ability">每個白天，如果你“瘋狂”地證明自己是一個善良角色（與之前不同），你可能會在當晚獲得那個角色的能力，直到下個黃昏。</p>
+        <p class="role__flavor">你一日換一張臉。只要你瘋狂地扮成新的善良角色，那份力量或許就會附上你身。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>貞潔者</h3>
+          <code>virgin</code>
+        </div>
+        <p class="role__ability">當你首次被提名時，如果提名你的玩家是鎮民，他立刻被處決。</p>
+        <p class="role__flavor">純潔是你的武器，也是致命的陷阱。那些敢於質疑你的人，必將遭到公開的制裁。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>貴族</h3>
+          <code>noble</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知三名玩家：其中有且只有一名玩家是邪惡的。</p>
+        <p class="role__flavor">你的血統讓你看穿虛偽的笑容。三人之中，只有一人的心是黑的。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>賞金獵人</h3>
+          <code>bounty_hunter</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一名邪惡玩家。每當你得知的玩家死亡，你會在當晚得知另一名邪惡玩家。[會有一名鎮民轉變為邪惡陣營]</p>
+        <p class="role__flavor">你追捕懸賞的亡命之徒。一個目標倒下，下一個邪惡的名字便浮現在你的通緝令上。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>賢者</h3>
+          <code>sage</code>
+        </div>
+        <p class="role__ability">如果惡魔殺死了你，在當晚你會被喚醒並得知兩名玩家，其中一名是殺死你的那個惡魔。</p>
+        <p class="role__flavor">你的智慧在臨終時最為清明。若惡魔取你性命，你會在闔眼前望見兩張臉，兇手在其中。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>賣花女孩</h3>
+          <code>flowergirl</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你會得知在今天白天時是否有惡魔投過票。</p>
+        <p class="role__flavor">你在廣場兜售鮮花，冷眼旁觀每一場審判。惡魔今天有沒有舉手，你看得清清楚楚。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>賭徒</h3>
+          <code>gambler</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家並猜測他的角色：如果你猜錯了，你會死亡。</p>
+        <p class="role__flavor">你把性命押上牌桌。每夜你賭一個人的身分——猜錯了，你就得認賠。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>農夫</h3>
+          <code>farmer</code>
+        </div>
+        <p class="role__ability">如果你在夜晚死亡，一名存活的善良玩家會變成農夫。</p>
+        <p class="role__flavor">你在貧瘠的土地上耕作不輟。你若死於長夜，一位善良之人會接過你的鋤頭。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>送葬者</h3>
+          <code>undertaker</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你會得知今天白天死於處決的玩家的角色。</p>
+        <p class="role__flavor">死人不說謊。當鎮民將他們吊死，你負責為他們收屍，同時也揭開了他們生前最後的秘密。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>造謠者</h3>
+          <code>gossip</code>
+        </div>
+        <p class="role__ability">每個白天，你可以公開發表一個聲明。如果該聲明正確，在當晚會有一名玩家死亡。</p>
+        <p class="role__flavor">你在茶館散布流言。若你今天說的話恰好是真的，今夜就會有人為此送命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>道士</h3>
+          <code>daoshi</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：如果你選中了惡魔，你死亡，然後他醉酒直到下個黎明。</p>
+        <p class="role__flavor">你持桃木劍降妖。若你的劍尖點中惡魔，你會殞命，但它也將神智昏聵至黎明。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>郎中</h3>
+          <code>langzhong</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你以外的一名玩家：你會得知一個與他能力相關的詞語。</p>
+        <p class="role__flavor">你把脈問診，聽得出一個人命裡的病灶。每夜，一個關於他能力的字詞會浮上你心頭。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>錦衣衛</h3>
+          <code>jinyiwei</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：如果他在下個黃昏前死亡，你代替他死亡。</p>
+        <p class="role__flavor">你以身作盾。你護衛的人若在黃昏前遇害，替他倒下的會是你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>鍊金術士</h3>
+          <code>alchemist</code>
+        </div>
+        <p class="role__ability">你擁有一個爪牙角色的能力。當你使用能力時，說書人可能會要求你更換選擇。</p>
+        <p class="role__flavor">你在坩堝中提煉出禁忌的知識。惡魔的伎倆，如今也握在你的掌心。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>鎮長</h3>
+          <code>mayor</code>
+        </div>
+        <p class="role__ability">如果只有三名玩家存活且白天沒有人被處決，你的陣營獲勝。如果你在夜晚死亡，可能會有一名其他玩家代替你死亡。</p>
+        <p class="role__flavor">全鎮的存亡繫於你肩。若只剩三人而無人被處決，勝利便歸於光明。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>鐘錶匠</h3>
+          <code>clockmaker</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知惡魔與爪牙之間最近的距離。（鄰座的玩家距離為1）</p>
+        <p class="role__flavor">你聽得懂齒輪與齒輪之間的距離。惡魔與爪牙之間那道縫隙，逃不過你的耳朵。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>陰陽師</h3>
+          <code>yinyangshi</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩個善良角色和兩個邪惡角色。其中有且只有兩個角色在場。</p>
+        <p class="role__flavor">你在陰陽兩界之間結印。四個角色在你眼前浮現，其中僅兩者踏足此地。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>雜技演員</h3>
+          <code>acrobat</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：如果當晚他醉酒或中毒，你死亡。</p>
+        <p class="role__flavor">你在鋼索上與死亡共舞。你選中的人若中了邪毒，失衡墜落的會是你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>雜耍藝人</h3>
+          <code>juggler</code>
+        </div>
+        <p class="role__ability">在你的首個白天，你可以公開猜測任意玩家的角色最多五次。在當晚，你會得知猜測正確的角色數量。</p>
+        <p class="role__flavor">你在廣場拋接火把，也拋接猜測。首日你可以連猜五人的身分，夜裡便知中了幾個。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>風水師</h3>
+          <code>fengshuishi</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一名玩家的角色類型。每個夜晚*，你會從他的順時針方向得知下一名非旅行者玩家的角色類型。</p>
+        <p class="role__flavor">你勘查鐘鎮的地脈氣運。順時針方向，一個又一個座位的本質向你敞開。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>食人族</h3>
+          <code>cannibal</code>
+        </div>
+        <p class="role__ability">你擁有上個死於處決的玩家的能力。如果該玩家屬於邪惡陣營，你中毒直到下個善良玩家死於處決。</p>
+        <p class="role__flavor">你吞下處決者的血肉，也承接了他的力量。若那是邪惡之人，你將為此嘗到苦果。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>騎士</h3>
+          <code>knight</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知兩名非惡魔玩家。</p>
+        <p class="role__flavor">你的誓言是守護無辜。今夜，兩張面孔在你眼前浮現——他們絕非惡魔。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>驅魔人</h3>
+          <code>exorcist</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家（與上個夜晚不同）：如果你選中了惡魔，他會得知你是驅魔人，但他當晚不會因其自身能力而被喚醒。</p>
+        <p class="role__flavor">你誦讀驅魔的經文。若你尋得惡魔，它今夜將無法作祟，並記住是你打斷了它。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>驛使</h3>
+          <code>yishi</code>
+        </div>
+        <p class="role__ability">每個白天，你可以公開聲明一個角色。在當晚，你會得知該角色是否在場。如果你因此得知了否，你失去此能力。</p>
+        <p class="role__flavor">你日夜奔走傳遞消息。每個白晝你喊出一個角色，夜裡便知它是否在場——直到某次落空。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>魔術師</h3>
+          <code>magician</code>
+        </div>
+        <p class="role__ability">惡魔會以為你是爪牙。爪牙會以為你是惡魔。</p>
+        <p class="role__flavor">你以障眼法戲弄眾生。連惡魔也看不清，站在它面前的究竟是敵是友。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>鴆</h3>
+          <code>zhen</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時*，你可以選擇一個鎮民角色：如果他在場，他中毒並死亡。</p>
+        <p class="role__flavor">你的羽毛浸著劇毒。這一局，你可以指定一個在場的鎮民角色，讓他中毒而亡。</p>
+      </article>
+      </div>
+    </section>
+    <section id="outsider" class="cat" data-align="good">
+      <div class="cat__head">
+        <h2><span class="cat__zh">外來者</span><span class="cat__en">Outsiders</span></h2>
+        <span class="cat__count">30 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>使節</h3>
+          <code>shijie</code>
+        </div>
+        <p class="role__ability">每個夜晚限一次，一名玩家在使用自身能力選擇邪惡玩家時會改為選中你，即使你已死亡。</p>
+        <p class="role__flavor">你替人擋下明槍暗箭。每夜一次，射向邪惡之人的能力會改為落在你身上，縱使你已死。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>修補匠</h3>
+          <code>tinker</code>
+        </div>
+        <p class="role__ability">你隨時可能死亡。</p>
+        <p class="role__flavor">你的身子早已零件鬆脫。死亡隨時可能找上你，不需要任何理由。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>入殮師</h3>
+          <code>rulianshi</code>
+        </div>
+        <p class="role__ability">如果你提名了惡魔且他死於這次處決，你會變成那個邪惡的惡魔。當剩餘存活玩家小於等於四人時（旅行者除外），你失去能力。</p>
+        <p class="role__flavor">你為亡者淨身入殮。若你提名的惡魔死於處決，你便接過它的軀殼，成為新的夢魘。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>呆瓜</h3>
+          <code>klutz</code>
+        </div>
+        <p class="role__ability">當你得知你死亡時，你要公開選擇一名存活的玩家：如果他是邪惡的，你的陣營落敗。</p>
+        <p class="role__flavor">你笨手笨腳。當你得知自己死了，得當眾指一個人——指錯了邪惡，滿盤皆輸。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>告密者</h3>
+          <code>snitch</code>
+        </div>
+        <p class="role__ability">爪牙會在其首個夜晚得知三個偽裝。</p>
+        <p class="role__flavor">你藏不住秘密。開局之際，爪牙們便因你之口得知了三個偽裝。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>帽匠</h3>
+          <code>hatter</code>
+        </div>
+        <p class="role__ability">如果你死亡，當晚爪牙和惡魔玩家可以選擇變成新的爪牙和惡魔角色。</p>
+        <p class="role__flavor">你收藏著無數瘋帽。你若身死，當夜爪牙與惡魔便能戴上新的帽子、換一副模樣。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>心上人</h3>
+          <code>sweetheart</code>
+        </div>
+        <p class="role__ability">當你死亡時，會有一名玩家開始醉酒。</p>
+        <p class="role__flavor">眾人為你傾心。你香消玉殞的那一刻，總有一人因悲慟而神智昏亂。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>政客</h3>
+          <code>politician</code>
+        </div>
+        <p class="role__ability">如果你是對你的陣營落敗負最大責任的人，你轉變陣營並獲勝，即使你已死亡。</p>
+        <p class="role__flavor">你八面玲瓏。若你竟是害己方落敗的罪魁，便倒戈相向、獨自竊取勝利。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>書生</h3>
+          <code>shusheng</code>
+        </div>
+        <p class="role__ability">惡魔知道書生在場。每局遊戲限一次，惡魔可以拜訪說書人並猜測你是書生。如果惡魔猜測正確，即使你已死亡，當晚該惡魔可以選擇一名玩家：他死亡。</p>
+        <p class="role__flavor">你埋首書卷，惡魔卻知你在場。若它猜中你是書生，縱使你已入土，它仍能藉此索命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>書童</h3>
+          <code>shutong</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇除你以外的一名玩家：除首個夜晚以外，當他被邪惡玩家的能力選擇或影響時，你會在當晚死亡。</p>
+        <p class="role__flavor">你形影不離地跟著某人。首夜之後，只要黑手碰他一下，你便在當夜替他殞命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>月之子</h3>
+          <code>moonchild</code>
+        </div>
+        <p class="role__ability">當你得知你死亡時，你要公開選擇一名存活的玩家。如果他是善良的，在當晚他會死亡。</p>
+        <p class="role__flavor">你是月光所生的孩子。臨終之際你指向一人，若他心懷善念，當夜便隨你而去。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>煞星</h3>
+          <code>shaxing</code>
+        </div>
+        <p class="role__ability">如果你死亡，當晚與你鄰近的存活玩家之一可能會死亡。</p>
+        <p class="role__flavor">你命帶災星。你一旦殞命，身旁的某個活人也可能被你的厄運牽連。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>狂熱者</h3>
+          <code>zealot</code>
+        </div>
+        <p class="role__ability">如果有大於等於五名玩家存活，你必須在所有提名中投票。</p>
+        <p class="role__flavor">你信念偏執。只要場上還有五人以上，你就必須在每一次提名中舉手。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>理髮師</h3>
+          <code>barber</code>
+        </div>
+        <p class="role__ability">如果你死亡，在當晚惡魔可以選擇兩名玩家（不能選擇其他惡魔）交換角色。</p>
+        <p class="role__flavor">你的剃刀劃過無數脖頸。你若身死，當夜惡魔便能將兩人的面孔對調。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>異端分子</h3>
+          <code>heretic</code>
+        </div>
+        <p class="role__ability">對調勝負結果，即使你已死亡。</p>
+        <p class="role__flavor">你宣揚顛倒的教義。在你的世界裡，勝利即是敗亡，敗亡即是勝利。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>畸形秀演員</h3>
+          <code>mutant</code>
+        </div>
+        <p class="role__ability">如果你“瘋狂”地證明自己是外來者，你可能被處決。</p>
+        <p class="role__flavor">你在帳篷裡表演畸形之姿。可你若瘋狂地張揚自己是外來者，絞架也許就在眼前。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>瘋子</h3>
+          <code>lunatic</code>
+        </div>
+        <p class="role__ability">你以為你是一個惡魔，但其實你不是。惡魔知道你是瘋子以及你在每個夜晚選擇了哪些玩家。</p>
+        <p class="role__flavor">你堅信自己是惡魔，夜夜「行兇」。真正的惡魔卻在暗處，冷眼看你的鬧劇。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>瘟疫醫生</h3>
+          <code>plague_doctor</code>
+        </div>
+        <p class="role__ability">當你死亡時，說書人會獲得一個爪牙能力。</p>
+        <p class="role__flavor">你戴著鳥喙面具穿行疫區。你一旦身死，說書人便染上一縷爪牙的邪力。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>管家</h3>
+          <code>butler</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你以外的一名玩家：明天白天，只有他投票時你才能投票。</p>
+        <p class="role__flavor">你習慣了服從與跟隨。主人的意志就是你的意志，即便在生死的投票面前也是如此。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>聖徒</h3>
+          <code>saint</code>
+        </div>
+        <p class="role__ability">如果你死於處決，你的陣營落敗。</p>
+        <p class="role__flavor">他們將你視作聖人，然而這卻是悲劇的開始。如果你被處決，整個城鎮將為你的死陪葬。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>莽夫</h3>
+          <code>goon</code>
+        </div>
+        <p class="role__ability">每個夜晚，首個使用其自身能力選擇了你的玩家會醉酒直到下個黃昏。你會轉變為他的陣營。</p>
+        <p class="role__flavor">你渾噩度日。每夜第一個對你動手的人會宿醉整日，而你也會投向他的陣營。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>落難少女</h3>
+          <code>damsel</code>
+        </div>
+        <p class="role__ability">所有爪牙都知道落難少女在場。每局遊戲限一次，任意爪牙可以公開猜測你是落難少女，如果猜對，你的陣營落敗。</p>
+        <p class="role__flavor">你身陷險境，所有爪牙都盯著你。只要有人當眾點破你的身分，光明便就此崩塌。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>解謎大師</h3>
+          <code>puzzlemaster</code>
+        </div>
+        <p class="role__ability">一名玩家醉酒，即使你已死亡。每局遊戲限一次，你可以猜測誰是那個醉酒的玩家，如果猜對了，你會得知誰是惡魔，但如果猜錯了，你會得知錯誤的“誰是惡魔”資訊。</p>
+        <p class="role__flavor">你痴迷謎題，連自己也困在其中。一人因你而醉；猜中他，你便得知惡魔之名。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>逆臣</h3>
+          <code>nichen</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇除你以外的一名玩家：如果他先死於處決，你會在當晚轉變為邪惡；如果你先死於處決，他會在當晚轉變為邪惡。</p>
+        <p class="role__flavor">你與一人結下不共戴天之仇。誰先被處決，另一人便在當夜墮入黑暗。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>酒保</h3>
+          <code>jiubao</code>
+        </div>
+        <p class="role__ability">與你鄰近的善良玩家之一醉酒，即使你已死亡。</p>
+        <p class="role__flavor">你替街坊斟酒解憂。你身旁總有一位善人被灌得酩酊，縱使你已長眠。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>酒鬼</h3>
+          <code>drunk</code>
+        </div>
+        <p class="role__ability">你不知道你是酒鬼。你以為你是一個鎮民角色，但其實你不是。</p>
+        <p class="role__flavor">一杯接一杯，世界在你眼中扭曲變形。你以為自己是英雄，但你只是個一無所知的醉漢。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>陌客</h3>
+          <code>recluse</code>
+        </div>
+        <p class="role__ability">你可能會被當作邪惡陣營、爪牙角色或惡魔角色，即使你已死亡。</p>
+        <p class="role__flavor">你選擇遠離人群，卻被當作黑暗的同黨。即使你心向光明，靈魂卻始終散發著邪惡的氣息。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>隱士</h3>
+          <code>hermit</code>
+        </div>
+        <p class="role__ability">你擁有所有外來者能力。[-0~1外來者]</p>
+        <p class="role__flavor">你離群索居，一人身兼眾外來者的宿命。福與禍，都由你獨自承擔。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>食人魔</h3>
+          <code>ogre</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇除你以外的一名玩家：你轉變為他的陣營，即使你已醉酒或中毒，但你不知道你轉變後的陣營。</p>
+        <p class="role__flavor">你頭腦簡單，認人只憑第一眼。首夜你選定一人，便死心塌地投向他的陣營——卻不自知。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>魔像</h3>
+          <code>golem</code>
+        </div>
+        <p class="role__ability">每局遊戲你只能發起提名一次。當你發起提名時，如果被你提名的玩家不是惡魔，他死亡。</p>
+        <p class="role__flavor">你以黏土之軀行走。一生只能指認一人，若他不是惡魔，你的手指便會要了他的命。</p>
+      </article>
+      </div>
+    </section>
+    <section id="minion" class="cat" data-align="evil">
+      <div class="cat__head">
+        <h2><span class="cat__zh">爪牙</span><span class="cat__en">Minions</span></h2>
+        <span class="cat__count">36 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>主謀</h3>
+          <code>mastermind</code>
+        </div>
+        <p class="role__ability">如果惡魔因為死於處決而因此導致遊戲結束時，再額外進行一個夜晚和一個白天。在那個白天如果有玩家被處決，他的陣營落敗。</p>
+        <p class="role__flavor">你在幕後編織這場棋局。即便惡魔被吊死，你也要再賭一個白晝翻盤。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>亡魂</h3>
+          <code>wraith</code>
+        </div>
+        <p class="role__ability">你可以在夜晚睜眼。當其他邪惡玩家被喚醒時，你也會被喚醒。</p>
+        <p class="role__flavor">你是遊蕩在夜裡的幽影。每當同夥被喚醒，你也睜開眼，靜靜旁觀這一切。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>刺客</h3>
+          <code>assassin</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時*，你可以選擇一名玩家：他死亡，即使因為任何原因讓他不會死亡。</p>
+        <p class="role__flavor">你的刃無視一切護盾。這一局，你可以取一人性命，任誰也救不回。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>召喚師</h3>
+          <code>summoner</code>
+        </div>
+        <p class="role__ability">在首個夜晚，你會得知三個偽裝。在第三個夜晚，你要選擇一名玩家：他變成由你選擇的邪惡惡魔。[無惡魔在場]</p>
+        <p class="role__flavor">你翻閱著禁書，等待第三夜降臨。屆時，你將親手指認誰來承載惡魔的軀殼。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>哥布林</h3>
+          <code>goblin</code>
+        </div>
+        <p class="role__ability">如果你在被提名後公開聲明自己是哥布林且在那個白天被處決，你的陣營獲勝。</p>
+        <p class="role__flavor">你渴望在眾目睽睽下赴死。若你被提名時宣稱身分並當日被處決，勝利便歸於黑暗。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>女巫</h3>
+          <code>witch</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：如果他明天白天發起提名，他死亡。如果只有三名存活的玩家，你失去此能力。</p>
+        <p class="role__flavor">你在指尖凝聚詛咒。被你點中的人，明天若敢開口提名，就等著償命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>孟婆</h3>
+          <code>mengpo</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：如果他存活，那麼他要選擇讓自己失去能力，或死亡並保留能力直到下個黃昏。</p>
+        <p class="role__flavor">你捧著遺忘的湯藥。你選中的人必須抉擇：交出力量苟活，或帶著力量赴死。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>寡婦</h3>
+          <code>widow</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你能查看魔典並選擇一名玩家：他中毒。隨後，始終會有一名善良玩家知道寡婦在場。</p>
+        <p class="role__flavor">你披著喪服潛入魔典。你的目光落處，有人開始中毒；而總有一個善人隱約知道你在場。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>巫師</h3>
+          <code>wizard</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，你可以向說書人許願。如果願望被實現，可能會伴隨著代價和線索。</p>
+        <p class="role__flavor">你握有一次向說書人許願的機會。願望或許成真，但總伴隨著代價與蛛絲馬跡。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>恐懼之靈</h3>
+          <code>fearmonger</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：如果你提名他且他被處決，他的陣營落敗。當你首次選擇或更換目標時，所有玩家都會得知你選擇了新的玩家。</p>
+        <p class="role__flavor">你以恐懼為食。你鎖定一人，全鎮都會知道你的目光落在誰身上——而處決他，就是滅他滿門。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>投毒者</h3>
+          <code>poisoner</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：他在當晚和明天白天中毒。</p>
+        <p class="role__flavor">幾滴無色無味的毒藥，就能讓最聰明的人陷入瘋狂。今夜，你又要讓誰的感官錯亂呢？</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>提線木偶</h3>
+          <code>marionette</code>
+        </div>
+        <p class="role__ability">你以為你是一個善良角色，但其實你不是。惡魔會知道你是提線木偶。[提線木偶會與惡魔鄰座]</p>
+        <p class="role__flavor">你自以為是個善人，卻不知絲線正牽著你的四肢。惡魔在暗處，握著你的操縱桿。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>教父</h3>
+          <code>godfather</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知有哪些外來者角色在場。如果有外來者在白天死亡，你會在當晚被喚醒並且你要選擇一名玩家：他死亡。[-1或+1外來者]</p>
+        <p class="role__flavor">你掌管家族的生意，記著每一個外來者的名字。若他們在白晝倒下，夜裡便輪到你出手。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>映像雙子</h3>
+          <code>evil_twin</code>
+        </div>
+        <p class="role__ability">你與一名對立陣營的玩家互相知道對方是什麼角色。如果其中善良玩家被處決，邪惡陣營獲勝。如果你們都存活，善良陣營無法獲勝。</p>
+        <p class="role__flavor">你與一個對立的靈魂共享一張臉。只要你倆都活著，光明就永遠贏不了。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>洗腦師</h3>
+          <code>cerenovus</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家和一個善良角色。他明天白天和夜晚需要“瘋狂”地證明自己是這個角色，不然他可能被處決。</p>
+        <p class="role__flavor">你潛入他人的心智，種下瘋狂的暗示。他明天必須扮成你指定的角色，否則絞架等著他。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>炸彈人</h3>
+          <code>boomdandy</code>
+        </div>
+        <p class="role__ability">如果你被處決，除三名玩家以外的其他所有玩家均會死亡。倒數十聲後，被最多玩家手指指著的玩家死亡。</p>
+        <p class="role__flavor">你把自己變成一枚引信。你若被處決，倒數十聲後，鐘鎮將只剩下寥寥數人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>狐媚娘</h3>
+          <code>humeiniang</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇一名玩家：他會知道狐媚娘在場。如果你死於處決，當晚他轉變為邪惡陣營。</p>
+        <p class="role__flavor">你以媚術蠱惑人心。被你選中之人知道你在場；你若死於處決，他當夜便投向黑暗。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>男爵</h3>
+          <code>baron</code>
+        </div>
+        <p class="role__ability">會有額外的外來者在場。[+2外來者]</p>
+        <p class="role__flavor">你的詭計讓鎮上的秩序陷入混亂。更多的外人，意味著更多的猜忌與不安。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>畫皮</h3>
+          <code>huapi</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇一名存活玩家：他死亡但會被當作存活。當他下一次即將死亡時，他重生，隨後你重獲能力。</p>
+        <p class="role__flavor">你剝下一張活人的皮囊。他看似還活著，直到大限將至時借屍還魂，而你重拾力量。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>禁衛軍</h3>
+          <code>jinweijun</code>
+        </div>
+        <p class="role__ability">“瘋狂”地想要死亡的玩家可能會立即被處決。</p>
+        <p class="role__flavor">你執掌鐘鎮的刑罰。凡是瘋狂地渴求死亡的人，都可能被你當場成全。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>禁衛軍Ⅱ</h3>
+          <code>jinweijun2</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你要選擇存活或死亡。“瘋狂”地想要這樣做的玩家可能會立即被處決。</p>
+        <p class="role__flavor">你手握生殺的令牌。首夜你決定生或死，那些瘋狂求死之人，會被你即刻成全。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>科學怪人</h3>
+          <code>boffin</code>
+        </div>
+        <p class="role__ability">惡魔擁有一個不在場的善良角色的能力，即使他醉酒或中毒。你和他都知道他獲得了什麼能力。</p>
+        <p class="role__flavor">你在實驗室縫合善與惡。你賦予惡魔一項本不屬於它的力量，你倆心知肚明。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>精神病患者</h3>
+          <code>psychopath</code>
+        </div>
+        <p class="role__ability">每個白天，在提名開始前，你可以公開選擇一名玩家：他死亡。如果你被處決，提名你的玩家需要和你猜拳，只有你輸了你才會死亡。</p>
+        <p class="role__flavor">你在提名之前就動了手。你若被處決，提名者得先與你猜拳，賭上他自己的命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>紅唇女郎</h3>
+          <code>scarlet_woman</code>
+        </div>
+        <p class="role__ability">如果大於等於五名玩家存活時（旅行者不計算在內）惡魔死亡，你變成那個惡魔。</p>
+        <p class="role__flavor">你是暗影中的繼承者。當王座崩塌，你將披上血色的長袍，成為新的夢魘。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>維齊爾</h3>
+          <code>vizier</code>
+        </div>
+        <p class="role__ability">所有玩家都知道你是維齊爾。你在白天時不會死亡。如果一次提名中有善良玩家投票，你可以讓被提名者立即被處決。</p>
+        <p class="role__flavor">全鎮都知道你是誰，卻拿你在白晝無可奈何。只要有善人附議，你便能讓被告即刻伏法。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>蠱雕</h3>
+          <code>gudiao</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇左或右：你得知該方向上的下一名存活善良玩家的角色，他中毒且其他善良玩家以為他是邪惡的蠱雕，直到下個黃昏。</p>
+        <p class="role__flavor">你放出淬毒的羽箭。中箭的善人不僅中毒，眾人還會誤將他當成邪惡的你。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>街頭風琴手</h3>
+          <code>organ_grinder</code>
+        </div>
+        <p class="role__ability">所有玩家在投票時閉眼，且票數會秘密統計。每個夜晚，你要選擇自己是否醉酒，直到你下次選擇。</p>
+        <p class="role__flavor">你搖著手風琴，讓所有人閉眼投票。票數在黑暗中悄悄清點，連你也可自陷醉境。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>趕屍人</h3>
+          <code>ganshiren</code>
+        </div>
+        <p class="role__ability">與你鄰近的兩名鎮民玩家會在其首次死亡時被當作仍然存活。[-1外來者]</p>
+        <p class="role__flavor">你以鈴鐺驅使亡者行走。你兩側的鎮民初次殞命時，仍會被當作活人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>釀酒師</h3>
+          <code>niangjiushi</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一個鎮民角色：當他下一次通過自身能力獲取資訊時，改為得知你給出的資訊。</p>
+        <p class="role__flavor">你調製令人微醺的假象。你選中的鎮民下一次求問真相時，得到的只會是你的謊。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>間諜</h3>
+          <code>spy</code>
+        </div>
+        <p class="role__ability">每個夜晚，你能查看魔典。你可能會被當作善良陣營、鎮民角色或外來者角色，即使你已死亡。</p>
+        <p class="role__flavor">你潛伏在光明之中，翻閱著魔法書的每一頁。沒有任何秘密能逃過你的雙眼。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>限</h3>
+          <code>xaan</code>
+        </div>
+        <p class="role__ability">在等同於初始外來者數量的夜晚，所有鎮民玩家中毒直到下個黃昏。[外來者數量任意]</p>
+        <p class="role__flavor">你以沙漏丈量末日。當那個夜晚來臨，全鎮的鎮民都會在你的詛咒中中毒。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>靈言師</h3>
+          <code>mezepheles</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一個關鍵詞。首個說出該關鍵詞的善良玩家會在當晚轉變為邪惡陣營。</p>
+        <p class="role__flavor">你低聲傳授一個禁忌之詞。第一個念出它的善人，靈魂會在當夜墮入黑暗。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>養蠱人</h3>
+          <code>yangguren</code>
+        </div>
+        <p class="role__ability">在你存活時提名你的玩家會在當晚死亡，即使你已死亡。</p>
+        <p class="role__flavor">你在甕中豢養毒蠱。凡在你活著時提名你的人，當夜難逃一死，哪怕你早已入土。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>魔鬼代言人</h3>
+          <code>devils_advocate</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名存活的玩家（與上個夜晚不同）：如果明天白天他被處決，他不會死亡。</p>
+        <p class="role__flavor">你為最不堪的罪人辯護。今夜你選定之人，明日縱被處決也能逃過絞索。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>鷹身女妖</h3>
+          <code>harpy</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇兩名玩家：明天第一名玩家需要“瘋狂”地證明第二名玩家是邪惡的，否則他們之中可能會有人死亡。</p>
+        <p class="role__flavor">你尖嘯著撕裂信任。你迫使一人瘋狂地指控另一人為惡，否則血債由他們償還。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>麻臉巫婆</h3>
+          <code>pit-hag</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家和一個角色，如果該角色不在場，他變成該角色。如果因此創造了一個惡魔，當晚的死亡由說書人決定。</p>
+        <p class="role__flavor">你熬煮著改命的濃湯。你能把一個人變成另一個角色，縱使因此召來新的惡魔。</p>
+      </article>
+      </div>
+    </section>
+    <section id="demon" class="cat" data-align="evil">
+      <div class="cat__head">
+        <h2><span class="cat__zh">惡魔</span><span class="cat__en">Demons</span></h2>
+        <span class="cat__count">28 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>亡骨魔</h3>
+          <code>vigormortis</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。被你殺死的爪牙保留他的能力，且與他鄰近的兩名鎮民之一中毒。[-1外來者]</p>
+        <p class="role__flavor">你操縱屍骨。被你所殺的爪牙保留力量，其鄰座的鎮民則替他嚥下毒液。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>僵怖</h3>
+          <code>zombuul</code>
+        </div>
+        <p class="role__ability">每個夜晚*，如果今天白天沒有人死亡，你會被喚醒並要選擇一名玩家：他死亡。當你首次死亡後，你仍存活，但會被當作死亡。</p>
+        <p class="role__flavor">你是不肯安息的行屍。只要白晝無人殞命，你便在夜裡索命；初次身死後，你仍徘徊人間。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>典獄長</h3>
+          <code>dianyuzhang</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇至多三名玩家：如果明天白天他們之一死於處決，上次被你選擇的其他玩家會在當晚死亡。否則，當晚他們之中會有一名玩家死亡。</p>
+        <p class="role__flavor">你掌管鐘鎮的死牢。你圈定數人，若其一被處決，其餘同赴黃泉；否則，也有一人難逃。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>利維坦</h3>
+          <code>leviathan</code>
+        </div>
+        <p class="role__ability">如果多於一名善良玩家被處決，邪惡陣營獲勝。所有玩家都知道利維坦在場。在第五個白天結束時，邪惡陣營獲勝。</p>
+        <p class="role__flavor">你是潛伏在鐘鎮之下的遠古巨獸。全鎮都知你在場；第五個白晝落幕時，黑暗便吞沒一切。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>卡扎力</h3>
+          <code>kazali</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。[由你決定誰是什麼爪牙，-或+任意數量外來者]</p>
+        <p class="role__flavor">你自暗處點選爪牙，親手佈置這盤棋。此後每一夜，你的手指落在誰身上，誰就得死。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>哈迪寂亞</h3>
+          <code>al-hadikhia</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇三名玩家（所有玩家都會得知你選了誰）：他們分別秘密決定自己的生死，然後如果他們都存活則都死亡。</p>
+        <p class="role__flavor">你當眾點名三人，逼他們各自在心底決定生死。若三人皆求生，便三人俱亡。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>堤豐之首</h3>
+          <code>lord_of_typhon</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。[邪惡角色全部鄰座，你位於正中，+1爪牙，-或+任意數量外來者]</p>
+        <p class="role__flavor">你是群魔之首，眾爪牙環繞在你兩側。每一夜，你伸手一指，便有人斷了氣。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>奧赫</h3>
+          <code>ojo</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一個角色：他死亡。如果該角色不在場，則由說書人來決定誰會被你殺死。</p>
+        <p class="role__flavor">你依角色而非面孔取命。每一夜你點一個角色；若他不在場，由命運替你挑選祭品。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>奸佞</h3>
+          <code>jianning</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。如果你今天白天沒有投票，今晚你可以行動兩次。</p>
+        <p class="role__flavor">你在朝堂搬弄是非。每一夜你取一命；若你白晝按兵不投票，今夜便可連下兩次殺手。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>姑獲鳥</h3>
+          <code>guhuoniao</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。你可能會擁有上一個死於處決的爪牙的能力。</p>
+        <p class="role__flavor">你是夜啼奪魂的妖鳥。每一夜你攫取一命，並可能承接上一個被處決爪牙的力量。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>小怪寶</h3>
+          <code>lil_monsta</code>
+        </div>
+        <p class="role__ability">每個夜晚，所有爪牙要秘密決定由哪名玩家來照看小怪寶並且“是惡魔”。每個夜晚*，可能會有一名玩家死亡。[+1爪牙]</p>
+        <p class="role__flavor">你是尚在襁褓中的夢魘。每夜爪牙們爭相將你抱在懷裡，替你扮演惡魔、替你殺人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>小惡魔</h3>
+          <code>imp</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式自殺，一名爪牙會變成小惡魔。</p>
+        <p class="role__flavor">你是黑鍾鎮隱藏的邪惡存在，一段被遺忘的過去。人們是如此稱呼你：小惡魔。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>方古</h3>
+          <code>fang_gu</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。被該能力殺死的外來者變成邪惡的方古且你代替他死亡，但每局遊戲僅能成功轉化一次。[+1外來者]</p>
+        <p class="role__flavor">你以蠱術侵蝕血肉。被你所殺的外來者會化為新的方古，而你替他嚥下最後一口氣。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>普卡</h3>
+          <code>pukka</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇一名玩家：他中毒。上個因你的能力中毒的玩家會死亡並恢復健康。</p>
+        <p class="role__flavor">你的觸碰帶來緩慢的劇毒。今夜中毒之人尚能苟延，直到上一個獵物斷氣、他才康復。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>暴亂</h3>
+          <code>riot</code>
+        </div>
+        <p class="role__ability">在第三個白天，所有爪牙會變成暴亂，當天被提名的玩家會立即死亡且必須再次提名一名存活的玩家。</p>
+        <p class="role__flavor">你讓恐慌席捲全鎮。第三個白晝，爪牙盡數化為暴亂，被提名者當場斃命、再指下一人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>暴君</h3>
+          <code>baojun</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你可以選擇至多兩名玩家：他們死亡。你選擇的玩家數量不能與上個夜晚死亡的玩家數量相同（超過二人時算作二人）。</p>
+        <p class="role__flavor">你的殘暴沒有定數。每一夜你可取走至多兩條性命，只要數目與昨夜的死亡不同。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>檮杌</h3>
+          <code>taowu</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。當你將要死亡時，改為一名存活且具有能力的爪牙失去能力。你不會得知惡魔資訊。</p>
+        <p class="role__flavor">你是不受馴服的凶獸。每一夜你奪人性命；當死亡臨頭，改由一名爪牙為你獻上力量。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>沙巴洛斯</h3>
+          <code>shabaloth</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇兩名玩家：他們死亡。你的上個夜晚選擇過的且當前死亡的玩家可能會被你反芻。</p>
+        <p class="role__flavor">你吞噬，也反芻。每一夜你吞下兩人；昨夜的獵物，或許會被你重新吐回人間。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>混沌</h3>
+          <code>hundun</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式殺死了一名與你鄰近的鎮民玩家，除旅行者外的所有善良玩家會中毒直到下個黃昏。</p>
+        <p class="role__flavor">你是無序的化身。每一夜你取人性命；若死者是你鄰座的鎮民，全鎮的善人都將中毒。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>渦流</h3>
+          <code>vortox</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。鎮民玩家的能力都會產生錯誤資訊。如果白天沒人被處決，邪惡陣營獲勝。</p>
+        <p class="role__flavor">你扭曲一切真實。每一夜你殺一人，全鎮鎮民的能力都只吐露謊言。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>牙噶巴卜</h3>
+          <code>yaggababble</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你會得知一段秘密短語。每次你在白天公開說出這段短語，當天便可能會有一名玩家在這之後死亡。</p>
+        <p class="role__flavor">你被賜予一句瘋言瘋語。每當你在白晝當眾複誦，便可能有人因此殞命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>珀</h3>
+          <code>po</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你可以選擇一名玩家：他死亡。如果你上次選擇時沒有選擇任何玩家，當晚你要選擇三名玩家：他們死亡。</p>
+        <p class="role__flavor">你的飢餓時斷時續。若你上次按捺了殺意，今夜便要一口氣奪走三條性命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>痢蛭</h3>
+          <code>lleech</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。在你的首個夜晚，你要選擇一名存活的玩家：他中毒，只有當他處於死亡狀態時你才會立即死亡。</p>
+        <p class="role__flavor">你將自己寄生於一名活人體內。每一夜你取人性命，唯有宿主先死，你才會隨之消亡。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>窮奇</h3>
+          <code>qiongqi</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。如果今天白天有外來者死亡，當晚改為你要選擇一名玩家：他死亡，但被當作仍然存活，隨後會有一名其他玩家死亡。[+1外來者]</p>
+        <p class="role__flavor">你是助紂為虐的凶獸。若白晝有外來者殞命，你的獵物會化為活屍，再牽連他人同亡。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>諾-達鯴</h3>
+          <code>no_dashii</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名玩家：他死亡。與你鄰近的兩名鎮民中毒。</p>
+        <p class="role__flavor">你渾身散發著致命的瘴氣。每一夜你殺一人，你兩側的鎮民則悄然中毒。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>軍團</h3>
+          <code>legion</code>
+        </div>
+        <p class="role__ability">每個夜晚*，可能有一名玩家死亡。如果一項提名只有邪惡玩家投票，投票無效。你也會被當作是爪牙。[多數玩家為軍團]</p>
+        <p class="role__flavor">你們人多勢眾，惡意彌漫全場。每一夜或有一人猝死，而你也會被當作爪牙。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>閻羅</h3>
+          <code>yanluo</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，你能查看魔典並選擇一名玩家：他在第三個夜晚死亡，即使因為任何原因讓他不會死亡。每個夜晚，你要選擇一名玩家：上個夜晚被你選擇的玩家死亡。</p>
+        <p class="role__flavor">你翻閱魔典，勾畫生死簿。首夜你標下一個三更將死之人，此後每夜，昨夜的名字便化為亡魂。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>饕餮</h3>
+          <code>taotie</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇任意數量的非旅行者玩家或一名旅行者玩家：如果他們的角色類型均不相同，他們死亡。[+1外來者]</p>
+        <p class="role__flavor">你貪食無厭。每一夜你圈選一群人，只要他們身分各異，便一併淪為你的盤中餐。</p>
+      </article>
+      </div>
+    </section>
+    <section id="traveler" class="cat" data-align="neutral">
+      <div class="cat__head">
+        <h2><span class="cat__zh">旅行者</span><span class="cat__en">Travelers</span></h2>
+        <span class="cat__count">19 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>主教</h3>
+          <code>bishop</code>
+        </div>
+        <p class="role__ability">只有說書人可以發起提名。每個白天說書人至少要提名一名你對立陣營的玩家。</p>
+        <p class="role__flavor">唯有說書人能發起提名。每個白晝，至少有一名與你對立之人會被推上審判台。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>乞丐</h3>
+          <code>beggar</code>
+        </div>
+        <p class="role__ability">你只能使用投票標記才能投票。死亡的玩家可以將他的投票標記給你，如果他這麼做，你會得知他的陣營。你不會中毒和醉酒。</p>
+        <p class="role__flavor">你身無長物，只能靠投票標記發聲。亡者若把票交給你，你便讀出他的陣營；你不中毒也不醉。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>侏儒</h3>
+          <code>gnome</code>
+        </div>
+        <p class="role__ability">當你加入遊戲時，所有玩家會得知一名與你陣營相同的玩家。每當他被提名時，你可以殺死提名者。</p>
+        <p class="role__flavor">你入場時，眾人便得知一位與你同心之人。每當他被提名，你可以取提名者的命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>叫花子</h3>
+          <code>jiaohuazi</code>
+        </div>
+        <p class="role__ability">每個白天限一次，你可以公開選擇一名其他玩家，讓他選擇一個非惡魔角色：你可能會獲得這個角色的能力，直到下個黎明。</p>
+        <p class="role__flavor">你沿街乞討，什麼都討得到。白晝你央人選個角色，那份能力或許就落到你手上一日。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>咖啡師</h3>
+          <code>barista</code>
+        </div>
+        <p class="role__ability">每個夜晚，直至下個黃昏，由說書人二選一：1）一名玩家解除並免受醉酒和中毒影響，且會得知正確資訊；2）一名玩家的能力可以生效兩次。該玩家會得知是哪個效果。</p>
+        <p class="role__flavor">你沖煮的每一杯都改變命運。每夜，總有一人因你而清醒健康，或讓能力生效兩次。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>女舍監</h3>
+          <code>matron</code>
+        </div>
+        <p class="role__ability">每個白天，你可以選擇至多三對玩家交換座位。玩家不能離開座位私聊。</p>
+        <p class="role__flavor">你掌管座次。每個白晝你可調換至多三對座位，誰也不准離席私語。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>學徒</h3>
+          <code>apprentice</code>
+        </div>
+        <p class="role__ability">在你的首個夜晚，如果你是善良的，你會獲得一個鎮民角色的能力；如果你是邪惡的，你會獲得一個爪牙角色的能力。</p>
+        <p class="role__flavor">你初入此道，向前輩偷師。首夜你便習得一個鎮民或爪牙的本領。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>官員</h3>
+          <code>bureaucrat</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你以外的一名玩家：明天白天，他的投票算作三票。</p>
+        <p class="role__flavor">你玩弄繁文縟節。每夜你蓋章指定一人，讓他明日的一票抵作三票。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>屠夫</h3>
+          <code>butcher</code>
+        </div>
+        <p class="role__ability">每個白天，首次處決後，你可以再次發起提名。</p>
+        <p class="role__flavor">你手起刀落，從不拖泥帶水。每個白晝首次處決後，你可以再提名一人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>巫毒師</h3>
+          <code>voudon</code>
+        </div>
+        <p class="role__ability">只有你和死亡的玩家可以投票，且投票不需要使用投票標記。忽略票數需要過半的要求。</p>
+        <p class="role__flavor">你溝通生死。唯有你與亡者能投票，且無需過半——多數決在你面前失效。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>怪咖</h3>
+          <code>deviant</code>
+        </div>
+        <p class="role__ability">如果你表現得很有趣，當天你不能被流放。</p>
+        <p class="role__flavor">你行事乖張。只要你今天夠有趣，誰也別想把你流放出去。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>替罪羊</h3>
+          <code>scapegoat</code>
+        </div>
+        <p class="role__ability">如果與你同陣營的玩家被處決，你可能會代替他被處決。</p>
+        <p class="role__flavor">沒事的，就怪在我頭上吧。這又不是第一次了。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>槍手</h3>
+          <code>gunslinger</code>
+        </div>
+        <p class="role__ability">每個白天，當首次投票被統計後，你可以選擇一名剛投過票的玩家：他死亡。</p>
+        <p class="role__flavor">你的槍口對準投票者。每個白晝首輪票數一出，你便可擊倒一名剛舉過手的人。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>法官</h3>
+          <code>judge</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，如果其他玩家發起了提名，你可以選擇讓本次提名直接執行處決或讓投票無效。</p>
+        <p class="role__flavor">你一生只敲一次法槌。他人發起提名時，你可令它即刻執行，或讓投票化為烏有。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>流鶯</h3>
+          <code>harlot</code>
+        </div>
+        <p class="role__ability">每個夜晚*，你要選擇一名存活的玩家：如果他同意，你會得知他的角色，但是你們兩個可能同時死亡。</p>
+        <p class="role__flavor">你以一夜換一個秘密。對方若首肯，你便得知他的角色——代價是你倆可能同赴黃泉。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>竊賊</h3>
+          <code>thief</code>
+        </div>
+        <p class="role__ability">每個夜晚，你要選擇除你以外的一名玩家：明天白天他的投票會被算作負數。</p>
+        <p class="role__flavor">你偷的不是財物，是選票。每夜你盯上一人，讓他明日的一票變成負數。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>笑匠</h3>
+          <code>cacklejack</code>
+        </div>
+        <p class="role__ability">每天晚上選擇一名玩家，今晚一名除了他以外的其他玩家將更換角色。</p>
+        <p class="role__flavor">你狂笑著攪亂牌局。每夜你護住一人，另一個人卻在笑聲中換了角色。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>集骨者</h3>
+          <code>bone_collector</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，在夜晚時*，你可以選擇一名死亡的玩家：他重新獲得能力直到下個黃昏。</p>
+        <p class="role__flavor">你收集亡者的遺骨。這一局，你可以讓一名死者重拾力量，直到黃昏。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>黑幫</h3>
+          <code>gangster</code>
+        </div>
+        <p class="role__ability">每個白天限一次，你可以殺死與你鄰近的兩名存活的玩家中的一名，但需要另一邊那個存活的玩家同意。</p>
+        <p class="role__flavor">你以拳頭立規矩。每個白晝一次，你可以了結一名鄰座，只要另一側的鄰座點頭。</p>
+      </article>
+      </div>
+    </section>
+    <section id="fabled" class="cat" data-align="neutral">
+      <div class="cat__head">
+        <h2><span class="cat__zh">傳奇</span><span class="cat__en">Fabled</span></h2>
+        <span class="cat__count">19 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>佛陀</h3>
+          <code>buddhist</code>
+        </div>
+        <p class="role__ability">每個白天的前兩分鐘，老玩家不能發言。</p>
+        <p class="role__flavor">你以靜默渡人。每個白晝的頭兩分鐘，老練的舌頭必須噤聲。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>公爵夫人</h3>
+          <code>duchess</code>
+        </div>
+        <p class="role__ability">每個白天，三名玩家可以一起拜訪你。當晚*他們會得知他們之中有幾個是邪惡的，但其中一人的資訊是錯的。</p>
+        <p class="role__flavor">你在府邸接待訪客。每個白晝三人一同拜謁，夜裡他們得知彼此的邪惡數目——其中一份是假的。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>哨兵</h3>
+          <code>sentinel</code>
+        </div>
+        <p class="role__ability">在初始設定時，可能會額外增加或減少一個外來者。</p>
+        <p class="role__flavor">你在城門值守。開局的名冊上，外來者的數目或許會悄悄多一個、或少一個。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>園丁</h3>
+          <code>gardener</code>
+        </div>
+        <p class="role__ability">由說書人來為一名或更多玩家派發角色。</p>
+        <p class="role__flavor">你親手栽培每一株幼苗。這一局，一名或多名玩家的角色，由說書人為他們挑選。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>地獄藏書員</h3>
+          <code>hells_librarian</code>
+        </div>
+        <p class="role__ability">當說書人宣佈安靜時，仍在說話的玩家可能會遭遇一些不好的事情。</p>
+        <p class="role__flavor">你掌管沉默的禁區。當說書人喝令安靜，仍在出聲的人會遭遇不測。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>天使</h3>
+          <code>angel</code>
+        </div>
+        <p class="role__ability">對新玩家的死亡負最大責任的人，可能會遭遇一些不好的事情。</p>
+        <p class="role__flavor">你的羽翼帶來了恩典。新手將在你的庇護下，免受第一夜的殘酷侵擾。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>失敗的上帝</h3>
+          <code>deusexfiasco</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，說書人可能會犯一個&quot;錯誤&quot;但會將其糾正，並公開承認自己曾處理有誤</p>
+        <p class="role__flavor">你也會犯錯。這一局，說書人或許失手一次，但終會公開認錯並更正。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>小提琴手</h3>
+          <code>fiddler</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，惡魔可以秘密選擇一名對立陣營的玩家，所有玩家要表決：這兩名玩家中誰的陣營獲勝。（平局邪惡陣營獲勝)</p>
+        <p class="role__flavor">你以琴聲賭一場勝負。這一局惡魔可秘密挑一個對手，由眾人表決誰的陣營獲勝。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>強權上帝</h3>
+          <code>deus_ex_fiasco2</code>
+        </div>
+        <p class="role__ability">上帝在本場遊戲就是規則的主宰，但是一旦宣佈了特殊規則就必須遵守，否則可能會被玩家群毆。</p>
+        <p class="role__flavor">你是這一局的規則本身。但你一旦立下規矩，便得守住，否則眾怒難平。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>擺渡人</h3>
+          <code>ferryman</code>
+        </div>
+        <p class="role__ability">在遊戲的最後一天所有已死亡玩家會重新獲得投票標記。</p>
+        <p class="role__flavor">你載送亡魂渡過冥河。遊戲的最後一日，所有死者會重新握住投票標記。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>暴風捕手</h3>
+          <code>stormcatcher</code>
+        </div>
+        <p class="role__ability">遊戲開始時，你要宣佈一個善良角色。如果該角色在場，他只能死於處決，但所有邪惡玩家會在首個夜晚得知他是哪—名玩家。</p>
+        <p class="role__flavor">你在風暴來臨前示警。你宣告一個善良角色，他只會死於處決，但邪惡陣營首夜便知他是誰。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>末日預言者</h3>
+          <code>doomsayer</code>
+        </div>
+        <p class="role__ability">如果大於等於四名玩家存活，每名當前存活的玩家可以公開要求你殺死一名與他陣營相同的玩家（每名玩家限一次）</p>
+        <p class="role__flavor">你預告著集體的終局。只要還有四人以上，每個人都能喚你取走一名同陣營者的命。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>燈神</h3>
+          <code>djinn</code>
+        </div>
+        <p class="role__ability">使用燈神的相剋規則。所有玩家都會知道其內容。</p>
+        <p class="role__flavor">你自神燈中現身，宣讀專屬的相剋規則。其內容，眾人皆知。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>玩具匠</h3>
+          <code>toymaker</code>
+        </div>
+        <p class="role__ability">惡魔可以在夜晚選擇放棄攻擊（每局遊戲至少一次)。邪惡玩家照常獲取初始資訊</p>
+        <p class="role__flavor">你打造會呼吸的玩偶。惡魔可以在某些夜晚放下屠刀，而邪惡陣營照舊得知開局的訊息。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>私貨商人</h3>
+          <code>bootlegger</code>
+        </div>
+        <p class="role__ability">這個劇本包含有自制角色或自制規則。</p>
+        <p class="role__flavor">這座鐘鎮流通著私釀的規則與角色。有些東西，不在正典之內。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>聖潔之魂</h3>
+          <code>spirit_of_ivory</code>
+        </div>
+        <p class="role__ability">遊戲過程中邪惡玩家的總數最多能比初始設定多一名。</p>
+        <p class="role__flavor">你守護著陣營的天平。整局之中，邪惡的人數至多比開局多出一名。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>革命者</h3>
+          <code>revolutionary</code>
+        </div>
+        <p class="role__ability">公開聲明—對鄰座玩家本局遊戲一直保持同一陣營。每局遊戲限一次，他們中的一人可能被當作其他的角色/陣營。</p>
+        <p class="role__flavor">你煽動變革。你宣告兩名鄰座整局同陣營，而其中一人或許被眾人看成了別的模樣。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>騙人精</h3>
+          <code>fibbin</code>
+        </div>
+        <p class="role__ability">每局遊戲限一次，一名善良玩家可能會得知&quot;有問題&quot;的資訊。</p>
+        <p class="role__flavor">你偶爾也撒個小謊。這一局，一名善人可能會收到一則「有問題」的訊息。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>麒麟</h3>
+          <code>qilin</code>
+        </div>
+        <p class="role__ability">在遊戲的最後一天，最幸運的玩家身上會發生一些好的事情。</p>
+        <p class="role__flavor">你是祥瑞之獸。遊戲的最後一日，最幸運的那個人身上會降臨好事。</p>
+      </article>
+      </div>
+    </section>
+    <section id="loric" class="cat" data-align="neutral">
+      <div class="cat__head">
+        <h2><span class="cat__zh">奇遇</span><span class="cat__en">Loric</span></h2>
+        <span class="cat__count">11 個角色</span>
+      </div>
+      <div class="roles">
+      <article class="role">
+        <div class="role__head">
+          <h3>印度教教徒</h3>
+          <code>Hindu_loric</code>
+        </div>
+        <p class="role__ability">最先死亡的四名玩家會立刻以相同陣營的旅行者轉世重生。</p>
+        <p class="role__flavor">你信奉輪迴。最先倒下的四名靈魂，會立刻以同陣營的旅行者之姿轉世歸來。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>園丁</h3>
+          <code>gardener_loric</code>
+        </div>
+        <p class="role__ability">由說書人來為一名或更多玩家派發角色。</p>
+        <p class="role__flavor">你親手栽培每一株幼苗。這一局，一名或多名玩家的角色，由說書人為他們挑選。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>教皇</h3>
+          <code>pope_loric</code>
+        </div>
+        <p class="role__ability">場上存在重複的善良角色。它們可能也是偽裝身份。</p>
+        <p class="role__flavor">你宣講重複的教條。場上有著成對的善良角色，它們也可能只是偽裝。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>暴風捕手</h3>
+          <code>stormcatcher_loric</code>
+        </div>
+        <p class="role__ability">遊戲開始時，你要宣佈一個善良角色。如果該角色在場，他只能死於處決，但所有邪惡玩家會在首個夜晚得知他是哪一名玩家。</p>
+        <p class="role__flavor">你在風暴來臨前示警。你宣告一個善良角色，他只會死於處決，但邪惡陣營首夜便知他是誰。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>異術士</h3>
+          <code>Zenomancer_loric</code>
+        </div>
+        <p class="role__ability">一名或多名玩家各自擁有一個目標。當達成目標後，他會獲得一條正確資訊。</p>
+        <p class="role__flavor">你為人設下隱秘的課題。一旦有人達成他的目標，便會換得一則真確的訊息。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>私貨商人</h3>
+          <code>bootlegger_loric</code>
+        </div>
+        <p class="role__ability">這個劇本包含有自制角色或自制規則。</p>
+        <p class="role__flavor">這座鐘鎮流通著私釀的規則與角色。有些東西，不在正典之內。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>腹語師</h3>
+          <code>ventriloquist_loric</code>
+        </div>
+        <p class="role__ability">如果一名玩家在被提名時&quot;瘋狂&quot;地證明自己是一個新的角色，他可能不會死於當天的處決。</p>
+        <p class="role__flavor">你借他人之口說話。被提名者若瘋狂地宣稱自己是個新角色，或許就能逃過當日的處決。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>訥神</h3>
+          <code>godofug_loric</code>
+        </div>
+        <p class="role__ability">會有一頂訥帽。當玩家戴著訥帽的時候，只能說單音節詞，但投票算作兩票。如果違反規則，訥帽會被轉移。</p>
+        <p class="role__flavor">你賜下一頂訥帽。戴帽之人只能吐出單音節，一票卻抵兩票；違規者，訥帽易主。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>詭詐傑克</h3>
+          <code>knaves_loric</code>
+        </div>
+        <p class="role__ability">場上有兩位說書人：一人說真話，一人說假話。每局遊戲限一次，他們可能會在黃昏互換。</p>
+        <p class="role__flavor">場上有兩位說書人：一人吐真言，一人吐謊語。他們或許會在某個黃昏悄悄對調。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>遺忘之門</h3>
+          <code>tor_loric</code>
+        </div>
+        <p class="role__ability">玩家不知道自己的角色和陣營。當他們死亡時才會得知這些資訊。</p>
+        <p class="role__flavor">你開啟遺忘之門。眾人皆不知自己的角色與陣營，唯有死亡降臨時，真相才揭曉。</p>
+      </article>
+      <article class="role">
+        <div class="role__head">
+          <h3>首席律師</h3>
+          <code>bigwig_loric</code>
+        </div>
+        <p class="role__ability">每個被提名者要選擇一名玩家：在投票前，只有他可以發言，並且他要&quot;瘋狂&quot;地證明被提名者是善良的，否則他可能死亡。</p>
+        <p class="role__flavor">你為被告辯護。每個被提名者選一位辯護人，他得瘋狂地力證被告清白，否則性命堪憂。</p>
+      </article>
+      </div>
+    </section>
+
+  <footer>role-flavor-report · 由 src/data/roles 擷取生成</footer>
+</div>
