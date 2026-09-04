@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
@@ -14,6 +14,8 @@ interface RoleInfoModalProps {
 export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
   const [activeTab, setActiveTab] = useState<'good'|'evil'|'other'|'loric'>('good');
   const [isImageViewOpen, setIsImageViewOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const switchTab = (t: 'good'|'evil'|'other'|'loric') => { setActiveTab(t); listRef.current?.scrollTo({ top: 0 }); };
   if (!isOpen || !script) return null;
 
   const validRoles = script.roles.filter(Boolean);
@@ -99,41 +101,37 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      maxWidth="max-w-[95vw] md:max-w-[80vw]"
+      maxWidth="max-w-[95vw] sm:max-w-2xl lg:max-w-3xl"
       noOverlay={true}
       fullBleedOnMobile={true}
       title={""}
     >
-      <div className="relative w-full h-[78svh] sm:h-[75vh] flex flex-col -mt-5 -mb-5">
-        
-        {/* Floating Title */}
-        <div className="absolute -top-[15px] right-2 z-50 pointer-events-none drop-shadow-xl text-right">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#ff6b6b] opacity-90 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
-            {script.name} - 角色資訊
-          </h2>
-        </div>
+      <div className="relative w-full h-[70svh] sm:h-auto sm:max-h-[78vh] flex flex-col">
 
-        {/* Tabs and Image Button */}
-        <div className="flex items-center mt-1 mb-4">
-          <div className="flex space-x-3">
-            <button onClick={() => setActiveTab('good')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
-            <button onClick={() => setActiveTab('evil')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
-            {hasOther && (
-              <button onClick={() => setActiveTab('other')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'other' ? 'bg-amber-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>其他</button>
-            )}
-            {hasLoric && (
-              <button onClick={() => setActiveTab('loric')} className={`px-6 py-2 text-lg rounded-lg font-bold transition-all ${activeTab === 'loric' ? 'bg-emerald-600 text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>奇遇</button>
-            )}
-          </div>
-          <button onClick={() => setIsImageViewOpen(true)} className="ml-[30px] px-4 py-2 text-base rounded-lg font-bold transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-2 border border-emerald-400/30">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        {/* 標題：置中、暖金色、下方淺分隔線 */}
+        <h2 className="text-sm sm:text-2xl font-bold text-center tracking-[0.12em] pb-1.5 mb-2 sm:mb-3 border-b border-amber-400/20 shrink-0 text-amber-200/95 [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">
+          {script.name} - 角色資訊
+        </h2>
+
+        {/* Tabs and Image Button（同一列、完整顯示、不捲動） */}
+        <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 shrink-0">
+          <button onClick={() => switchTab('good')} className={`shrink-0 px-2 sm:px-6 py-1 sm:py-2 text-xs sm:text-lg rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === 'good' ? 'bg-blue-600 text-white shadow-lg sm:scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>善良</button>
+          <button onClick={() => switchTab('evil')} className={`shrink-0 px-2 sm:px-6 py-1 sm:py-2 text-xs sm:text-lg rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === 'evil' ? 'bg-red-600 text-white shadow-lg sm:scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>邪惡</button>
+          {hasOther && (
+            <button onClick={() => switchTab('other')} className={`shrink-0 px-2 sm:px-6 py-1 sm:py-2 text-xs sm:text-lg rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === 'other' ? 'bg-amber-600 text-white shadow-lg sm:scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>其他</button>
+          )}
+          {hasLoric && (
+            <button onClick={() => switchTab('loric')} className={`shrink-0 px-2 sm:px-6 py-1 sm:py-2 text-xs sm:text-lg rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === 'loric' ? 'bg-emerald-600 text-white shadow-lg sm:scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>奇遇</button>
+          )}
+          <button onClick={() => setIsImageViewOpen(true)} className="shrink-0 ml-auto px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg font-bold whitespace-nowrap transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-1 sm:gap-1.5 border border-emerald-400/30">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            圖片版
+            圖片
           </button>
         </div>
 
-        <div className="w-full space-y-4 overflow-y-auto custom-scrollbar flex-1 pb-4">
+        <div ref={listRef} className="w-full space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0 pb-2 -mr-[10px] pr-[10px]">
           {renderGroups.map((group, idx) => {
             if (group.roles.length === 0) return null;
             return (
@@ -141,7 +139,7 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
                 <h3 className={`text-[20px] font-bold ${group.color} border-b-2 ${group.titleBorder} pb-1 mb-3 mt-1 uppercase tracking-widest`}>
                   {group.title}
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {group.roles.map(role => {
                     const jinxes = getActiveJinxes(role);
                     return (

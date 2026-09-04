@@ -62,6 +62,8 @@ export const Grimoire = ({
   const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
   // 窄屏：惡魔偽裝 / 傳奇 / 房間 合併為分頁視窗
   const [infoTab, setInfoTab] = useState<'bluffs' | 'fabled' | 'room'>('bluffs');
+  // hover 座位或其筆記時，將該座位的筆記層級提高、壓過其他座位的筆記
+  const [hoverSeat, setHoverSeat] = useState<number | null>(null);
 
   // 圓桌等比縮放：量測外框可用區，取內接正方形當圓桌，座位 = min(桌機上限, 板寬 * 比例)。
   const [boardWrapRef, boardWrap] = useElementSize<HTMLDivElement>();
@@ -109,8 +111,7 @@ export const Grimoire = ({
     } catch (e) { console.error(e); }
   };
 
-  const getSeatConfig = () => {
-    const count = seatCount;
+  const getSeatConfig = (count: number) => {
     // frac ≈ 讓相鄰座位相接的比例；radius 是座位離圓心的距離（%）；
     // 6 人與 8 人用相同 frac（手機上不再放大，中間留給筆記）；13 人以上維持原樣。
     if (count <= 6) return { max: 460, frac: 0.248, floor: 58, radius: 34 };
@@ -121,10 +122,17 @@ export const Grimoire = ({
     return { max: 232, frac: 0.115, floor: 32, radius: 41 };
   };
 
-  const seatCfg = getSeatConfig();
-  // 桌機（板寬 ≥ 560）且 ≤12 人時，座位縮 0.82 → 間隔加大、較不擁擠；窄屏與 13+ 不受影響
-  const gapFactor = boardPx >= 560 && seatCount <= 12 ? 0.82 : 1;
-  const seatPx = Math.min(seatCfg.max, Math.max(seatCfg.floor, (boardPx || 720) * seatCfg.frac * gapFactor));
+  const computeSeatPx = (count: number) => {
+    const cfg = getSeatConfig(count);
+    // 桌機（板寬 ≥ 560）且 ≤12 人時，座位縮 0.82 → 間隔加大、較不擁擠；窄屏與 13+ 不受影響
+    const gf = boardPx >= 560 && count <= 12 ? 0.82 : 1;
+    return Math.min(cfg.max, Math.max(cfg.floor, (boardPx || 720) * cfg.frac * gf));
+  };
+
+  const seatCfg = getSeatConfig(seatCount);
+  const seatPx = computeSeatPx(seatCount);
+  // 筆記圈圈基準：座位大小夾在「9 人排版」與「15 人排版」之間，避免少人時太大、多人時太小
+  const tokenBaseSeatPx = Math.min(computeSeatPx(9), Math.max(computeSeatPx(15), seatPx));
   const badgePx = Math.max(18, seatPx * 0.32);
 
   const getSeatStyle = (index: number) => {
@@ -343,11 +351,13 @@ export const Grimoire = ({
 
             const isHighlighted = highlightedSeats?.includes(seatIndex);
             return (
-              <div 
+              <div
                 key={seatIndex}
                 className="absolute pointer-events-auto cursor-pointer group z-10"
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
+                onMouseEnter={() => setHoverSeat(seatIndex)}
+                onMouseLeave={() => setHoverSeat(null)}
               >
                 {/* Seat Highlighting Badge（局勢紀錄不顯示文字，只留外框閃爍） */}
                 {isHighlighted && !isSituationReplay && (replayActorSeat === seatIndex || replayTargetSeats?.includes(seatIndex)) && (
@@ -402,7 +412,7 @@ export const Grimoire = ({
             {seats.map((seatIndex) => {
               const { radius } = seatCfg;
               const size = seatPx;
-              const tokenSize = size * 0.38;
+              const tokenSize = tokenBaseSeatPx * 0.5;
               const angleDeg = ((seatIndex - 1) / seatCount) * 360 - 90;
               const angleRad = (angleDeg * Math.PI) / 180;
 
@@ -410,6 +420,8 @@ export const Grimoire = ({
               const elements: React.ReactNode[] = [];
               const seatRadiusPx = size / 2;
               const tokenRadiusPx = tokenSize / 2;
+              const tokz = hoverSeat === seatIndex ? 'z-40' : 'z-20';
+              const tokHover = { onMouseEnter: () => setHoverSeat(seatIndex), onMouseLeave: () => setHoverSeat(null) };
 
               const getPosition = (i: number) => {
                 const distPx = seatRadiusPx + 5 + tokenRadiusPx + (i * (tokenSize + 1));
@@ -423,10 +435,11 @@ export const Grimoire = ({
               for(let i = 0; i < currentTokens.length; i++) {
                 const pos = getPosition(i);
                 elements.push(
-                  <div 
+                  <div
                     key={`token-${seatIndex}-${currentTokens[i].id}`}
                     onClick={(e) => { e.stopPropagation(); handleRemoveSeatToken(seatIndex, currentTokens[i].id); }}
-                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 shadow-[0_2px_6px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:bg-red-900/90 hover:border-red-500 hover:text-white transition-all z-20 pointer-events-auto group/token overflow-hidden"
+                    {...tokHover}
+                    className={`absolute rounded-full bg-slate-800 border-2 border-slate-500 shadow-[0_2px_6px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:bg-red-900/90 hover:border-red-500 hover:text-white transition-all ${tokz} pointer-events-auto group/token overflow-hidden`}
                     style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
                     title={currentTokens[i].text || currentTokens[i].content || "移除標記"}
                   >
@@ -456,10 +469,11 @@ export const Grimoire = ({
               if (currentTokens.length < 3) {
                 const pos = getPosition(currentTokens.length);
                 elements.push(
-                  <div 
+                  <div
                     key={`plus-${seatIndex}`}
                     onClick={(e) => { e.stopPropagation(); setTokenTargetSeat(seatIndex); setTokenModalOpen(true); }}
-                    className="absolute rounded-full bg-slate-800 border-2 border-slate-500 border-solid flex items-center justify-center text-slate-500 font-bold cursor-pointer hover:bg-indigo-600 hover:border-indigo-400 hover:text-white hover:scale-110 shadow-[0_2px_6px_rgba(0,0,0,0.6)] opacity-50 hover:opacity-100 transition-all z-20 pointer-events-auto"
+                    {...tokHover}
+                    className={`absolute rounded-full bg-slate-800 border-2 border-slate-500 border-solid flex items-center justify-center text-slate-500 font-bold cursor-pointer hover:bg-indigo-600 hover:border-indigo-400 hover:text-white hover:scale-110 shadow-[0_2px_6px_rgba(0,0,0,0.6)] opacity-50 hover:opacity-100 transition-all ${tokz} pointer-events-auto`}
                     style={{ left: pos.left, top: pos.top, width: `${tokenSize}px`, height: `${tokenSize}px`, transform: 'translate(-50%, -50%)' }}
                     title="新增筆記標記"
                   >
