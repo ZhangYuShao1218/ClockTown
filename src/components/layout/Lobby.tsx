@@ -6,6 +6,7 @@ import { createRoom, joinRoom } from "../../services/roomService";
 import { useAuth } from "../../hooks/useAuth";
 import { generateMockRoom } from "../../lib/testUtils";
 import { LobbyGuideModal, type GuideTab } from "./LobbyGuideModal";
+import { scriptLogoSrc } from "../../lib/scriptAssets";
 
 export const Lobby = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export const Lobby = () => {
           .map(room => {
             const hostName = room.players?.[room.public.hostId]?.name || "未知說書人";
             const playerCount = room.players ? Object.keys(room.players).length : 0;
-            return { id: room.id, hostName, playerCount, createdAt: room.public.createdAt, scriptId: room.public.scriptId };
+            return { id: room.id, hostName, playerCount, createdAt: room.public.createdAt, scriptId: room.public.scriptId, scriptLogo: room.public.customScript?.logo as string | undefined };
           })
           .sort((a, b) => b.createdAt - a.createdAt); // 最新建立的在上面
 
@@ -283,9 +284,9 @@ export const Lobby = () => {
                     >
                       <div className="flex items-center space-x-3 z-10">
                         {room.scriptId && (
-                          <img 
-                            src={`/drama/Drama_${room.scriptId}.png`} 
-                            alt="Script" 
+                          <img
+                            src={scriptLogoSrc({ id: room.scriptId, logo: room.scriptLogo })}
+                            alt="Script"
                             className="w-10 h-10 object-contain shrink-0 drop-shadow-md" 
                             onError={(e) => { e.currentTarget.style.display = 'none'; }} 
                           />

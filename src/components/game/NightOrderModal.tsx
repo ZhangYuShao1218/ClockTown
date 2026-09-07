@@ -111,15 +111,21 @@ const MobileNightRow = ({ item, idx, iconSide, isBottom, setHoveredRoleTooltip }
   );
 };
 
-const MINION_INFO = { id: 'minion_info', name: '爪牙資訊', type: 'info', firstNight: 1500, firstNightReminder: '如果場上有7名或更多玩家：喚醒所有爪牙。向他們展示「這是惡魔」資訊標記，然後指出惡魔玩家。讓爪牙重新閉眼。' };
-const DEMON_INFO = { id: 'demon_info', name: '惡魔資訊', type: 'info', firstNight: 2900, firstNightReminder: '如果場上有7名或更多玩家：喚醒惡魔。向其展示「這些是你的爪牙」資訊標記，然後指出所有爪牙玩家。向其展示「這些角色不在場」資訊標記，然後向其展示3個不在場的善良角色標記。讓惡魔重新閉眼。' };
+const MINION_INFO = { id: 'minion_info', name: '爪牙資訊', type: 'info', firstNightReminder: '如果場上有7名或更多玩家：喚醒所有爪牙。向他們展示「這是惡魔」資訊標記，然後指出惡魔玩家。讓爪牙重新閉眼。' };
+const DEMON_INFO = { id: 'demon_info', name: '惡魔資訊', type: 'info', firstNightReminder: '如果場上有7名或更多玩家：喚醒惡魔。向其展示「這些是你的爪牙」資訊標記，然後指出所有爪牙玩家。向其展示「這些角色不在場」資訊標記，然後向其展示3個不在場的善良角色標記。讓惡魔重新閉眼。' };
 
 export const NightOrderModal = ({ isOpen, onClose, script }: NightOrderModalProps) => {
   const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
 
   if (!isOpen || !script) return null;
 
-  const firstNightList = [MINION_INFO, DEMON_INFO, ...script.roles]
+  // 內建劇本用集石全域整數（大數級距）；上傳的自訂劇本用 JSON 自帶的緊湊數字。
+  // 依此決定爪牙 / 惡魔資訊環節該插在哪個級距。
+  const bigScale = script.roles.some(r => (r.firstNight ?? 0) > 400 || (r.otherNight ?? 0) > 400);
+  const minionInfo = { ...MINION_INFO, firstNight: bigScale ? 1500 : 4.5 };
+  const demonInfo = { ...DEMON_INFO, firstNight: bigScale ? 2900 : 8.5 };
+
+  const firstNightList = [minionInfo, demonInfo, ...script.roles]
     .filter(r => (r.firstNight ?? 0) > 0)
     .sort((a, b) => (a.firstNight!) - (b.firstNight!));
   const otherNightList = [...script.roles]

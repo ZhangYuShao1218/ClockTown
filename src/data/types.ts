@@ -34,6 +34,8 @@ export interface Script {
   author?: string;
   playerCount?: string;
   category?: string;
+  /** 自訂劇本（上傳 JSON）帶的 logo 圖 URL；內建劇本用 public/drama/Drama_<id>.png。 */
+  logo?: string;
 }
 
 export interface SeatStatus {

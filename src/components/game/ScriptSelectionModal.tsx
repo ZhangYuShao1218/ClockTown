@@ -12,8 +12,8 @@ interface ScriptSelectionModalProps {
   onSelect?: (scriptId: string) => void;
   readOnly?: boolean;
   onViewRoleInfo?: (scriptId: string) => void;
-  /** 說書人上傳劇本 JSON：解析成功後回傳 Script 與「對應不到既有角色」的 id 清單。 */
-  onUploadScript?: (script: Script, unknownRoleIds: string[]) => void;
+  /** 說書人上傳劇本 JSON：解析成功後回傳完全採用 JSON 資料的 Script。 */
+  onUploadScript?: (script: Script) => void;
 }
 
 const PAGE_SIZE = 6;
@@ -25,23 +25,28 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  const [uploadBusy, setUploadBusy] = useState(false);
+
   const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file || !onUploadScript) return;
     setUploadError(null);
+    setUploadBusy(true);
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const raw = JSON.parse(String(reader.result));
-        const { script, unknownRoleIds } = parseBotcScript(raw);
-        onUploadScript(script, unknownRoleIds);
+        const script = await parseBotcScript(raw);
+        onUploadScript(script);
         onClose();
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : 'JSON 解析失敗');
+      } finally {
+        setUploadBusy(false);
       }
     };
-    reader.onerror = () => setUploadError('讀取檔案失敗');
+    reader.onerror = () => { setUploadError('讀取檔案失敗'); setUploadBusy(false); };
     reader.readAsText(file);
   };
   const goPage = (p: number) => {
@@ -115,13 +120,21 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  title="上傳劇本 JSON 檔"
+                  disabled={uploadBusy}
+                  title="上傳劇本 JSON 檔（完全採用檔案內容遊玩）"
                   aria-label="上傳劇本 JSON 檔"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-emerald-500/60 bg-emerald-800/60 text-emerald-100 shadow-inner transition-colors duration-200 hover:border-emerald-400 hover:bg-emerald-600"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-emerald-500/60 bg-emerald-800/60 text-emerald-100 shadow-inner transition-colors duration-200 hover:border-emerald-400 hover:bg-emerald-600 disabled:opacity-50"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
-                  </svg>
+                  {uploadBusy ? (
+                    <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                  )}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -135,6 +148,9 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
           </div>
           {uploadError && (
             <p className="mt-2 text-center text-xs font-bold text-red-400">上傳失敗：{uploadError}</p>
+          )}
+          {uploadBusy && !uploadError && (
+            <p className="mt-2 text-center text-xs text-slate-400">解析劇本、轉換繁體中文中…</p>
           )}
         </div>
 

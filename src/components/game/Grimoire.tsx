@@ -6,6 +6,7 @@ import { RoleIcon } from "../common/RoleIcon";
 import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
 import { highlightAbility } from "../../lib/highlightAbility";
+import { scriptLogoSrc } from "../../lib/scriptAssets";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { SeatTokenModal } from './SeatTokenModal';
 import type { SeatToken } from './SeatTokenModal';
@@ -296,7 +297,7 @@ export const Grimoire = ({
           >
             {script?.id && (
               <img 
-                src={`/drama/Drama_${script.id}.png`} 
+                src={scriptLogoSrc(script)} 
                 alt="Script" 
                 className="w-24 h-auto max-h-20 object-contain shrink-0 drop-shadow-md py-1" 
                 onError={(e) => { e.currentTarget.style.display = 'none'; }} 
@@ -333,7 +334,7 @@ export const Grimoire = ({
           {script?.id && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-80">
               <img 
-                src={`/drama/Drama_${script.id}.png`} 
+                src={scriptLogoSrc(script)} 
                 alt="Script Logo" 
                 className="w-1/3 h-1/3 object-contain drop-shadow-2xl mix-blend-screen"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }} 

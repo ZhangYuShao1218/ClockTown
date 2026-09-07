@@ -5,6 +5,7 @@ import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { OfficialJinxes } from "../../data/jinxes";
 import { highlightAbility } from "../../lib/highlightAbility";
+import { scriptSheetSrc, scriptLogoSrc, hasScriptSheet } from "../../lib/scriptAssets";
 
 interface RoleInfoModalProps {
   isOpen: boolean;
@@ -135,12 +136,14 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           {hasLoric && (
             <button onClick={() => switchTab('loric')} className={`shrink-0 px-2 sm:px-6 py-1 sm:py-2 text-xs sm:text-lg rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === 'loric' ? 'bg-emerald-600 text-white shadow-lg sm:scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>奇遇</button>
           )}
-          <button onClick={() => setIsImageViewOpen(true)} className="shrink-0 ml-auto px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg font-bold whitespace-nowrap transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-1 sm:gap-1.5 border border-emerald-400/30">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            圖片
-          </button>
+          {hasScriptSheet(script) && (
+            <button onClick={() => setIsImageViewOpen(true)} className="shrink-0 ml-auto px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-base rounded-lg font-bold whitespace-nowrap transition-all bg-emerald-600/80 hover:bg-emerald-500 text-white shadow-md flex items-center gap-1 sm:gap-1.5 border border-emerald-400/30">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {script.logo ? 'Logo' : '圖片'}
+            </button>
+          )}
         </div>
 
         <div ref={listRef} className="w-full space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0 pb-2 -mr-[10px] pr-[10px]">
@@ -195,11 +198,11 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
             onClick={closeImageView}
           >
             <img
-              src={`/drama/rules/Rule_${script.id}.png`}
+              src={scriptSheetSrc(script)}
               alt={`${script.name} 圖片版劇本`}
               onClick={(e) => e.stopPropagation()}
               className="max-h-[92vh] max-w-full object-contain rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)]"
-              onError={(e) => { e.currentTarget.src = `/drama/Drama_${script.id}.png`; }}
+              onError={(e) => { e.currentTarget.src = scriptLogoSrc(script); }}
             />
             <button
               onClick={(e) => { e.stopPropagation(); closeImageView(); }}
@@ -229,7 +232,7 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           }`}
         >
           <img
-            src={`/drama/rules/Rule_${script.id}.png`}
+            src={scriptSheetSrc(script)}
             alt={`${script.name} 圖片版劇本`}
             onClick={(e) => { e.stopPropagation(); setIsImageZoomed((z) => !z); }}
             className={`rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] select-none ${
@@ -237,7 +240,7 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
                 ? 'max-w-none cursor-zoom-out'
                 : 'max-h-[92vh] max-w-full object-contain cursor-zoom-in'
             }`}
-            onError={(e) => { e.currentTarget.src = `/drama/Drama_${script.id}.png`; }}
+            onError={(e) => { e.currentTarget.src = scriptLogoSrc(script); }}
           />
         </div>
 

@@ -171,16 +171,11 @@ export const GrimoireSettings = ({
     await updateRoomScript(roomId, newScriptId);
   };
 
-  const handleUploadCustomScript = async (uploaded: Script, unknownRoleIds: string[]) => {
+  const handleUploadCustomScript = async (uploaded: Script) => {
     // setCustomScript 內部會一併把 public/scriptId 設為 "custom"
     await setCustomScript(roomId, uploaded);
     setScriptSelectionOpen(false);
-    if (unknownRoleIds.length > 0) {
-      setMissingSeatAlert(
-        `已載入自訂劇本「${uploaded.name}」。有 ${unknownRoleIds.length} 個角色不在角色庫中（${unknownRoleIds.join('、')}），` +
-        `這些角色仍可指派，但不會出現在夜晚順序表。`
-      );
-    }
+    setMissingSeatAlert(`已載入自訂劇本「${uploaded.name}」（共 ${uploaded.roles.length} 個角色，完全採用檔案內容）。`);
   };
 
   const handleSeatCountChange = async (delta: number) => {
