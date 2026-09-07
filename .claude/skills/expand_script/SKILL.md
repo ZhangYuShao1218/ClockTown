@@ -12,14 +12,18 @@ description: 標準作業流程：從 gstonegames (clocktower.gstonegames.com) �
 ## 摘要（細節仍以上述檔案為準）
 
 1. **抓劇本 meta**：POST `https://clocktower.gstonegames.com/ct/grimoire_edition_list/`
-   （`tab=1/2/3`, `page=X`），記錄 `name` / `desc` / `json` / `image`。
-2. **抓全域角色庫**：GET `https://clocktower.gstonegames.com/data/roles.json`。
-   🌟 `firstNight` / `otherNight` **必須**取自這份的全域整數權重，**嚴禁**用單一劇本陣列的 index。
+   body JSON `{"tab":1/2/3,"name":"","order":1,"page":N,"limit":50}`（需帶 cookie），記錄 `name` / `desc` / `json` / `image`。
+   博物館 (biligame) 專屬劇本：改抓 jsdelivr 上的劇本 JSON。
+2. **抓全域角色庫（夜晚順序規範）**：POST `https://clocktower.gstonegames.com/ct/grimoireRoleJson/` body `{}`（需帶 cookie）→ `data.role[]`。
+   🌟 `firstNight` / `otherNight` **一律**取自這份的**集石全域整數**（大數級距：洗衣婦 7500、投毒者 4600…）。
+   **嚴禁**用：單一劇本 JSON 的 local 值、英文官方 `official/data/sources/roles.json`（1–75 級距）、陣列 index。
+   `NightOrderModal.tsx` 的 `MINION_INFO`=fn 1500、`DEMON_INFO`=fn 2900（勿改、勿塞進 roles 陣列）。
+   角色不在 grimoireRoleJson → 明確回報使用者。
 3. **下載資源**：劇本 icon → `public/drama/Drama_{script_id}.png`；
    新角色 icon → `public/character/character_{role_id}_{team}.png`（副檔名一律 `.png`）。
 4. **簡轉繁 + 重構**：用 opencc 類工具轉繁體；新角色物件嚴格符合 `src/data/types.ts` 的 `Role` 介面。
    帶連字號的 key 要加引號並用 `AllRoles['pit-hag']` 括號語法。
 5. **註冊劇本**：建 `src/data/scripts/{script_id}.ts`（匯出 `Script`），
    在 `src/data/scripts/index.ts` 加入 `AllScripts`。
-   **不要**手動把 `minion_info` / `demon_info` 塞進 `roles` 陣列（前端已寫死全域權重 2000 / 3000）。
+   **不要**手動把 `minion_info` / `demon_info` 塞進 `roles` 陣列（前端已寫死 fn 1500 / 2900）。
 6. **驗證**：`npx tsc --noEmit` 或 `npm run build`。
