@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { AllScripts } from '../../data/scripts';
 import { RoleIcon } from '../common/RoleIcon';
+import type { Script } from '../../data/types';
+import { parseBotcScript } from '../../lib/parseBotcScript';
 
 interface ScriptSelectionModalProps {
   isOpen: boolean;
@@ -10,14 +12,38 @@ interface ScriptSelectionModalProps {
   onSelect?: (scriptId: string) => void;
   readOnly?: boolean;
   onViewRoleInfo?: (scriptId: string) => void;
+  /** 說書人上傳劇本 JSON：解析成功後回傳 Script 與「對應不到既有角色」的 id 清單。 */
+  onUploadScript?: (script: Script, unknownRoleIds: string[]) => void;
 }
 
 const PAGE_SIZE = 6;
 
-export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelect, readOnly, onViewRoleInfo }: ScriptSelectionModalProps) => {
+export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelect, readOnly, onViewRoleInfo, onUploadScript }: ScriptSelectionModalProps) => {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onUploadScript) return;
+    setUploadError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const raw = JSON.parse(String(reader.result));
+        const { script, unknownRoleIds } = parseBotcScript(raw);
+        onUploadScript(script, unknownRoleIds);
+        onClose();
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : 'JSON 解析失敗');
+      }
+    };
+    reader.onerror = () => setUploadError('讀取檔案失敗');
+    reader.readAsText(file);
+  };
   const goPage = (p: number) => {
     setPage(p);
     // 捲回視窗最上方（Modal 內容捲軸）
@@ -45,7 +71,7 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="" maxWidth="max-w-[95vw] lg:max-w-5xl" fullBleedOnMobile={true}>
+    <Modal isOpen={isOpen} onClose={onClose} title="" maxWidth="max-w-[95vw] lg:max-w-5xl" fullBleedOnMobile={true} disableScroll={true}>
       <div ref={scrollRef} className="relative px-1 pt-2 sm:px-4 sm:pt-6">
         {/* 關閉按鈕 */}
         <button
@@ -58,30 +84,58 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
 
         {/* Search bar（手機時右側留位給關閉鈕） */}
         <div className="mx-auto mb-4 sm:mb-6 mt-1 max-w-md pr-11 sm:pr-0">
-          <div className="relative">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-            </svg>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(0); }}
-              placeholder="搜尋劇本名稱、簡介或角色…"
-              className="w-full rounded-xl border-2 border-slate-600 bg-slate-900/80 py-2 pl-9 pr-8 text-sm text-slate-200 placeholder:text-slate-500 shadow-inner transition-colors duration-200 focus:border-indigo-400 focus:outline-none"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => { setQuery(''); setPage(0); }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition-colors duration-200 hover:text-slate-200"
-                aria-label="清除搜尋"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+                placeholder="搜尋劇本名稱、簡介或角色…"
+                className="w-full rounded-xl border-2 border-slate-600 bg-slate-900/80 py-2 pl-9 pr-8 text-sm text-slate-200 placeholder:text-slate-500 shadow-inner transition-colors duration-200 focus:border-indigo-400 focus:outline-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); setPage(0); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition-colors duration-200 hover:text-slate-200"
+                  aria-label="清除搜尋"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {!readOnly && onUploadScript && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="上傳劇本 JSON 檔"
+                  aria-label="上傳劇本 JSON 檔"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-emerald-500/60 bg-emerald-800/60 text-emerald-100 shadow-inner transition-colors duration-200 hover:border-emerald-400 hover:bg-emerald-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={handleUploadFile}
+                  className="hidden"
+                />
+              </>
             )}
           </div>
+          {uploadError && (
+            <p className="mt-2 text-center text-xs font-bold text-red-400">上傳失敗：{uploadError}</p>
+          )}
         </div>
 
         {pageKeys.length === 0 ? (

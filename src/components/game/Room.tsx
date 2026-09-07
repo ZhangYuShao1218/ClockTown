@@ -16,6 +16,7 @@ import { Chat } from "./Chat";
 import { GameTimelineLogger } from "./GameTimelineLogger";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
+import type { Script } from "../../data/types";
 import { stopRoomReplay, stepRoomReplay } from "../../services/replayService";
 
 // 穩定參考：避免每次 render 產生新陣列，觸發子元件無限 re-render
@@ -143,7 +144,9 @@ export const Room = () => {
   const hostPlayer = players[gameState?.public?.hostId];
 
   // Derived state
-  const currentScript = gameState?.public?.scriptId ? Object.values(AllScripts).find(s => s.id === gameState?.public?.scriptId) : undefined;
+  const currentScript = gameState?.public?.scriptId === 'custom'
+    ? (gameState?.public?.customScript as Script | undefined)
+    : (gameState?.public?.scriptId ? Object.values(AllScripts).find(s => s.id === gameState?.public?.scriptId) : undefined);
   const seatCount = gameState?.public?.seatCount || 10;
   const seats = Array.from({ length: seatCount }, (_, i) => i + 1);
   const bluffs = gameState?.private?.bluffs || DEFAULT_BLUFFS;

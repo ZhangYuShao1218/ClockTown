@@ -171,6 +171,18 @@ export const GrimoireSettings = ({
     await updateRoomScript(roomId, newScriptId);
   };
 
+  const handleUploadCustomScript = async (uploaded: Script, unknownRoleIds: string[]) => {
+    // setCustomScript 內部會一併把 public/scriptId 設為 "custom"
+    await setCustomScript(roomId, uploaded);
+    setScriptSelectionOpen(false);
+    if (unknownRoleIds.length > 0) {
+      setMissingSeatAlert(
+        `已載入自訂劇本「${uploaded.name}」。有 ${unknownRoleIds.length} 個角色不在角色庫中（${unknownRoleIds.join('、')}），` +
+        `這些角色仍可指派，但不會出現在夜晚順序表。`
+      );
+    }
+  };
+
   const handleSeatCountChange = async (delta: number) => {
     const newCount = Math.max(5, Math.min(20, seatCount + delta));
     if (newCount !== seatCount) {
@@ -358,15 +370,16 @@ export const GrimoireSettings = ({
                 disabled={locked}
                 className={`bg-slate-950 border border-slate-600 hover:border-slate-400 rounded px-3 py-1.5 text-base font-bold text-white w-full flex justify-between items-center transition-colors ${lockedBtn}`}
               >
-                <span className="truncate">{AllScripts[scriptId]?.name || "未知劇本"}</span>
+                <span className="truncate">{scriptId === 'custom' ? (customScript?.name || '自訂劇本') : (AllScripts[scriptId]?.name || "未知劇本")}</span>
                 <svg className="w-4 h-4 ml-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
-              
+
               <ScriptSelectionModal
                 isOpen={isScriptSelectionOpen}
                 onClose={() => setScriptSelectionOpen(false)}
                 currentScriptId={scriptId}
                 onSelect={(id) => { handleScriptTypeChange(id); setScriptSelectionOpen(false); }}
+                onUploadScript={handleUploadCustomScript}
               />
             </div>
           </div>
