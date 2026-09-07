@@ -183,45 +183,64 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
             );
           })}
         </div>
+
+        {/*
+          觸控裝置的圖片版：留在 Modal 內（不 portal）。
+          真‧viewport fixed 元素會讓系統原生雙指縮放後無法單指拖移，
+          留在 Modal 的 backdrop-filter 容器內則表現得像一般內容，縮放 + 拖移都正常。
+        */}
+        {isImageViewOpen && !clickZoomEnabled && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4"
+            onClick={closeImageView}
+          >
+            <img
+              src={`/drama/rules/Rule_${script.id}.png`}
+              alt={`${script.name} 圖片版劇本`}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[92vh] max-w-full object-contain rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+              onError={(e) => { e.currentTarget.src = `/drama/Drama_${script.id}.png`; }}
+            />
+            <button
+              onClick={(e) => { e.stopPropagation(); closeImageView(); }}
+              aria-label="關閉"
+              className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full border-2 border-red-400/60 bg-red-900/90 text-xl font-bold text-white shadow-lg transition-colors hover:bg-red-700"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
     </Modal>
 
     {/*
-      圖片版劇本檢視器：用 portal 掛到 body，避開 Modal 的 backdrop-filter
+      滑鼠裝置的圖片版：portal 掛到 body，避開 Modal 的 backdrop-filter
       造成的 fixed 定位錨點問題（否則關閉鈕會被視窗邊界擋住）。
-      點圖片放大 / 縮小，放大後可捲動平移；點背景關閉。
+      點圖片切換 fit ↔ 原始尺寸，放大後可捲動平移；點背景關閉。
     */}
-    {isImageViewOpen && createPortal(
+    {isImageViewOpen && clickZoomEnabled && createPortal(
       <div
         className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-sm"
         onClick={closeImageView}
       >
-        {/* 捲動層：滑鼠裝置放大後在這裡捲動平移；關閉鈕與提示不放這層，才不會跟著捲走 */}
         <div
-          className={`absolute inset-0 grid place-items-center overscroll-contain p-4 ${
-            clickZoomEnabled && isImageZoomed ? 'overflow-auto' : 'overflow-hidden'
+          className={`absolute inset-0 grid place-items-center p-4 ${
+            isImageZoomed ? 'overflow-auto overscroll-contain' : 'overflow-hidden'
           }`}
         >
           <img
             src={`/drama/rules/Rule_${script.id}.png`}
             alt={`${script.name} 圖片版劇本`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (clickZoomEnabled) setIsImageZoomed((z) => !z);
-            }}
+            onClick={(e) => { e.stopPropagation(); setIsImageZoomed((z) => !z); }}
             className={`rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] select-none ${
-              clickZoomEnabled && isImageZoomed
+              isImageZoomed
                 ? 'max-w-none cursor-zoom-out'
-                : `max-h-[92vh] max-w-full object-contain ${clickZoomEnabled ? 'cursor-zoom-in' : ''}`
+                : 'max-h-[92vh] max-w-full object-contain cursor-zoom-in'
             }`}
-            onError={(e) => {
-              // 沒有對應圖片版時退回劇本封面
-              e.currentTarget.src = `/drama/Drama_${script.id}.png`;
-            }}
+            onError={(e) => { e.currentTarget.src = `/drama/Drama_${script.id}.png`; }}
           />
         </div>
 
-        {/* 關閉鈕：固定在視窗右上角，不會被圖片或視窗大小擋住 */}
         <button
           onClick={(e) => { e.stopPropagation(); closeImageView(); }}
           aria-label="關閉"
@@ -230,12 +249,9 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           ✕
         </button>
 
-        {/* 提示：滑鼠裝置才顯示點擊放大說明；觸控裝置用系統原生雙指縮放 */}
-        {clickZoomEnabled && (
-          <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white/70">
-            {isImageZoomed ? '點圖片縮小 · 捲動查看細節' : '點圖片放大'}
-          </div>
-        )}
+        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white/70">
+          {isImageZoomed ? '點圖片縮小 · 捲動查看細節' : '點圖片放大'}
+        </div>
       </div>,
       document.body
     )}
