@@ -59,7 +59,7 @@ export const OfficialJinxes: Record<string, JinxEntry[]> = {
   'guhuoniao': [
     { with: 'exorcist', reason: '一名已獲得過爪牙能力的姑獲鳥被驅魔人選中，他能夠因為爪牙的能力被喚醒。' },
     { with: 'mastermind', reason: '如果姑獲鳥死亡，獲得主謀能力的姑獲鳥保留主謀的能力。' },
-    { with: 'evil_twin', reason: '如果姑獲鳥獲得了映像雙子的能力，新對立雙子會知道“姑獲鳥在場”，但不會知道姑獲鳥是誰。' },
+    { with: 'evil_twin', reason: '如果姑獲鳥獲得了鏡像雙子的能力，新對立雙子會知道“姑獲鳥在場”，但不會知道姑獲鳥是誰。' },
     { with: 'goblin', reason: '姑獲鳥無法獲得哥布林的能力。' },
     { with: 'psychopath', reason: '如果姑獲鳥獲得了精神病患者的能力，他會在被處決時死亡。' },
   ],
@@ -170,7 +170,7 @@ export const OfficialJinxes: Record<string, JinxEntry[]> = {
   'plague_doctor': [
     { with: 'baron', reason: '如果說書人獲得了男爵的能力，改為至多兩名玩家會變成外來者。', reasonLegacy: '如果說書人獲得了男爵的能力，至多兩名玩家會變成不在場的外來者。' },
     { with: 'boomdandy', reason: '如果說書人本應獲得炸彈人的能力，改為一名玩家會變成炸彈人。', reasonLegacy: '如果瘟疫醫生死於處決且說書人會因此獲得炸彈人的能力，那麼炸彈人的能力會立即被觸發。' },
-    { with: 'evil_twin', reason: '如果說書人本應獲得映像雙子的能力，改為一名玩家會變成映像雙子。', reasonLegacy: '說書人無法在瘟疫醫生死亡時獲得映像雙子的能力。' },
+    { with: 'evil_twin', reason: '如果說書人本應獲得鏡像雙子的能力，改為一名玩家會變成鏡像雙子。', reasonLegacy: '說書人無法在瘟疫醫生死亡時獲得鏡像雙子的能力。' },
     { with: 'fearmonger', reason: '如果說書人本應獲得恐懼之靈的能力，改為一名爪牙玩家獲得此能力，且他會得知此事。', reasonLegacy: '如果瘟疫醫生死亡且說書人會因此獲得恐懼之靈的能力，改為一名存活的爪牙玩家獲得此能力，且他會得知此事。' },
     { with: 'goblin', reason: '如果說書人本應獲得哥布林的能力，改為一名爪牙玩家獲得此能力，且他會得知此事。', reasonLegacy: '如果瘟疫醫生死亡且說書人會因此獲得哥布林的能力，改為一名存活的爪牙玩家獲得此能力，且他會得知此事。' },
     { with: 'marionette', reason: '如果說書人本應獲得提線木偶的能力，改為一名與惡魔鄰近的善良玩家變成提線木偶。', reasonLegacy: '如果在瘟疫醫生死亡時說書人獲得了提線木偶的能力，且與惡魔鄰座的存活玩家中有鎮民或外來者，其中一名玩家會變成邪惡的提線木偶。如果此時場上的邪惡玩家數量比初始設定時的數量超出一名或更多，改為無事發生。' },
@@ -235,7 +235,7 @@ export const OfficialJinxes: Record<string, JinxEntry[]> = {
   'taowu': [
     { with: 'barber', reason: '如果檮杌的角色發生了交換，因為檮杌失去能力的爪牙依然失去能力。', reasonLegacy: '如果檮杌變成了其他角色，因為檮杌而失去能力的爪牙會立即死亡。' },
     { with: 'engineer', reason: '如果檮杌變成了其他惡魔，因為檮杌而失去能力的爪牙會立即死亡。', reasonLegacy: '如果檮杌變成了其他角色，因為檮杌而失去能力的爪牙會立即死亡。' },
-    { with: 'evil_twin', reason: '映像雙子在檮杌的能力判斷中被當作“不具有能力”。' },
+    { with: 'evil_twin', reason: '鏡像雙子在檮杌的能力判斷中被當作“不具有能力”。' },
     { with: 'hatter', reason: '如果檮杌變成了其他角色，因為檮杌而失去能力的爪牙會立即死亡。' },
     { with: 'marionette', reason: '檮杌不會得知誰是提線木偶。在檮杌使得提線木偶失去能力後，檮杌會得知對應的那一名提線木偶是誰，但提線木偶會仍然以為自己是一個善良角色。' },
     { with: 'mastermind', reason: '主謀在檮杌的能力判斷中被當作“不具有能力”。' },
