@@ -10,6 +10,7 @@ import { StringsPulling } from './strings_pulling';
 import { FengYaJi } from './feng_ya_ji';
 import { GuiZeGuaiTan } from './gui_ze_guai_tan';
 import { XiaoZhangBaHu } from './xiao_zhang_ba_hu';
+import { WuXingDaChu } from './wu_xing_da_chu';
 
 export const AllScripts: Record<string, Script> = {
   trouble_brewing: TroubleBrewing,
@@ -22,7 +23,8 @@ export const AllScripts: Record<string, Script> = {
   strings_pulling: StringsPulling,
   feng_ya_ji: FengYaJi,
   gui_ze_guai_tan: GuiZeGuaiTan,
-  xiao_zhang_ba_hu: XiaoZhangBaHu
+  xiao_zhang_ba_hu: XiaoZhangBaHu,
+  wu_xing_da_chu: WuXingDaChu
 };
 
 export * from './trouble_brewing';
@@ -36,3 +38,4 @@ export * from './strings_pulling';
 export * from './feng_ya_ji';
 export * from './gui_ze_guai_tan';
 export * from './xiao_zhang_ba_hu';
+export * from './wu_xing_da_chu';
