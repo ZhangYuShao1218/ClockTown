@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Modal } from "../common/Modal";
 import type { Script, Role } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
@@ -14,6 +15,8 @@ interface RoleInfoModalProps {
 export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) => {
   const [activeTab, setActiveTab] = useState<'good'|'evil'|'other'|'loric'>('good');
   const [isImageViewOpen, setIsImageViewOpen] = useState(false);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const closeImageView = () => { setIsImageViewOpen(false); setIsImageZoomed(false); };
   const listRef = useRef<HTMLDivElement | null>(null);
   const switchTab = (t: 'good'|'evil'|'other'|'loric') => { setActiveTab(t); listRef.current?.scrollTo({ top: 0 }); };
   if (!isOpen || !script) return null;
@@ -98,9 +101,10 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       maxWidth="max-w-[95vw] sm:max-w-2xl lg:max-w-3xl"
       noOverlay={true}
       fullBleedOnMobile={true}
@@ -172,30 +176,57 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
             );
           })}
         </div>
-      
-        {/* Image Modal */}
-        {isImageViewOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm" onClick={() => setIsImageViewOpen(false)}>
-            <div className="relative max-w-[95vw] max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
-              <img
-                src={`/drama/rules/Rule_${script.id}.png`}
-                alt={`${script.name} 圖片版劇本`}
-                className="max-w-full max-h-[95vh] object-contain rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)]"
-                onError={(e) => {
-                  // 沒有對應圖片版時退回劇本封面
-                  e.currentTarget.src = `/drama/Drama_${script.id}.png`;
-                }}
-              />
-              <button 
-                onClick={() => setIsImageViewOpen(false)}
-                className="absolute -top-5 -right-5 w-10 h-10 bg-red-900/90 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-700 transition-colors border-2 border-red-400/50 text-xl font-bold"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </Modal>
+
+    {/*
+      圖片版劇本檢視器：用 portal 掛到 body，避開 Modal 的 backdrop-filter
+      造成的 fixed 定位錨點問題（否則關閉鈕會被視窗邊界擋住）。
+      點圖片放大 / 縮小，放大後可捲動平移；點背景關閉。
+    */}
+    {isImageViewOpen && createPortal(
+      <div
+        className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-sm"
+        onClick={closeImageView}
+      >
+        {/* 捲動層：放大後在這裡捲動平移；關閉鈕與提示不放這層，才不會跟著捲走 */}
+        <div
+          className={`absolute inset-0 grid place-items-center overscroll-contain p-4 ${
+            isImageZoomed ? 'overflow-auto' : 'overflow-hidden'
+          }`}
+        >
+          <img
+            src={`/drama/rules/Rule_${script.id}.png`}
+            alt={`${script.name} 圖片版劇本`}
+            onClick={(e) => { e.stopPropagation(); setIsImageZoomed(z => !z); }}
+            className={`rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] select-none ${
+              isImageZoomed
+                ? 'max-w-none cursor-zoom-out'
+                : 'max-h-[92vh] max-w-full object-contain cursor-zoom-in'
+            }`}
+            onError={(e) => {
+              // 沒有對應圖片版時退回劇本封面
+              e.currentTarget.src = `/drama/Drama_${script.id}.png`;
+            }}
+          />
+        </div>
+
+        {/* 關閉鈕：固定在視窗右上角，不會被圖片或視窗大小擋住 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); closeImageView(); }}
+          aria-label="關閉"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full border-2 border-red-400/60 bg-red-900/90 text-xl font-bold text-white shadow-lg transition-colors hover:bg-red-700"
+        >
+          ✕
+        </button>
+
+        {/* 提示 */}
+        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white/70">
+          {isImageZoomed ? '點圖片縮小 · 捲動查看細節' : '點圖片放大'}
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 };
