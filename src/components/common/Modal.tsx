@@ -13,9 +13,14 @@ interface ModalProps {
   fullBleedOnMobile?: boolean;
   /** 內距 class，預設 `p-5 sm:p-8`；橫向捲動類內容可傳 `p-2 sm:p-3` 讓拖曳區更寬 */
   bodyPad?: string;
+  /**
+   * 桌機時關閉 modal 本體的捲動並允許內容溢出顯示。
+   * 給「hover 展開抽屜」等需要往外浮出、且本身不該出現捲軸的內容用（手機仍可捲動）。
+   */
+  disableScroll?: boolean;
 }
 
-export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg", noOverlay = false, contentClass = "bg-slate-900/95", fullBleedOnMobile = false, bodyPad = "p-5 sm:p-8" }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg", noOverlay = false, contentClass = "bg-slate-900/95", fullBleedOnMobile = false, bodyPad = "p-5 sm:p-8", disableScroll = false }: ModalProps) => {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -28,13 +33,20 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg",
 
   if (!isOpen) return null;
 
+  const heightClass = disableScroll
+    ? `${fullBleedOnMobile ? "max-h-[95svh]" : "max-h-[92svh]"} sm:max-h-none`
+    : fullBleedOnMobile
+      ? "max-h-[95svh] sm:max-h-[92svh]"
+      : "max-h-[92svh]";
+  const overflowClass = disableScroll ? "overflow-y-auto sm:overflow-visible" : "overflow-y-auto";
+
   return createPortal(
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center ${fullBleedOnMobile ? "p-2 sm:p-4" : "p-3 sm:p-4"} ${noOverlay ? "" : "bg-black/80 backdrop-blur-sm"}`}
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidth} mx-auto rounded-xl ${fullBleedOnMobile ? "max-h-[95svh] sm:max-h-[92svh]" : "max-h-[92svh]"} overflow-y-auto custom-scrollbar border-2 border-slate-500 ${contentClass} backdrop-blur-2xl ${bodyPad} shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
+        className={`w-full ${maxWidth} mx-auto rounded-xl ${heightClass} ${overflowClass} custom-scrollbar border-2 border-slate-500 ${contentClass} backdrop-blur-2xl ${bodyPad} shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
         {title ? (

@@ -106,7 +106,8 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
       fullBleedOnMobile={true}
       title={""}
     >
-      <div className="relative w-full h-[70svh] sm:h-auto sm:max-h-[78vh] flex flex-col">
+      {/* 固定尺寸：不論當前分頁角色多寡，視窗大小維持一致 */}
+      <div className="relative w-full h-[70svh] sm:h-[78vh] flex flex-col">
 
         {/* 標題：置中、暖金色、下方淺分隔線 */}
         <h2 className="text-sm sm:text-2xl font-bold text-center tracking-[0.12em] pb-1.5 mb-2 sm:mb-3 border-b border-amber-400/20 shrink-0 text-amber-200/95 [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">
