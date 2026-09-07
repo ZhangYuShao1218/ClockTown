@@ -18,6 +18,13 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const closeImageView = () => { setIsImageViewOpen(false); setIsImageZoomed(false); };
   const listRef = useRef<HTMLDivElement | null>(null);
+  /**
+   * 只有精確指標（滑鼠）裝置才需要「點擊放大」；平板 / 手機用系統原生的雙指縮放就夠，
+   * 額外加一層點擊縮放反而卡手。
+   */
+  const [clickZoomEnabled] = useState(
+    () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: fine)').matches,
+  );
   const switchTab = (t: 'good'|'evil'|'other'|'loric') => { setActiveTab(t); listRef.current?.scrollTo({ top: 0 }); };
   if (!isOpen || !script) return null;
 
@@ -189,20 +196,23 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
         className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-sm"
         onClick={closeImageView}
       >
-        {/* 捲動層：放大後在這裡捲動平移；關閉鈕與提示不放這層，才不會跟著捲走 */}
+        {/* 捲動層：滑鼠裝置放大後在這裡捲動平移；關閉鈕與提示不放這層，才不會跟著捲走 */}
         <div
           className={`absolute inset-0 grid place-items-center overscroll-contain p-4 ${
-            isImageZoomed ? 'overflow-auto' : 'overflow-hidden'
+            clickZoomEnabled && isImageZoomed ? 'overflow-auto' : 'overflow-hidden'
           }`}
         >
           <img
             src={`/drama/rules/Rule_${script.id}.png`}
             alt={`${script.name} 圖片版劇本`}
-            onClick={(e) => { e.stopPropagation(); setIsImageZoomed(z => !z); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (clickZoomEnabled) setIsImageZoomed((z) => !z);
+            }}
             className={`rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.8)] select-none ${
-              isImageZoomed
+              clickZoomEnabled && isImageZoomed
                 ? 'max-w-none cursor-zoom-out'
-                : 'max-h-[92vh] max-w-full object-contain cursor-zoom-in'
+                : `max-h-[92vh] max-w-full object-contain ${clickZoomEnabled ? 'cursor-zoom-in' : ''}`
             }`}
             onError={(e) => {
               // 沒有對應圖片版時退回劇本封面
@@ -220,10 +230,12 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
           ✕
         </button>
 
-        {/* 提示 */}
-        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white/70">
-          {isImageZoomed ? '點圖片縮小 · 捲動查看細節' : '點圖片放大'}
-        </div>
+        {/* 提示：滑鼠裝置才顯示點擊放大說明；觸控裝置用系統原生雙指縮放 */}
+        {clickZoomEnabled && (
+          <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-3 py-1 text-xs text-white/70">
+            {isImageZoomed ? '點圖片縮小 · 捲動查看細節' : '點圖片放大'}
+          </div>
+        )}
       </div>,
       document.body
     )}
