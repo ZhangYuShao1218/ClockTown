@@ -135,6 +135,17 @@ export const CenterStage = ({
         phase: 'idle', // Host will see "Start Voting" next
         nomineeSeat: seatIndex
       });
+
+      const nominatorSeat = votingState?.nominatorSeat;
+      const nominatorName = typeof nominatorSeat === 'number' ? getPlayerInSeat(nominatorSeat)?.name : undefined;
+      const nomineeName = getPlayerInSeat(seatIndex)?.name;
+      import('../../services/roomService').then(({ postTownSquareAnnouncement }) => {
+        postTownSquareAnnouncement(
+          roomId,
+          `${nominatorSeat}. ${nominatorName || '未知'} 提名 ${seatIndex}. ${nomineeName || '未知'}`,
+          'nomination',
+        ).catch(console.error);
+      });
     }
   };
 
@@ -334,14 +345,14 @@ export const CenterStage = ({
         <div className={`${infoTab === 'fabled' ? 'flex' : 'hidden'} ${fabled.filter(f => f).length > 0 ? 'lg:flex' : 'lg:hidden'} flex-col bg-stone-800/80 border-2 border-yellow-400 rounded-b-xl lg:rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md`}>
             <h3 className="hidden lg:block text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest">傳奇角色</h3>
             {fabled.filter(f => f).length === 0 && <div className="text-center text-white/40 text-sm py-3">尚無傳奇角色</div>}
-            <div className="grid grid-cols-3 gap-2 w-full">
+            <div className={fabled.filter(f => f).length === 1 ? 'flex justify-center w-full' : 'grid grid-cols-3 gap-2 w-full'}>
               {fabled.filter(f => f).map(fId => {
                 const role = Object.values(AllRoles).find(r => r.id === fId);
                 if (!role) return null;
                 return (
                   <div
                     key={fId}
-                    className="flex flex-col items-center min-w-0 group relative hover:z-[9999]"
+                    className={`flex flex-col items-center min-w-0 group relative hover:z-[9999] ${fabled.filter(f => f).length === 1 ? 'w-1/3' : ''}`}
                     onMouseEnter={(e) => { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); }}
                     onMouseLeave={() => setHoveredRoleTooltip(null)}
                   >

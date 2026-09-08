@@ -15,6 +15,30 @@ const touchAndUpdate = (roomId: string, updates: Record<string, any>) => {
   return update(nref(), updates);
 };
 
+/** 廣場公告自動訊息的種類；Chat 會依此上色（time = 時間變更用不同顏色）。 */
+export type AnnouncementKind = 'time' | 'nomination' | 'death' | 'info';
+
+/**
+ * 系統自動發布一則「廣場公告」訊息（time / 提名 / 死亡生存等）。
+ * senderUid 固定為 'system'，DB 規則允許；timestamp 用 Date.now() 與既有系統訊息一致。
+ */
+export const postTownSquareAnnouncement = async (
+  roomId: string,
+  text: string,
+  kind: AnnouncementKind = 'info',
+) => {
+  const key = `${Date.now()}_sys`;
+  await update(nref(), {
+    [`rooms/${roomId}/messages/town_square/${key}`]: {
+      senderUid: 'system',
+      senderName: '廣場公告',
+      text,
+      kind,
+      timestamp: Date.now(),
+    },
+  });
+};
+
 export const createRoom = async (hostId: string, hostName: string): Promise<string> => {
   const roomId = generateRoomId();
   const roomRef = nref(`rooms/${roomId}`);
@@ -382,6 +406,14 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
           ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡。`
           : `${seatLabel}. ${name} 於第 ${day} 天${phaseText}被標記為存活。`,
       }).catch(console.error);
+
+      postTownSquareAnnouncement(
+        roomId,
+        status.isDead
+          ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡`
+          : `${seatLabel}. ${name} 被標記為存活`,
+        'death',
+      ).catch(console.error);
     });
   }
 };
@@ -434,4 +466,10 @@ export const updateGameTime = async (roomId: string, dayNumber: number, timePhas
       description: `時間推進至第 ${dayNumber} 天 (${timePhase === 'night' ? '黑夜行動' : '白天公聊'})。`
     }).catch(console.error);
   });
+
+  postTownSquareAnnouncement(
+    roomId,
+    `時間推進至第 ${dayNumber} 天 · ${timePhase === 'night' ? '黑夜' : '白天'}`,
+    'time',
+  ).catch(console.error);
 };

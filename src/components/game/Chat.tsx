@@ -26,10 +26,15 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Build channels
-  const availableChannels: { id: string; name: string; disabled?: boolean; isSelf?: boolean; isGroup?: boolean; colorClass?: string }[] = [];
-  
+  // 順序：① 廣場公告（固定第一） ② 說書人（固定第二） ③ 其他群組頻道
+  //      ④ 可使用的私聊頻道 ⑤ 不可使用的私聊頻道；自己的頻道不顯示。
+  type ChannelItem = { id: string; name: string; disabled?: boolean; isSelf?: boolean; isGroup?: boolean; colorClass?: string };
+  const availableChannels: ChannelItem[] = [];
+  const usableChannels: ChannelItem[] = [];
+  const unusableChannels: ChannelItem[] = [];
+
   availableChannels.push({ id: 'town_square', name: '廣場公告', isGroup: true, colorClass: 'text-rose-500 font-bold drop-shadow-sm' });
-  
+
   if (!isHost && hostPlayer) {
     availableChannels.push({ id: 'host', name: '說書人', colorClass: 'text-[#d7b87c] font-bold' });
   }
@@ -57,24 +62,22 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
 
     if (p) {
       if (hostPlayer && p.uid === hostPlayer.uid) continue;
+      if (p.uid === userUid) continue; // 自己的頻道不顯示
 
-      const isSelf = p.uid === userUid;
       const canPrivateMsg = isHost || privateMsgMode === 'all' || (privateMsgMode === 'adjacent' && isAdjacentSeat(mySeat, p.seat));
-      const disabled = isSelf || !canPrivateMsg;
-      
+
       let nameLabel = `${i}. ${p.name}`;
-      if (isSelf) nameLabel += ' (你)';
-      else if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
-      
-      availableChannels.push({
+      if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
+
+      (canPrivateMsg ? usableChannels : unusableChannels).push({
         id: p.uid,
         name: nameLabel,
-        disabled: disabled,
-        isSelf: isSelf
+        disabled: !canPrivateMsg,
+        isSelf: false
       });
     } else {
-      // Empty seat
-      availableChannels.push({
+      // Empty seat（歸類為不可使用）
+      unusableChannels.push({
         id: `empty_${i}`,
         name: `${i}. (空座位)`,
         disabled: true,
@@ -82,27 +85,27 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
       });
     }
   }
-  
+
   // Add unseated players at the end
   const unseatedPlayers = players.filter(p => p.seat === null || p.seat === undefined);
   unseatedPlayers.forEach(p => {
     if (hostPlayer && p.uid === hostPlayer.uid) return;
-    
-    const isSelf = p.uid === userUid;
+    if (p.uid === userUid) return; // 自己的頻道不顯示
+
     const canPrivateMsg = isHost || privateMsgMode === 'all';
-    const disabled = isSelf || !canPrivateMsg;
 
     let nameLabel = `旁觀者 - ${p.name}`;
-    if (isSelf) nameLabel += ' (你)';
-    else if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
-    
-    availableChannels.push({
+    if (!canPrivateMsg && !isHost) nameLabel += ' (未開放)';
+
+    (canPrivateMsg ? usableChannels : unusableChannels).push({
       id: p.uid,
       name: nameLabel,
-      disabled: disabled,
-      isSelf: isSelf
+      disabled: !canPrivateMsg,
+      isSelf: false
     });
   });
+
+  availableChannels.push(...usableChannels, ...unusableChannels);
 
   const getChannelId = (target: string) => {
     if (target === 'town_square') return 'town_square';
@@ -169,7 +172,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     availableChannels.forEach(ch => {
       const msgs = messagesByChannel[ch.id] || [];
       const readTime = lastRead[ch.id] || 0;
-      const unreadCount = msgs.filter(m => m.timestamp > readTime && m.senderUid !== userUid && m.senderUid !== 'system').length;
+      const unreadCount = msgs.filter(m => m.timestamp > readTime && m.senderUid !== userUid).length;
       count += unreadCount;
     });
     setTotalUnread(count);
@@ -248,7 +251,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
               <div className="absolute top-full mt-1 left-0 right-0 bg-slate-900 border border-slate-600 rounded-md shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 py-1">
                 {availableChannels.map(ch => {
-                  const unreadCount = (messagesByChannel[ch.id] || []).filter((m: any) => m.timestamp > (lastRead[ch.id] || 0) && m.senderUid !== userUid && m.senderUid !== 'system').length;
+                  const unreadCount = (messagesByChannel[ch.id] || []).filter((m: any) => m.timestamp > (lastRead[ch.id] || 0) && m.senderUid !== userUid).length;
                   return (
                     <button
                       key={ch.id}
@@ -292,6 +295,24 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
         ) : (
           messages.map(msg => {
             const isMe = msg.senderUid === userUid;
+
+            // 系統自動公告（時間變更 / 提名 / 死亡生存）：置中橫幅；時間變更用不同顏色
+            if (msg.senderUid === 'system' && msg.kind) {
+              const kindStyle: Record<string, string> = {
+                time: 'bg-amber-500/15 border-amber-400/60 text-amber-200',
+                nomination: 'bg-sky-500/15 border-sky-400/50 text-sky-200',
+                death: 'bg-rose-600/15 border-rose-500/50 text-rose-200',
+                info: 'bg-white/10 border-white/25 text-white/80',
+              };
+              return (
+                <div key={msg.id} className="flex justify-center my-1">
+                  <div className={`max-w-[90%] text-center text-sm font-bold tracking-wide rounded-lg border px-4 py-2 shadow-md whitespace-pre-wrap ${kindStyle[msg.kind] || kindStyle.info}`}>
+                    {msg.text}
+                  </div>
+                </div>
+              );
+            }
+
             const senderPlayer = players.find(p => p.uid === msg.senderUid);
             let senderDisplayName = msg.senderUid === hostPlayer?.uid ? '說書人' : msg.senderName;
             if (msg.senderUid !== hostPlayer?.uid && senderPlayer && (senderPlayer.seat === null || senderPlayer.seat === undefined)) {
