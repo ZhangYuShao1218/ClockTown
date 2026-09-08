@@ -190,9 +190,9 @@ export const updateDistribution = async (roomId: string, distribution: number[])
   await touchAndUpdate(roomId, { [`rooms/${roomId}/public/distribution`]: distribution });
 };
 
-export const applySetupToRoom = async (roomId: string, setup: any, setupId?: string) => {
+export const applySetupToRoom = async (roomId: string, setup: any, setupId?: string, hostId?: string | null) => {
   const updates: any = {};
-  
+
   updates[`rooms/${roomId}/public/scriptId`] = setup.scriptId;
   updates[`rooms/${roomId}/public/seatCount`] = setup.seatCount;
   updates[`rooms/${roomId}/public/distribution`] = setup.distribution;
@@ -212,7 +212,12 @@ export const applySetupToRoom = async (roomId: string, setup: any, setupId?: str
   
   updates[`rooms/${roomId}/private/bluffs`] = setup.bluffs !== undefined ? setup.bluffs : null;
   updates[`rooms/${roomId}/private/grimoire`] = setup.grimoire !== undefined ? setup.grimoire : null;
-  
+
+  // 說書人在鐘樓真相放的座位提醒標記（完整配置匯入時一併還原）
+  if (setup.grimoireTokens !== undefined && hostId) {
+    updates[`rooms/${roomId}/private/grimoireTokens/${hostId}`] = setup.grimoireTokens || null;
+  }
+
   await touchAndUpdate(roomId, updates);
 };
 
@@ -407,6 +412,8 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
         description: status.isDead
           ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡。`
           : `${seatLabel}. ${name} 於第 ${day} 天${phaseText}被標記為存活。`,
+        // 死亡：復盤時以紅框強調該座位（與行動者同色），標籤寫「死亡」
+        ...(status.isDead ? { actorSeat: seatIndex, highlightedSeats: [seatIndex] } : {}),
       }).catch(console.error);
 
       postTownSquareAnnouncement(
@@ -445,14 +452,20 @@ export const addVoteRecord = async (roomId: string, record: any) => {
   history.push(record);
   await touchAndUpdate(roomId, { [`rooms/${roomId}/public/voteHistory`]: history });
 
-  // 記錄復盤事件
+  // 記錄復盤事件（投票結果：被提名者=行動者/紅框、提名者=目標/藍框）
   import("./replayService").then(({ recordReplayEvent }) => {
+    const nomineeSeat = typeof record.nomineeSeat === 'number' ? record.nomineeSeat : undefined;
+    const nominatorSeat = typeof record.nominatorSeat === 'number' ? record.nominatorSeat : undefined;
+    const highlighted = [nomineeSeat, nominatorSeat].filter((s): s is number => typeof s === 'number');
     recordReplayEvent(roomId, {
       dayNumber: record.dayNumber || 1,
       timePhase: 'day',
       type: 'VOTE_RESULT',
       title: `投票結果：${record.nomineeName} (${record.totalVotes} 票)`,
-      description: `${record.nominatorName} 提名 ${record.nomineeName}\n得票數：${record.totalVotes} 票。`
+      description: `${record.nominatorName} 提名 ${record.nomineeName}\n得票數：${record.totalVotes} 票。`,
+      ...(nomineeSeat !== undefined ? { actorSeat: nomineeSeat } : {}),
+      ...(nominatorSeat !== undefined ? { targetSeats: [nominatorSeat] } : {}),
+      ...(highlighted.length > 0 ? { highlightedSeats: highlighted } : {}),
     }).catch(console.error);
   });
 

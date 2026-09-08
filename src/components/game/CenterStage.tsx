@@ -10,7 +10,6 @@ import { RoleTooltip } from "../common/RoleTooltip";
 import { SeatTokenModal } from './SeatTokenModal';
 import type { SeatToken } from './SeatTokenModal';
 import { AllRoles } from '../../data/roles';
-import { highlightAbility } from '../../lib/highlightAbility';
 import { scriptLogoSrc } from '../../lib/scriptAssets';
 
 interface CenterStageProps {
@@ -135,7 +134,7 @@ export const CenterStage = ({
         phase: 'idle', // Host will see "Start Voting" next
         nomineeSeat: seatIndex
       });
-      // 提名的廣場公告改在投票結束（addVoteRecord）發佈，以便帶入票數
+      // 提名的廣場公告與復盤強調都在投票結束（addVoteRecord）處理，以便帶入票數
     }
   };
 
@@ -305,8 +304,13 @@ export const CenterStage = ({
               const roleId = bluffs[i];
               const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
               return (
-                <div key={i} className="flex flex-col items-center min-w-0 group relative hover:z-[9999]">
-                  <div 
+                <div
+                  key={i}
+                  className="flex flex-col items-center min-w-0 group relative"
+                  onMouseEnter={(e) => { if (canSeeBluffs && role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); } }}
+                  onMouseLeave={() => setHoveredRoleTooltip(null)}
+                >
+                  <div
                     className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${canSeeBluffs && !roleId ? 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400' : 'border-red-900 bg-black hover:border-red-500'}`}
                   >
                     {canSeeBluffs ? (
@@ -319,11 +323,6 @@ export const CenterStage = ({
                       <span className="text-white text-4xl font-black leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform">?</span>
                     )}
                   </div>
-                  {canSeeBluffs && role && (
-                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div>{highlightAbility(role.ability)}</div>
-                    </div>
-                  )}
                   {canSeeBluffs && role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
                 </div>
               );
@@ -470,6 +469,17 @@ export const CenterStage = ({
             const hasGhostVote = seatStatus[seatIndex]?.hasGhostVote || false;
             const pendingExecution = seatStatus[seatIndex]?.pendingExecution || false;
             const isHighlighted = highlightedSeats?.includes(seatIndex);
+            const isReplayActor = replayActorSeat === seatIndex;
+            const isReplayTarget = replayTargetSeats?.includes(seatIndex);
+            // 復盤中有座位被強調時，其餘座位淡化為 60% 透明度
+            const dimForReplay = (highlightedSeats?.length ?? 0) > 0 && !isHighlighted;
+            // 被強調座位的標籤文字：依事件類型而定
+            let highlightLabel: string | null = null;
+            if (isHighlighted && !isSituationReplay && (isReplayActor || isReplayTarget)) {
+              if (replayEventType === 'DEATH_TOGGLE') highlightLabel = '死亡';
+              else if (replayEventType === 'VOTE_RESULT') highlightLabel = isReplayActor ? '被提名者' : '提名者';
+              else highlightLabel = isReplayActor ? '行動者' : '目標';
+            }
             
             // In CenterStage, we show guesses from seatRoleNotes
             const playerInSeat = getPlayerInSeat(seatIndex);
@@ -480,26 +490,27 @@ export const CenterStage = ({
             return (
               <div
                 key={seatIndex}
-                className="absolute group z-10"
+                className={`absolute group transition-opacity duration-300 ${isHighlighted ? 'z-[60]' : 'z-10'} ${dimForReplay ? 'opacity-60' : ''}`}
                 style={style}
                 onMouseEnter={() => setHoverSeat(seatIndex)}
                 onMouseLeave={() => setHoverSeat(null)}
               >
                 {/* Seat Highlighting Badge（局勢紀錄不顯示文字，只留外框閃爍） */}
-                {isHighlighted && !isSituationReplay && (replayActorSeat === seatIndex || replayTargetSeats?.includes(seatIndex)) && (
-                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${replayActorSeat === seatIndex ? 'bg-red-600' : 'bg-sky-600'}`}>
-                    {replayActorSeat === seatIndex ? '行動者' : '目標'}
+                {highlightLabel && (
+                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${isReplayActor ? 'bg-red-600' : 'bg-sky-600'}`}>
+                    {highlightLabel}
                   </div>
+                )}
+
+                {/* 復盤強調外框：呼吸效果只套在這個外框，不影響座位角色本身 */}
+                {isHighlighted && (
+                  <div className={`absolute inset-0 rounded-full ring-4 ring-offset-4 ring-offset-black animate-breathe pointer-events-none z-30 ${isReplayActor ? 'ring-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)]' : 'ring-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.9)]'}`} />
                 )}
 
                 <div
                   onMouseEnter={(e) => { if (guessedRole) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: guessedRole, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                   className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
-                    isHighlighted ? (replayActorSeat === seatIndex
-                      ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 '
-                      : 'ring-4 ring-sky-400 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(56,189,248,0.9)] scale-110 z-30 ') : ''
-                  }${
-                    guessedRole 
+                    guessedRole
                       ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
                       : 'border-amber-600/80 bg-black/80 hover:border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.3)]'
                   }`}
@@ -699,11 +710,12 @@ export const CenterStage = ({
           {seats.map((seatIndex) => {
             const player = getPlayerInSeat(seatIndex);
             const style = getSeatStyle(seatIndex);
-            
+            const dimName = (highlightedSeats?.length ?? 0) > 0 && !highlightedSeats?.includes(seatIndex);
+
             return (
-              <div 
+              <div
                 key={`text-${seatIndex}`}
-                className={`absolute pointer-events-none ${activeDropdownSeat === seatIndex ? 'z-[1000]' : 'z-50'}`}
+                className={`absolute pointer-events-none transition-opacity duration-300 ${activeDropdownSeat === seatIndex ? 'z-[1000]' : 'z-50'} ${dimName ? 'opacity-60' : ''}`}
                 style={style}
               >
                 <div

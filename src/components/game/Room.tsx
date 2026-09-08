@@ -271,10 +271,10 @@ export const Room = () => {
         </div>
       )}
 
-      {/* 復盤事件文字（呈現在座位區中央） */}
+      {/* 復盤事件文字（置中對齊座位區，與 CenterStage/Grimoire 的圓桌容器同一個定位框） */}
       {isReplayActive && (replayMode?.eventTitle || replayMode?.eventDescription) && (() => {
-        // 提名／投票結果：座位號碼（如「07.」「02 號」）用藍色，與玩家名字做區隔
-        const colorizeSeats = replayMode?.eventType === 'VOTE_RESULT' || replayMode?.eventType === 'NOMINATION';
+        // 投票結果：座位號碼（如「07.」「02 號」）用藍色，與玩家名字做區隔
+        const colorizeSeats = replayMode?.eventType === 'VOTE_RESULT';
         const renderText = (text: string) =>
           colorizeSeats
             ? text.split(/(\d{1,2}\s*[.．]|\d{1,2}\s*號)/g).map((part, i) =>
@@ -284,15 +284,17 @@ export const Room = () => {
               )
             : text;
         return (
-        <div className="absolute top-[46%] left-[40%] -translate-x-1/2 -translate-y-1/2 z-40 w-max max-w-[75vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-[15px] py-4 text-center pointer-events-none animate-in fade-in zoom-in-95">
-          <div className="text-xl font-bold text-amber-400 leading-snug whitespace-pre-line">
-            {renderText(replayMode?.eventTitle || '')}
-          </div>
-          {replayMode?.eventDescription && replayMode.eventDescription !== replayMode.eventTitle && (
-            <div className="mt-1.5 text-lg text-white/85 whitespace-pre-line">
-              {renderText(replayMode.eventDescription)}
+        <div className="absolute z-40 left-0 right-0 top-[82px] bottom-[150px] lg:right-[17rem] 2xl:right-[19rem] lg:top-2 lg:bottom-1 flex items-center justify-center pointer-events-none px-4">
+          <div className="w-max max-w-[75vw] bg-black/85 border-2 border-amber-500/50 rounded-2xl shadow-2xl backdrop-blur-md px-[15px] py-4 text-center animate-in fade-in zoom-in-95">
+            <div className="text-xl font-bold text-amber-400 leading-snug whitespace-pre-line">
+              {renderText(replayMode?.eventTitle || '')}
             </div>
-          )}
+            {replayMode?.eventDescription && replayMode.eventDescription !== replayMode.eventTitle && (
+              <div className="mt-1.5 text-lg text-white/85 whitespace-pre-line">
+                {renderText(replayMode.eventDescription)}
+              </div>
+            )}
+          </div>
         </div>
         );
       })()}
@@ -507,6 +509,7 @@ export const Room = () => {
               bluffs={bluffs}
               distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
               grimoireState={gameState.private?.grimoire}
+              fabled={gameState?.public?.fabled || []}
               hostId={gameState?.public?.hostId || null}
               hostGrimoireTokens={gameState?.private?.grimoireTokens?.[gameState?.public?.hostId] || null}
               customScript={gameState?.public?.customScript}

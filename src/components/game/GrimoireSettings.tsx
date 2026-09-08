@@ -15,6 +15,7 @@ interface GrimoireSettingsProps {
   bluffs: (string | null)[];
   distribution: number[];
   grimoireState: any;
+  fabled?: string[];
   hostId?: string | null;
   hostGrimoireTokens?: Record<number, any> | null;
   customScript: any;
@@ -36,6 +37,7 @@ export const GrimoireSettings = ({
   bluffs, 
   distribution,
   grimoireState,
+  fabled = [],
   hostId = null,
   hostGrimoireTokens = null,
   customScript,
@@ -99,7 +101,7 @@ export const GrimoireSettings = ({
   useEffect(() => {
     // Only auto-save if the current script is active AND Firebase has fully synced it
     if (!activeScriptId || activeScriptId !== activeSetupId) return;
-    const nextData = JSON.stringify({ scriptId, seatCount, distribution, bluffs, grimoire: grimoireState, customScript, settings: safeSettings });
+    const nextData = JSON.stringify({ scriptId, seatCount, distribution, bluffs, grimoire: grimoireState, customScript, settings: safeSettings, fabled, grimoireTokens: hostGrimoireTokens || {} });
     setLocalScripts(prev => {
       const target = prev.find(s => s.id === activeScriptId);
       // 內容未變就不要重新設定 state，避免上游傳入不穩定參考造成無限 re-render
@@ -109,7 +111,7 @@ export const GrimoireSettings = ({
       return updated;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scriptId, seatCount, distribution, bluffs, grimoireState, customScript, settings, activeScriptId, activeSetupId]);
+  }, [scriptId, seatCount, distribution, bluffs, grimoireState, customScript, settings, fabled, hostGrimoireTokens, activeScriptId, activeSetupId]);
 
   const handleAddScript = () => {
     const name = newScriptName.trim();
@@ -132,7 +134,9 @@ export const GrimoireSettings = ({
         bluffs: [null,null,null],
         grimoire: {},
         customScript: null,
-        settings: { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false }
+        settings: { evilKnowsEachOther: true, evilCanMsg: false, allCanMsg: false, adjacentCanMsg: false },
+        fabled: [],
+        grimoireTokens: {}
       }
     };
     setLocalScripts(prev => {
@@ -154,7 +158,7 @@ export const GrimoireSettings = ({
   const handleSelectScript = async (s: any) => {
     setActiveScriptId(s.id);
     setIsViewingList(false);
-    await applySetupToRoom(roomId, s.data, s.id);
+    await applySetupToRoom(roomId, s.data, s.id, hostId || undefined);
   };
 
   const getDistribution = (count: number) => {
@@ -204,32 +208,99 @@ export const GrimoireSettings = ({
     await updateRoomSettings(roomId, { ...safeSettings, privateMsgMode: mode });
   };
 
+  // 匯出「完整遊戲配置」：劇本、座位角色與說書人標記（鐘樓真相）、偽裝、傳奇、陣營配置、遊戲設定。
+  // 目的與「劇本列表」的角色定義匯入不同 —— 換一台電腦匯入即可直接開局。
   const handleExportScript = () => {
-    if (!script) return;
-    const blob = new Blob([JSON.stringify(script, null, 2)], { type: "application/json" });
+    const scriptName = scriptId === 'custom'
+      ? (customScript?.name || '自訂劇本')
+      : (AllScripts[scriptId]?.name || scriptId || 'setup');
+    const setup = {
+      __type: 'botc_full_setup',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      scriptId,
+      scriptName,
+      customScript: scriptId === 'custom' ? (customScript ?? null) : null,
+      seatCount,
+      distribution,
+      settings: safeSettings,
+      bluffs: bluffs ?? [null, null, null],
+      fabled: fabled ?? [],
+      grimoire: grimoireState ?? {},
+      grimoireTokens: hostGrimoireTokens ?? {},
+    };
+    const blob = new Blob([JSON.stringify(setup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${script.id || 'custom'}_characters.json`;
+    const safeName = String(scriptName).replace(/[^\w一-龥-]+/g, '_').slice(0, 40) || 'setup';
+    a.download = `botc_setup_${safeName}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleImportScript = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
         const json = JSON.parse(evt.target?.result as string);
-        if (json.id && json.roles) {
+
+        // 完整遊戲配置（本面板匯出的格式；缺欄位時以預設值補齊，仍可正常運作）
+        const looksLikeSetup = json && !Array.isArray(json.roles) && (
+          json.__type === 'botc_full_setup' ||
+          json.grimoire !== undefined ||
+          json.distribution !== undefined ||
+          json.bluffs !== undefined
+        );
+
+        if (looksLikeSetup) {
+          const importedSeatCount = Number(json.seatCount) > 0 ? Number(json.seatCount) : (seatCount || 12);
+          const setup = {
+            scriptId: json.scriptId || 'trouble_brewing',
+            seatCount: importedSeatCount,
+            distribution: Array.isArray(json.distribution) ? json.distribution : getDistribution(importedSeatCount),
+            customScript: json.customScript ?? null,
+            settings: json.settings || safeSettings,
+            bluffs: Array.isArray(json.bluffs) ? json.bluffs : [null, null, null],
+            fabled: Array.isArray(json.fabled) ? json.fabled : [],
+            grimoire: json.grimoire && typeof json.grimoire === 'object' ? json.grimoire : {},
+            grimoireTokens: json.grimoireTokens && typeof json.grimoireTokens === 'object' ? json.grimoireTokens : {},
+          };
+
+          const newEntry = {
+            id: Date.now().toString(),
+            name: json.scriptName ? `${json.scriptName}（匯入）` : `匯入配置 ${new Date().toLocaleString()}`,
+            data: { ...setup, grimoire: setup.grimoire, customScript: setup.customScript },
+          };
+          setLocalScripts(prev => {
+            const updated = [...prev, newEntry];
+            localStorage.setItem('botc_local_scripts', JSON.stringify(updated));
+            return updated;
+          });
+          setActiveScriptId(newEntry.id);
+          setIsViewingList(false);
+          await applySetupToRoom(roomId, setup, newEntry.id, hostId || undefined);
+          setMissingSeatAlert(
+            `已匯入完整遊戲配置${json.scriptName ? `「${json.scriptName}」` : ''}：座位角色、說書人標記、偽裝、傳奇、陣營與遊戲設定皆已套用，可直接開局。`,
+          );
+          input.value = "";
+          return;
+        }
+
+        // 舊行為：自訂角色定義劇本檔（含 id 與 roles）
+        if (json.id && Array.isArray(json.roles)) {
           await setCustomScript(roomId, json);
           handleScriptTypeChange("custom");
-        } else alert("無效的劇本檔案格式");
+        } else {
+          alert("無效的檔案格式：既非完整遊戲配置，也非自訂角色劇本。");
+        }
       } catch (err) { alert("JSON 解析失敗"); }
+      input.value = "";
     };
     reader.readAsText(file);
-    e.target.value = ""; 
   };
 
   if (isViewingList || !activeScriptId) {
@@ -391,11 +462,11 @@ export const GrimoireSettings = ({
 
         <div className="flex space-x-3 pb-4 border-b border-slate-700">
           <label className={`flex-1 text-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg cursor-pointer transition-colors shadow-md ${locked ? 'opacity-40 pointer-events-none' : ''}`}>
-            匯入劇本
+            匯入配置
             <input type="file" accept=".json" onChange={handleImportScript} disabled={locked} className="hidden" />
           </label>
           <button onClick={handleExportScript} className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold text-base py-2 rounded-lg transition-colors shadow-md">
-            匯出劇本
+            匯出配置
           </button>
         </div>
 

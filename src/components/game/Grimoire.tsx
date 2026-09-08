@@ -5,7 +5,6 @@ import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleTooltip } from '../common/RoleTooltip';
 import { AllRoles } from "../../data/roles";
-import { highlightAbility } from "../../lib/highlightAbility";
 import { scriptLogoSrc } from "../../lib/scriptAssets";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { SeatTokenModal } from './SeatTokenModal';
@@ -209,8 +208,10 @@ export const Grimoire = ({
               return (
                 <div
                   key={i}
-                  className="flex flex-col items-center cursor-pointer group min-w-0 relative hover:z-[9999]"
+                  className="flex flex-col items-center cursor-pointer group min-w-0 relative"
                   onClick={() => openModal("bluff", i)}
+                  onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); } }}
+                  onMouseLeave={() => setHoveredRoleTooltip(null)}
                 >
                   <div className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${roleId ? 'border-red-900 bg-black hover:border-red-500' : 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400'}`}>
                     {role ? (
@@ -219,11 +220,6 @@ export const Grimoire = ({
                       <span className="text-red-500/60 text-lg font-bold group-hover:text-red-400">空</span>
                     )}
                   </div>
-                  {role && (
-                    <div className="absolute top-[110%] right-0 w-64 bg-slate-800/95 border-2 border-slate-500 text-white text-sm leading-relaxed p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] pointer-events-none text-left cursor-default">
-                      <div>{highlightAbility(role.ability)}</div>
-                    </div>
-                  )}
                   {role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
                 </div>
               );
@@ -351,29 +347,40 @@ export const Grimoire = ({
             const isEvil = role?.type === "demon" || role?.type === "minion";
 
             const isHighlighted = highlightedSeats?.includes(seatIndex);
+            const isReplayActor = replayActorSeat === seatIndex;
+            const isReplayTarget = replayTargetSeats?.includes(seatIndex);
+            // 復盤中有座位被強調時，其餘座位淡化為 60% 透明度
+            const dimForReplay = (highlightedSeats?.length ?? 0) > 0 && !isHighlighted;
+            let highlightLabel: string | null = null;
+            if (isHighlighted && !isSituationReplay && (isReplayActor || isReplayTarget)) {
+              if (replayEventType === 'DEATH_TOGGLE') highlightLabel = '死亡';
+              else if (replayEventType === 'VOTE_RESULT') highlightLabel = isReplayActor ? '被提名者' : '提名者';
+              else highlightLabel = isReplayActor ? '行動者' : '目標';
+            }
             return (
               <div
                 key={seatIndex}
-                className="absolute pointer-events-auto cursor-pointer group z-10"
+                className={`absolute pointer-events-auto cursor-pointer group transition-opacity duration-300 ${isHighlighted ? 'z-[60]' : 'z-10'} ${dimForReplay ? 'opacity-60' : ''}`}
                 style={style}
                 onClick={() => openModal("seat", seatIndex)}
                 onMouseEnter={() => setHoverSeat(seatIndex)}
                 onMouseLeave={() => setHoverSeat(null)}
               >
                 {/* Seat Highlighting Badge（局勢紀錄不顯示文字，只留外框閃爍） */}
-                {isHighlighted && !isSituationReplay && (replayActorSeat === seatIndex || replayTargetSeats?.includes(seatIndex)) && (
-                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${replayActorSeat === seatIndex ? 'bg-red-600' : 'bg-sky-600'}`}>
-                    {replayActorSeat === seatIndex ? '行動者' : '目標'}
+                {highlightLabel && (
+                  <div className={`absolute -top-7 left-1/2 -translate-x-1/2 text-white text-[15px] font-bold px-2.5 py-0.5 rounded-full shadow-lg border border-white/40 whitespace-nowrap animate-bounce z-40 ${isReplayActor ? 'bg-red-600' : 'bg-sky-600'}`}>
+                    {highlightLabel}
                   </div>
+                )}
+
+                {/* 復盤強調外框：呼吸效果只套在這個外框，不影響座位角色本身 */}
+                {isHighlighted && (
+                  <div className={`absolute inset-0 rounded-full ring-4 ring-offset-4 ring-offset-black animate-breathe pointer-events-none z-30 ${isReplayActor ? 'ring-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)]' : 'ring-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.9)]'}`} />
                 )}
 
                 <div onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role: role, x: rect.left + rect.width / 2, y: rect.bottom }); } }} onMouseLeave={() => setHoveredRoleTooltip(null)}
                     className={`relative w-full h-full rounded-full border-4 flex items-center justify-center shadow-lg transition-transform overflow-hidden cursor-pointer pointer-events-auto ${
-                      isHighlighted ? (replayActorSeat === seatIndex
-                        ? 'ring-4 ring-red-500 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(239,68,68,0.9)] scale-110 z-30 '
-                        : 'ring-4 ring-sky-400 ring-offset-4 ring-offset-black animate-breathe shadow-[0_0_25px_rgba(56,189,248,0.9)] scale-110 z-30 ') : ''
-                    }${
-                      role 
+                      role
                         ? (isEvil ? 'border-red-900/80 bg-black/90' : 'border-blue-900/80 bg-black/90')
                         : 'border-amber-600/80 bg-black/80 hover:border-amber-400 shadow-[0_0_12px_rgba(217,119,6,0.3)]'
                     }`}>
