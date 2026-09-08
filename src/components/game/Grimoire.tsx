@@ -133,7 +133,8 @@ export const Grimoire = ({
   const seatPx = computeSeatPx(seatCount);
   // 筆記圈圈基準：座位大小夾在「9 人排版」與「15 人排版」之間，避免少人時太大、多人時太小
   const tokenBaseSeatPx = Math.min(computeSeatPx(9), Math.max(computeSeatPx(15), seatPx));
-  const badgePx = Math.max(18, seatPx * 0.32);
+  // 夜晚順序標示：以 10 人的座位大小為上限，9 人以下不再放大
+  const badgePx = Math.max(18, Math.min(seatPx, computeSeatPx(10)) * 0.32);
 
   const getSeatStyle = (index: number) => {
     const angleDeg = ((index - 1) / seatCount) * 360 - 90;
