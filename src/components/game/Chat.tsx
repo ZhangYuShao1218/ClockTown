@@ -172,7 +172,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
     availableChannels.forEach(ch => {
       const msgs = messagesByChannel[ch.id] || [];
       const readTime = lastRead[ch.id] || 0;
-      const unreadCount = msgs.filter(m => m.timestamp > readTime && m.senderUid !== userUid).length;
+      const unreadCount = msgs.filter(m => m.timestamp > readTime && m.senderUid !== userUid && !(isHost && m.senderUid === 'system' && !m.kind)).length;
       count += unreadCount;
     });
     setTotalUnread(count);
@@ -251,7 +251,7 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
               <div className="absolute top-full mt-1 left-0 right-0 bg-slate-900 border border-slate-600 rounded-md shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 py-1">
                 {availableChannels.map(ch => {
-                  const unreadCount = (messagesByChannel[ch.id] || []).filter((m: any) => m.timestamp > (lastRead[ch.id] || 0) && m.senderUid !== userUid).length;
+                  const unreadCount = (messagesByChannel[ch.id] || []).filter((m: any) => m.timestamp > (lastRead[ch.id] || 0) && m.senderUid !== userUid && !(isHost && m.senderUid === 'system' && !m.kind)).length;
                   return (
                     <button
                       key={ch.id}
@@ -296,18 +296,31 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
           messages.map(msg => {
             const isMe = msg.senderUid === userUid;
 
-            // 系統自動公告（時間變更 / 提名 / 死亡生存）：置中橫幅；時間變更用不同顏色
+            // 系統自動公告（時間變更 / 提名 / 死亡生存）：置中橫幅
             if (msg.senderUid === 'system' && msg.kind) {
+              // 底板顏色維持不變
               const kindStyle: Record<string, string> = {
                 time: 'bg-amber-500/15 border-amber-400/60 text-amber-200',
                 nomination: 'bg-sky-500/15 border-sky-400/50 text-sky-200',
                 death: 'bg-rose-600/15 border-rose-500/50 text-rose-200',
                 info: 'bg-white/10 border-white/25 text-white/80',
               };
+              const NAME_CLS = 'text-emerald-300 font-extrabold';
+              const phaseTxt = (p: string) => (p === 'night' ? '黑夜' : '白天');
+              const phaseCls = (p: string) => (p === 'night' ? 'text-indigo-300 font-extrabold' : 'text-orange-300 font-extrabold');
+
+              let body: React.ReactNode = msg.text;
+              if (msg.kind === 'time' && msg.day) {
+                body = <>時間推進至，第 {msg.day} 天，<span className={phaseCls(msg.phase)}>{phaseTxt(msg.phase)}</span></>;
+              } else if (msg.kind === 'nomination' && msg.nominator) {
+                body = <><span className={NAME_CLS}>{msg.nominator}</span> 提名 <span className={NAME_CLS}>{msg.nominee}</span>，{msg.count ?? 0} 票</>;
+              } else if (msg.kind === 'death' && msg.name) {
+                body = <><span className={NAME_CLS}>{msg.name}</span> 於第 {msg.day} 天<span className={phaseCls(msg.phase)}>{phaseTxt(msg.phase)}</span>{msg.dead ? '死亡' : '被標記為存活'}</>;
+              }
               return (
                 <div key={msg.id} className="flex justify-center my-1">
                   <div className={`max-w-[90%] text-center text-sm font-bold tracking-wide rounded-lg border px-4 py-2 shadow-md whitespace-pre-wrap ${kindStyle[msg.kind] || kindStyle.info}`}>
-                    {msg.text}
+                    {body}
                   </div>
                 </div>
               );

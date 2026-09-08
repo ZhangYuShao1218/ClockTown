@@ -135,17 +135,7 @@ export const CenterStage = ({
         phase: 'idle', // Host will see "Start Voting" next
         nomineeSeat: seatIndex
       });
-
-      const nominatorSeat = votingState?.nominatorSeat;
-      const nominatorName = typeof nominatorSeat === 'number' ? getPlayerInSeat(nominatorSeat)?.name : undefined;
-      const nomineeName = getPlayerInSeat(seatIndex)?.name;
-      import('../../services/roomService').then(({ postTownSquareAnnouncement }) => {
-        postTownSquareAnnouncement(
-          roomId,
-          `${nominatorSeat}. ${nominatorName || '未知'} 提名 ${seatIndex}. ${nomineeName || '未知'}`,
-          'nomination',
-        ).catch(console.error);
-      });
+      // 提名的廣場公告改在投票結束（addVoteRecord）發佈，以便帶入票數
     }
   };
 

@@ -26,6 +26,7 @@ export const postTownSquareAnnouncement = async (
   roomId: string,
   text: string,
   kind: AnnouncementKind = 'info',
+  extra: Record<string, any> = {},
 ) => {
   const key = `${Date.now()}_sys`;
   await update(nref(), {
@@ -34,6 +35,7 @@ export const postTownSquareAnnouncement = async (
       senderName: '廣場公告',
       text,
       kind,
+      ...extra,
       timestamp: Date.now(),
     },
   });
@@ -411,8 +413,14 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
         roomId,
         status.isDead
           ? `${seatLabel}. ${name} 於第 ${day} 天${phaseText}死亡`
-          : `${seatLabel}. ${name} 被標記為存活`,
+          : `${seatLabel}. ${name} 於第 ${day} 天${phaseText}被標記為存活`,
         'death',
+        {
+          name: `${seatLabel}. ${name}`,
+          day,
+          phase: isNight ? 'night' : 'day',
+          dead: !!status.isDead,
+        },
       ).catch(console.error);
     });
   }
@@ -447,6 +455,17 @@ export const addVoteRecord = async (roomId: string, record: any) => {
       description: `${record.nominatorName} 提名 ${record.nomineeName}\n得票數：${record.totalVotes} 票。`
     }).catch(console.error);
   });
+
+  postTownSquareAnnouncement(
+    roomId,
+    `${record.nominatorName} 提名 ${record.nomineeName}，${record.totalVotes} 票`,
+    'nomination',
+    {
+      nominator: record.nominatorName,
+      nominee: record.nomineeName,
+      count: record.totalVotes,
+    },
+  ).catch(console.error);
 };
 
 export const updateGameTime = async (roomId: string, dayNumber: number, timePhase: 'day' | 'night') => {
@@ -469,7 +488,8 @@ export const updateGameTime = async (roomId: string, dayNumber: number, timePhas
 
   postTownSquareAnnouncement(
     roomId,
-    `時間推進至第 ${dayNumber} 天 · ${timePhase === 'night' ? '黑夜' : '白天'}`,
+    `時間推進至，第 ${dayNumber} 天，${timePhase === 'night' ? '黑夜' : '白天'}`,
     'time',
+    { day: dayNumber, phase: timePhase },
   ).catch(console.error);
 };
