@@ -308,14 +308,20 @@ export const Chat = ({ roomId, userUid, userName, isHost, players, hostPlayer, i
               const NAME_CLS = 'text-emerald-300 font-extrabold';
               const phaseTxt = (p: string) => (p === 'night' ? '黑夜' : '白天');
               const phaseCls = (p: string) => (p === 'night' ? 'text-indigo-300 font-extrabold' : 'text-orange-300 font-extrabold');
+              // 只替「名字」換色，前面的「NN. 」座位編號維持原本顏色
+              const renderSeatName = (label: string) => {
+                const m = /^(\s*\d+\s*[.．]\s*)([\s\S]*)$/.exec(label);
+                if (!m) return <span className={NAME_CLS}>{label}</span>;
+                return <>{m[1]}<span className={NAME_CLS}>{m[2]}</span></>;
+              };
 
               let body: React.ReactNode = msg.text;
               if (msg.kind === 'time' && msg.day) {
                 body = <>時間推進至，第 {msg.day} 天，<span className={phaseCls(msg.phase)}>{phaseTxt(msg.phase)}</span></>;
               } else if (msg.kind === 'nomination' && msg.nominator) {
-                body = <><span className={NAME_CLS}>{msg.nominator}</span> 提名 <span className={NAME_CLS}>{msg.nominee}</span>，{msg.count ?? 0} 票</>;
+                body = <>{renderSeatName(msg.nominator)} 提名 {renderSeatName(msg.nominee)}，{msg.count ?? 0} 票</>;
               } else if (msg.kind === 'death' && msg.name) {
-                body = <><span className={NAME_CLS}>{msg.name}</span> 於第 {msg.day} 天<span className={phaseCls(msg.phase)}>{phaseTxt(msg.phase)}</span>{msg.dead ? '死亡' : '被標記為存活'}</>;
+                body = <>{renderSeatName(msg.name)} 於第 {msg.day} 天<span className={phaseCls(msg.phase)}>{phaseTxt(msg.phase)}</span>{msg.dead ? '死亡' : '被標記為存活'}</>;
               }
               return (
                 <div key={msg.id} className="flex justify-center my-1">
