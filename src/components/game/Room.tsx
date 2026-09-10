@@ -403,7 +403,8 @@ export const Room = () => {
             onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
             fabled={gameState?.public?.fabled || []}
             hostPlayer={hostPlayer}
-            privateNotes={isReplayActive ? (replaySnapshot?.seatRoles || {}) : (user ? gameState?.private?.notes?.[user.uid] : undefined)}
+            privateNotes={isReplayActive ? (replaySnapshot?.seatRoles || {}) : (isHost && user ? gameState?.private?.notes?.[user.uid] : undefined)}
+            isReplayActive={isReplayActive}
             seatTokens={isReplayActive ? (replaySnapshot?.seatTokens || {}) : (user ? gameState?.private?.seatTokens?.[user.uid] : undefined)}
             isHost={isHost}
             seatStatus={isReplayActive ? (replaySnapshot?.seatStatus || {}) : (gameState?.public?.seatStatus || {})}

@@ -4,7 +4,8 @@ import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
-import { updateSeatStatus, updateVotingState } from "../../services/roomService";
+import { updateSeatStatus, updateVotingState, removePlayerFromRoom } from "../../services/roomService";
+import { AlertDialog } from "../common/AlertDialog";
 import { VotingOverlay } from "./VotingOverlay";
 import { RoleTooltip } from "../common/RoleTooltip";
 import { SeatTokenModal } from './SeatTokenModal';
@@ -29,6 +30,7 @@ interface CenterStageProps {
   hostPlayer?: any;
   privateNotes?: Record<number, string>;
   isHost?: boolean;
+  isReplayActive?: boolean;
   seatStatus?: Record<number, import('../../data/types').SeatStatus>;
   votingState?: import('../../data/types').VotingState;
   dayNumber?: number;
@@ -54,8 +56,9 @@ export const CenterStage = ({
   roomId,
   fabled = [],
   hostPlayer,
-  privateNotes = {},
+  privateNotes,
   isHost = false,
+  isReplayActive = false,
   seatStatus = {},
   votingState,
   dayNumber = 1,
@@ -71,6 +74,8 @@ export const CenterStage = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [targetSeat, setTargetSeat] = useState<number | null>(null);
   const [seatRoleNotes, setSeatRoleNotes] = useState<Record<number, string>>({});
+
+  const [removeTarget, setRemoveTarget] = useState<{ seat: number; uid: string; name: string } | null>(null);
 
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
@@ -104,9 +109,11 @@ export const CenterStage = ({
 
   const toggleDead = (seatIndex: number) => {
     const isCurrentlyDead = seatStatus[seatIndex]?.isDead || false;
-    updateSeatStatus(roomId, seatIndex, { 
-      isDead: !isCurrentlyDead, 
-      hasGhostVote: !isCurrentlyDead // Automatically give ghost vote when they die, remove when resurrected
+    updateSeatStatus(roomId, seatIndex, {
+      isDead: !isCurrentlyDead,
+      hasGhostVote: !isCurrentlyDead, // Automatically give ghost vote when they die, remove when resurrected
+      // 標記死亡時一併清掉該座位的「待處決」標記（若有）
+      ...(!isCurrentlyDead ? { pendingExecution: false } : {}),
     });
     setActiveDropdownSeat(null);
   };
@@ -156,17 +163,22 @@ export const CenterStage = ({
   }, [roomId, userUid]);
 
   useEffect(() => {
-    if (privateNotes !== undefined) {
-      setSeatRoleNotes(prev => {
-        const next = privateNotes || {};
-        if (JSON.stringify(prev) === JSON.stringify(next)) {
-          return prev;
-        }
-        return next;
-      });
-      if (roomId && userUid) saveSeatRoleNotes(roomId, userUid, privateNotes || {});
+    // privateNotes 只在「說書人的舞台筆記」或「復盤快照角色」時才會傳入；
+    // 一般玩家的座位筆記純本地（localStorage），不進 Firebase。
+    if (privateNotes === undefined) {
+      // 復盤結束等情況：回到本地筆記
+      if (roomId && userUid) setSeatRoleNotes(loadSeatRoleNotes(roomId, userUid));
+      return;
     }
-  }, [privateNotes, roomId, userUid]);
+    setSeatRoleNotes(prev => {
+      const next = privateNotes || {};
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+    });
+    // 只有說書人自己的舞台筆記需要回寫本地備份；復盤快照不污染玩家本地筆記
+    if (roomId && userUid && isHost && !isReplayActive) {
+      saveSeatRoleNotes(roomId, userUid, privateNotes || {});
+    }
+  }, [privateNotes, roomId, userUid, isHost, isReplayActive]);
 
 
 
@@ -182,9 +194,13 @@ export const CenterStage = ({
     setSeatRoleNotes(newNotes);
     if (userUid) {
       saveSeatRoleNotes(roomId, userUid, newNotes);
-      const { update } = await import("firebase/database");
-      const { nref } = await import("../../services/firebase");
-      await update(nref(), { [`rooms/${roomId}/private/notes/${userUid}/${targetSeat}`]: roleId || null });
+      // 只有說書人的舞台筆記寫入 Firebase（供旋轉角色 / 完整配置匯出入使用）；
+      // 一般玩家的座位筆記只留在本地端。
+      if (isHost) {
+        const { update } = await import("firebase/database");
+        const { nref } = await import("../../services/firebase");
+        await update(nref(), { [`rooms/${roomId}/private/notes/${userUid}/${targetSeat}`]: roleId || null });
+      }
     }
     setModalOpen(false);
   };
@@ -484,7 +500,7 @@ export const CenterStage = ({
             
             // In CenterStage, we show guesses from seatRoleNotes
             const playerInSeat = getPlayerInSeat(seatIndex);
-            const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
+            const guessedRoleId = seatRoleNotes[seatIndex] || ((isHost || playerInSeat?.uid === userUid) && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
             const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
             const isEvil = guessedRole?.type === "demon" || guessedRole?.type === "minion";
 
@@ -663,7 +679,7 @@ export const CenterStage = ({
               const otherWeights = new Set<number>();
               seats.forEach(i => {
                 const p = getPlayerInSeat(i);
-                const rId = seatRoleNotes[i] || (isHost && p?.roleId ? p.roleId : null) || null;
+                const rId = seatRoleNotes[i] || ((isHost || p?.uid === userUid) && p?.roleId ? p.roleId : null) || null;
                 if (rId) {
                   const r = Object.values(AllRoles).find(x => x.id === rId);
                   if (r && r.firstNight && r.firstNight > 0) firstWeights.add(r.firstNight);
@@ -675,7 +691,7 @@ export const CenterStage = ({
 
               return seats.map((seatIndex) => {
                 const playerInSeat = getPlayerInSeat(seatIndex);
-                const guessedRoleId = seatRoleNotes[seatIndex] || (isHost && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
+                const guessedRoleId = seatRoleNotes[seatIndex] || ((isHost || playerInSeat?.uid === userUid) && playerInSeat?.roleId ? playerInSeat.roleId : null) || null;
                 const guessedRole = guessedRoleId ? Object.values(AllRoles).find(r => r.id === guessedRoleId) : null;
                 if (!guessedRole) return null;
 
@@ -761,12 +777,20 @@ export const CenterStage = ({
                               {seatStatus[seatIndex]?.hasGhostVote ? '移除遺言票' : '給予遺言票'}
                             </button>
                           )}
-                          <button 
+                          <button
                             onClick={(e) => { e.stopPropagation(); initiateNominationAction(seatIndex); }}
                             className="w-full px-4 py-2 text-blue-400 hover:bg-slate-800 text-sm font-bold text-center transition-colors border-none"
                           >
                             發起提名
                           </button>
+                          {player && player.uid !== userUid && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setRemoveTarget({ seat: seatIndex, uid: player.uid, name: player.name }); setActiveDropdownSeat(null); }}
+                              className="w-full px-4 py-2 text-red-500 hover:bg-red-900/40 text-sm font-bold text-center transition-colors border-t border-white/10"
+                            >
+                              移除玩家
+                            </button>
+                          )}
                         </>
                       ) : (
                         player && player.uid === userUid ? (
@@ -824,6 +848,13 @@ export const CenterStage = ({
         isOpen={tokenModalOpen}
         onClose={() => setTokenModalOpen(false)}
         onSave={handleSaveSeatToken}
+      />
+      <AlertDialog
+        isOpen={removeTarget !== null}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => { if (removeTarget) removePlayerFromRoom(roomId, removeTarget.uid); }}
+        message={removeTarget ? `確定要將「${removeTarget.seat}. ${removeTarget.name}」移出房間嗎？此動作無法復原。` : ''}
+        confirmText="移除玩家"
       />
     </div>
   );
