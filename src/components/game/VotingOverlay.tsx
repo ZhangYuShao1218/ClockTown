@@ -65,7 +65,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
     }
   }
 
-  // End voting if finished
+  // End voting if finished（指針掃完 → 進入 finished，等待說書人「關閉」或「標記為待處決」）
   useEffect(() => {
     if (isHost && phase === 'voting' && isVotingFinished) {
       import('../../services/roomService').then(({ updateVotingState }) => {
@@ -83,8 +83,21 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   };
 
   const saveVoteRecord = () => {
-    import('../../services/roomService').then(({ addVoteRecord }) => {
+    import('../../services/roomService').then(({ addVoteRecord, updateSeatStatus }) => {
       const totalVotes = Object.values(votes || {}).filter(Boolean).length;
+
+      // 投票正式記錄的當下，才收走「有投處決票」的死亡玩家遺言票。
+      // 說書人事後仍可在座位選單手動恢復。
+      Object.entries(votes || {}).forEach(([uid, v]) => {
+        if (!v) return;
+        const seat = seats.find(s => getPlayerInSeat(s)?.uid === uid);
+        if (seat === undefined) return;
+        const st = seatStatus[seat];
+        if (st?.isDead && st?.hasGhostVote) {
+          updateSeatStatus(roomId, seat, { hasGhostVote: false });
+        }
+      });
+
       const timeStr = `第 ${dayNumber} 天`;
       const seatLabel = (seat: number | null | undefined) => {
         if (seat === null || seat === undefined) return '未知';
@@ -139,7 +152,10 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   };
 
   const userSeat = seats.find(s => getPlayerInSeat(s)?.uid === userUid);
-  
+  const myStatus = userSeat !== undefined ? seatStatus[userSeat] : undefined;
+  // 死亡且無遺言票 → 不能投「處決」
+  const noGhostVote = !!myStatus?.isDead && !myStatus?.hasGhostVote;
+
   // Calculate if player's vote is locked
   let isLocked = false;
   if (phase === 'finished') isLocked = true;
@@ -159,6 +175,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 
   const castVote = (voteToExecute: boolean) => {
     if (!userUid || isLocked) return;
+    if (voteToExecute && noGhostVote) return;
     updatePlayerVote(roomId, userUid, voteToExecute);
   };
 
@@ -285,11 +302,12 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 
             {(phase === 'voting' || phase === 'idle') && !isHost && userSeat !== undefined && typeof nomineeSeat === 'number' && (
               <div className="flex gap-4 mt-2 pointer-events-auto">
-                <button 
+                <button
                   onClick={() => castVote(true)}
-                  disabled={isLocked || votes?.[userUid!] === true}
+                  disabled={isLocked || noGhostVote || votes?.[userUid!] === true}
+                  title={noGhostVote ? '你已沒有遺言票，無法投處決' : undefined}
                   className={`w-28 py-2.5 rounded-sm font-sans font-bold text-lg tracking-[0.15em] transition-all duration-300 flex items-center justify-center border-2 ring-1 ring-black ${
-                    isLocked 
+                    isLocked || noGhostVote
                       ? 'bg-stone-950 text-stone-700 border-stone-800 cursor-not-allowed shadow-none'
                       : votes?.[userUid!] === true
                         ? 'bg-gradient-to-b from-red-900 to-black text-red-200 border-red-700 shadow-[0_0_20px_rgba(185,28,28,0.5)] cursor-default'
