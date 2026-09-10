@@ -112,12 +112,13 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
     return roomId;
   }
 
-  // 若為新玩家，但遊戲已經開始，則拒絕加入
-  if (roomData.public.status !== "lobby") {
-    throw new Error("遊戲已經開始，無法加入。");
+  // 遊戲已結束才拒絕加入；遊戲進行中仍允許進場——
+  // 可能是被說書人移除（驅逐斷線者）後重新連線的玩家。以無座位狀態進場。
+  if (roomData.public.status === "finished") {
+    throw new Error("遊戲已經結束，無法加入。");
   }
 
-  
+
   const updates: Record<string, any> = {};
   updates[`rooms/${roomId}/players/${userId}`] = {
     name: userName,
@@ -158,8 +159,39 @@ export const leaveRoom = async (roomId: string, userId: string) => {
   }
 };
 
+/**
+ * 說書人強制將指定玩家移出房間：清掉玩家節點、其私有 role 節點與本輪投票。
+ * - seatStatus / grimoire 以「座位號」索引，移除後座位自然空出、座位角色標記保留。
+ * - 座位筆記（private/notes/*、seatTokens/*）屬玩家個人資料、也存在其瀏覽器 localStorage，
+ *   不特別清除；他人入座同座位時讀的是自己的 uid，不會看到殘留。
+ */
+export const removePlayerFromRoom = async (roomId: string, targetUid: string) => {
+  await touchAndUpdate(roomId, {
+    [`rooms/${roomId}/players/${targetUid}`]: null,
+    [`rooms/${roomId}/private/${targetUid}`]: null,
+    [`rooms/${roomId}/public/votingState/votes/${targetUid}`]: null,
+  });
+};
+
 export const setPlayerSeat = async (roomId: string, userId: string, seatIndex: number | null) => {
-  await touchAndUpdate(roomId, { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex });
+  const updates: Record<string, any> = { [`rooms/${roomId}/players/${userId}/seat`]: seatIndex };
+
+  if (seatIndex !== null) {
+    // 角色綁在座位上：入座後若該座位已有鐘樓真相角色、且角色已分配，
+    // 自動把該角色指派給入座玩家（不論是不是原本那個人），並補上自己座位的筆記標示。
+    // 其餘筆記維持清空（移除玩家時已清、新玩家本來就沒有）。
+    const [grimSnap, distSnap] = await Promise.all([
+      get(nref(`rooms/${roomId}/private/grimoire/${seatIndex}`)),
+      get(nref(`rooms/${roomId}/public/rolesDistributed`)),
+    ]);
+    const seatRoleId = grimSnap.val()?.roleId || null;
+    if (seatRoleId && distSnap.val()) {
+      // 只寫 players/{uid}/roleId（遊戲狀態）；座位標示由前端以此值顯示，不寫玩家筆記。
+      updates[`rooms/${roomId}/players/${userId}/roleId`] = seatRoleId;
+    }
+  }
+
+  await touchAndUpdate(roomId, updates);
 };
 
 export const updateRoomScript = async (roomId: string, scriptId: string) => {
@@ -329,9 +361,7 @@ export const distributeRoles = async (roomId: string, players: Record<string, an
             timestamp: Date.now()
           };
         }
-        
-        // Auto-populate the player's own seat note with their role
-        updates[`rooms/${roomId}/private/notes/${uid}/${seat}`] = roleId;
+        // 玩家自己座位的角色由前端依 players/{uid}/roleId 顯示，不再寫入 Firebase 玩家筆記。
       }
     } else {
       updates[`rooms/${roomId}/players/${uid}/roleId`] = null;
@@ -452,22 +482,8 @@ export const addVoteRecord = async (roomId: string, record: any) => {
   history.push(record);
   await touchAndUpdate(roomId, { [`rooms/${roomId}/public/voteHistory`]: history });
 
-  // 記錄復盤事件（投票結果：被提名者=行動者/紅框、提名者=目標/藍框）
-  import("./replayService").then(({ recordReplayEvent }) => {
-    const nomineeSeat = typeof record.nomineeSeat === 'number' ? record.nomineeSeat : undefined;
-    const nominatorSeat = typeof record.nominatorSeat === 'number' ? record.nominatorSeat : undefined;
-    const highlighted = [nomineeSeat, nominatorSeat].filter((s): s is number => typeof s === 'number');
-    recordReplayEvent(roomId, {
-      dayNumber: record.dayNumber || 1,
-      timePhase: 'day',
-      type: 'VOTE_RESULT',
-      title: `投票結果：${record.nomineeName} (${record.totalVotes} 票)`,
-      description: `${record.nominatorName} 提名 ${record.nomineeName}\n得票數：${record.totalVotes} 票。`,
-      ...(nomineeSeat !== undefined ? { actorSeat: nomineeSeat } : {}),
-      ...(nominatorSeat !== undefined ? { targetSeats: [nominatorSeat] } : {}),
-      ...(highlighted.length > 0 ? { highlightedSeats: highlighted } : {}),
-    }).catch(console.error);
-  });
+  // 提名／投票結果不再寫入復盤紀錄（只保留廣場公告與投票紀錄面板）；
+  // 復盤時間軸僅記錄死亡等關鍵事件。
 
   postTownSquareAnnouncement(
     roomId,

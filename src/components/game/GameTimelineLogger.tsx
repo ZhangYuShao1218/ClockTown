@@ -626,7 +626,11 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
             <div className="p-4 bg-black/60 border-t border-white/10 shrink-0">
               {!isReplayActive ? (
                 <button
-                  onClick={() => startRoomReplay(roomId)}
+                  onClick={() => {
+                    if (window.confirm('確定要開始全場復盤嗎？')) {
+                      startRoomReplay(roomId);
+                    }
+                  }}
                   className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-base shadow-xl transition-all flex items-center justify-center tracking-wider"
                 >
                   開始覆盤
