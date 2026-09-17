@@ -27,7 +27,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
 }) => {
   const { phase, nominatorSeat, nomineeSeat, startTime, timePerPlayerMs, votes } = votingState;
   
-  const [timeSetting, setTimeSetting] = useState<number>(1000); // Default 1 second
+  const [timeSetting, setTimeSetting] = useState<number>(1250); // Default 1.25 second
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
   const requestRef = useRef<number>(0);
 

@@ -220,6 +220,38 @@ export const CenterStage = ({
 
   const totalSeats = seats.length;
 
+  // 處決投票指針掃過時的座位光暈：指到誰、誰藍光；指針掃過鎖定後、改黑光
+  const [voteTick, setVoteTick] = useState(Date.now());
+  useEffect(() => {
+    if (votingState?.phase !== 'voting' || !votingState?.startTime) return;
+    let raf = 0;
+    const tick = () => { setVoteTick(Date.now()); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [votingState?.phase, votingState?.startTime]);
+
+  const getSeatVoteGlow = (seatIndex: number): 'active' | 'locked' | 'nominee' | null => {
+    if (!votingState || typeof votingState.nomineeSeat !== 'number') return null;
+    const { phase, nomineeSeat, startTime, timePerPlayerMs } = votingState;
+    const isNominee = seatIndex === nomineeSeat;
+    if (phase === 'finished') return 'locked';
+    if (phase !== 'voting' || !startTime) {
+      // 提名成立、投票尚未開始：被提名人先保持紅色光暈提示
+      return isNominee ? 'nominee' : null;
+    }
+    // 跟 VotingOverlay 的 isLocked 算法一致：從被提名人開始往後數，被提名人自己最後一個投
+    let seatsPassed = seatIndex - nomineeSeat;
+    if (seatsPassed <= 0) seatsPassed += totalSeats;
+    if (isNominee) seatsPassed = totalSeats;
+    const elapsed = voteTick - startTime;
+    const lockTime = seatsPassed * timePerPlayerMs;
+    if (elapsed >= lockTime) return 'locked';
+    const currentStep = Math.max(0, Math.floor(elapsed / timePerPlayerMs) + 1);
+    if (seatsPassed === currentStep) return 'active';
+    // 被提名人輪到他投票前，持續保持紅色光暈；輪到他時上面已經回傳 'active'（藍色）
+    return isNominee ? 'nominee' : null;
+  };
+
   // 圓桌等比縮放：量測外框可用區，取內接正方形當作圓桌，座位 = min(桌機上限, 板寬 * 比例)。
   // 桌機板寬夠大時吃到「上限」= 與原本尺寸一致；窄屏則依比例縮小但仍保有可讀大小。
   const [boardWrapRef, boardWrap] = useElementSize<HTMLDivElement>();
@@ -485,6 +517,7 @@ export const CenterStage = ({
             const isDead = seatStatus[seatIndex]?.isDead || false;
             const hasGhostVote = seatStatus[seatIndex]?.hasGhostVote || false;
             const pendingExecution = seatStatus[seatIndex]?.pendingExecution || false;
+            const voteGlow = getSeatVoteGlow(seatIndex);
             const isHighlighted = highlightedSeats?.includes(seatIndex);
             const isReplayActor = replayActorSeat === seatIndex;
             const isReplayTarget = replayTargetSeats?.includes(seatIndex);
@@ -522,6 +555,50 @@ export const CenterStage = ({
                 {/* 復盤強調外框：呼吸效果只套在這個外框，不影響座位角色本身 */}
                 {isHighlighted && (
                   <div className={`absolute inset-0 rounded-full ring-4 ring-offset-4 ring-offset-black animate-breathe pointer-events-none z-30 ${isReplayActor ? 'ring-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)]' : 'ring-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.9)]'}`} />
+                )}
+
+                {/* 處決投票指針掃過的座位光暈：指到誰誰藍光、掃過鎖定後改黑光；被提名人在輪到他之前保持紅光。
+                    外圍用多層漸層柔化、往外延伸得更遠一點，做出光芒往外散開的感覺，中心到座位邊緣仍保持透明不蓋住座位內部 */}
+                {voteGlow && (() => {
+                  const rgb = voteGlow === 'active' ? '96,165,250' : voteGlow === 'nominee' ? '239,68,68' : '0,0,0';
+                  const ringClass = voteGlow === 'active' ? 'ring-blue-400' : voteGlow === 'nominee' ? 'ring-red-500' : 'ring-neutral-900';
+                  return (
+                    <>
+                      <div
+                        className="absolute rounded-full pointer-events-none z-[29] blur-md transition-colors duration-300"
+                        style={{
+                          inset: '-25%',
+                          // 中心到約 62%（座位邊緣）保持透明；62%~100% 分好幾段漸層淡出，外圍透明度降低、收斂範圍但保留一點漸層感
+                          background: `radial-gradient(circle, transparent 0%, transparent 62%, rgba(${rgb},0.5) 75%, rgba(${rgb},0.15) 90%, rgba(${rgb},0) 100%)`
+                        }}
+                      />
+                      <div
+                        className={`absolute inset-0 rounded-full ring-4 pointer-events-none z-30 transition-colors duration-300 ${ringClass}`}
+                        style={{ boxShadow: `0 0 25px rgba(${rgb},1)` }}
+                      />
+                    </>
+                  );
+                })()}
+
+                {/* 玩家頭像：貼在座位「外側」的上角（左半圓貼左上、右半圓貼右上），層級比座位本身高；
+                    避免疊到座位「內側」（靠圓心那一側）可能放置的筆記標記 */}
+                {playerInSeat && (
+                  <div
+                    className={`absolute -top-[11%] w-[39%] h-[39%] rounded-full border-[3px] shadow-lg overflow-hidden pointer-events-none z-40 ${x > 50 ? '-right-[11%]' : '-left-[11%]'} ${
+                      playerInSeat.uid === userUid ? 'border-emerald-400/90 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'border-sky-400/80 shadow-[0_0_10px_rgba(56,189,248,0.4)]'
+                    }`}
+                  >
+                    {playerInSeat.avatarUrl ? (
+                      <img src={playerInSeat.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-stone-800">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[70%] h-[70%] text-white/30">
+                          <circle cx="12" cy="8" r="4" />
+                          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8v1H4v-1z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div
@@ -568,7 +645,7 @@ export const CenterStage = ({
                     </div>
                   )}
                 </div>
-                
+
                 {isDead && hasGhostVote && (
                   <div className="absolute -bottom-[5%] -right-[5%] w-[31%] h-[31%] flex items-center justify-center z-20 pointer-events-none">
                     <img src="/assets/ui/DeathVote.png" className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]" alt="Ghost Vote" />
