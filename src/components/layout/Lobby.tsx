@@ -7,6 +7,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { generateMockRoom } from "../../lib/testUtils";
 import { LobbyGuideModal, type GuideTab } from "./LobbyGuideModal";
 import { scriptLogoSrc } from "../../lib/scriptAssets";
+import { AvatarPicker } from "./AvatarPicker";
 
 export const Lobby = () => {
   const navigate = useNavigate();
@@ -16,7 +17,10 @@ export const Lobby = () => {
   const [playerName, setPlayerName] = useState(() => {
     return localStorage.getItem("botc_player_name") || "";
   });
-  
+  const [playerAvatar, setPlayerAvatar] = useState<string | null>(() => {
+    return localStorage.getItem("botc_player_avatar") || null;
+  });
+
   const [roomIdInput, setRoomIdInput] = useState("");
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,6 +80,11 @@ export const Lobby = () => {
       return;
     }
     localStorage.setItem("botc_player_name", playerName.trim());
+    if (playerAvatar) {
+      localStorage.setItem("botc_player_avatar", playerAvatar);
+    } else {
+      localStorage.removeItem("botc_player_avatar");
+    }
     setIsEditingName(false);
     setError("");
     
@@ -91,7 +100,7 @@ export const Lobby = () => {
     try {
       setIsProcessing(true);
       setError("");
-      const newRoomId = await createRoom(user.uid, playerName);
+      const newRoomId = await createRoom(user.uid, playerName, playerAvatar);
       navigate(`/room/${newRoomId}`);
     } catch (err: any) {
       setError(err.message || "建立房間失敗");
@@ -104,7 +113,7 @@ export const Lobby = () => {
     try {
       setIsProcessing(true);
       setError("");
-      const joinedRoomId = await joinRoom(targetRoomId.toUpperCase(), user.uid, playerName);
+      const joinedRoomId = await joinRoom(targetRoomId.toUpperCase(), user.uid, playerName, playerAvatar);
       navigate(`/room/${joinedRoomId}`);
     } catch (err: any) {
       setError(err.message || "加入房間失敗");
@@ -137,7 +146,7 @@ export const Lobby = () => {
       {/* 背景遮罩讓 UI 更好閱讀 */}
       <div className="absolute inset-0 z-0 bg-black/30 backdrop-blur-[2px]" />
 
-      <div className="relative z-10 w-full max-w-lg space-y-8 rounded-xl border border-white/10 bg-black/60 backdrop-blur-md p-8 shadow-2xl">
+      <div className="relative z-10 w-full max-w-xl space-y-8 rounded-xl border border-white/10 bg-black/60 backdrop-blur-md p-8 shadow-2xl">
         
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-widest text-white/90 drop-shadow-md font-serif">血染鐘樓</h1>
@@ -167,6 +176,10 @@ export const Lobby = () => {
                 onKeyDown={(e) => e.key === 'Enter' && saveName()}
               />
             </div>
+            <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+              <label className="mb-2 block text-sm font-medium text-white/80 tracking-widest uppercase text-center">選個頭像</label>
+              <AvatarPicker value={playerAvatar} onChange={setPlayerAvatar} />
+            </div>
             <button
               onClick={saveName}
               className="w-full rounded-md bg-white/10 border border-white/20 px-4 py-3 text-sm font-bold text-white hover:bg-white/20 transition-all shadow-lg"
@@ -176,13 +189,27 @@ export const Lobby = () => {
           </div>
         ) : (
           <div className="space-y-8">
-            
+
             <div className="flex items-center justify-between rounded-lg bg-black/40 border border-white/10 p-4 shadow-inner">
-              <div className="text-white/80">
-                <span className="text-sm">目前身分：</span>
-                <span className="ml-2 font-bold text-white">{playerName}</span>
+              <div className="flex items-center gap-3 text-white/80">
+                <div className="h-10 w-10 shrink-0 rounded-full border border-white/20 bg-black/50 overflow-hidden">
+                  {playerAvatar ? (
+                    <img src={playerAvatar} alt="頭像" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/25">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8v1H4v-1z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <span className="text-sm">目前身分：</span>
+                  <span className="ml-2 font-bold text-white">{playerName}</span>
+                </div>
               </div>
-              <button 
+              <button
                 onClick={() => setIsEditingName(true)}
                 className="text-sm text-white/50 hover:text-white transition-colors underline underline-offset-4"
               >
