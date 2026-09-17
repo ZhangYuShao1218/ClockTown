@@ -18,10 +18,12 @@ import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
 import type { Script } from "../../data/types";
 import { stopRoomReplay, stepRoomReplay } from "../../services/replayService";
+import { toRtdbArray } from "../../lib/utils";
 
 // 穩定參考：避免每次 render 產生新陣列，觸發子元件無限 re-render
 const DEFAULT_DISTRIBUTION = [7, 2, 2, 1];
 const DEFAULT_BLUFFS = [null, null, null];
+const DEFAULT_FABLED = [null, null, null];
 
 export const Room = () => {
   const { id } = useParams<{ id: string }>();
@@ -149,7 +151,10 @@ export const Room = () => {
     : (gameState?.public?.scriptId ? Object.values(AllScripts).find(s => s.id === gameState?.public?.scriptId) : undefined);
   const seatCount = gameState?.public?.seatCount || 10;
   const seats = Array.from({ length: seatCount }, (_, i) => i + 1);
-  const bluffs = gameState?.private?.bluffs || DEFAULT_BLUFFS;
+  // 正規化 RTDB 讀回來的資料：陣列中間的 index 被寫 null 刪除後，RTDB 可能回傳「洞洞物件」而不是真陣列，
+  // 沒有值時仍用穩定參考（DEFAULT_*）避免每次 render 產生新陣列觸發無限迴圈
+  const bluffs = gameState?.private?.bluffs ? toRtdbArray<string>(gameState.private.bluffs, 3, null) : DEFAULT_BLUFFS;
+  const fabled = gameState?.public?.fabled ? toRtdbArray<string>(gameState.public.fabled, 3, null) : DEFAULT_FABLED;
   
   const myPlayer = user ? players[user.uid] : null;
   const myRoleInfo = myPlayer?.roleId ? currentScript?.roles.find(r => r.id === myPlayer.roleId) : null;
@@ -401,7 +406,7 @@ export const Room = () => {
             distribution={gameState?.public?.distribution || [7,2,2,1]}
             onLeaveRoom={handleLeave}
             onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
-            fabled={gameState?.public?.fabled || []}
+            fabled={fabled as string[]}
             hostPlayer={hostPlayer}
             privateNotes={isReplayActive ? (replaySnapshot?.seatRoles || {}) : (isHost && user ? gameState?.private?.notes?.[user.uid] : undefined)}
             isReplayActive={isReplayActive}
@@ -428,7 +433,7 @@ export const Room = () => {
                 distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
                 seats={seats}
                 getPlayerInSeat={getPlayerInSeat}
-                fabled={gameState?.public?.fabled || []}
+                fabled={fabled as string[]}
                 onLeaveRoom={handleLeave}
                 onOpenScriptModal={() => setIsScriptOverviewOpen(true)}
                 hostPlayer={hostPlayer}
@@ -510,7 +515,7 @@ export const Room = () => {
               bluffs={bluffs}
               distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
               grimoireState={gameState.private?.grimoire}
-              fabled={gameState?.public?.fabled || []}
+              fabled={fabled as string[]}
               hostId={gameState?.public?.hostId || null}
               hostGrimoireTokens={gameState?.private?.grimoireTokens?.[gameState?.public?.hostId] || null}
               customScript={gameState?.public?.customScript}
