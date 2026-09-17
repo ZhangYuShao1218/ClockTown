@@ -58,6 +58,9 @@ export const Room = () => {
   const previousRoleRef = useRef<string | undefined | null>(undefined);
   const isInitialLoad = useRef(true);
   const [roleAlert, setRoleAlert] = useState<string | null>(null);
+  const previousReminderRef = useRef<number | undefined | null>(undefined);
+  const isReminderInitialLoad = useRef(true);
+  const [reminderAlert, setReminderAlert] = useState(false);
 
   const replayMode = gameState?.public?.replayMode;
   const isReplayActive = !!replayMode?.isActive;
@@ -77,6 +80,23 @@ export const Room = () => {
     }
     previousRoleRef.current = myPlayerRaw?.roleId;
   }, [myPlayerRaw?.roleId, isHostRaw, loading]);
+
+  // 說書人「提醒玩家」：每次 reminderAt 變動（即使數值不同也一定是新的一次點擊）就跳出提示，
+  // 用獨立的 initial-load ref，避免跟上面角色提示的 isInitialLoad 搶用同一個旗標
+  useEffect(() => {
+    if (loading) return;
+
+    if (isReminderInitialLoad.current) {
+      isReminderInitialLoad.current = false;
+      previousReminderRef.current = myPlayerRaw?.reminderAt;
+      return;
+    }
+
+    if (myPlayerRaw?.reminderAt && myPlayerRaw.reminderAt !== previousReminderRef.current) {
+      setReminderAlert(true);
+    }
+    previousReminderRef.current = myPlayerRaw?.reminderAt;
+  }, [myPlayerRaw?.reminderAt, loading]);
 
   useEffect(() => {
     const hasName = !!localStorage.getItem("botc_player_name");
@@ -98,13 +118,14 @@ export const Room = () => {
 
     const name = localStorage.getItem("botc_player_name");
     if (!name) return;
+    const avatarUrl = localStorage.getItem("botc_player_avatar");
 
     const existing = gameState.players?.[user.uid];
     // 尚未加入，或 entry 名字缺失 / 與本機名字不符 → 呼叫 joinRoom（會補寫名字，idempotent）
     if (!existing || !existing.name || existing.name !== name) {
       hasJoinedRef.current = true;
       import("../../services/roomService").then(({ joinRoom }) => {
-        joinRoom(id, user.uid, name).catch(console.error);
+        joinRoom(id, user.uid, name, avatarUrl).catch(console.error);
       });
     } else {
       hasJoinedRef.current = true;
@@ -174,8 +195,9 @@ export const Room = () => {
     // 保險：確保 player entry 帶名字（避免只寫 seat 造成座位空白）
     const name = localStorage.getItem("botc_player_name");
     if (name && (!players[user.uid] || !players[user.uid].name)) {
+      const avatarUrl = localStorage.getItem("botc_player_avatar");
       const { joinRoom } = await import("../../services/roomService");
-      await joinRoom(id!, user.uid, name).catch(console.error);
+      await joinRoom(id!, user.uid, name, avatarUrl).catch(console.error);
     }
     await setPlayerSeat(id!, user.uid, seatIndex);
   };
@@ -662,11 +684,18 @@ export const Room = () => {
         message="確定要清空所有自行標記的角色與筆記嗎？" 
       />
 
-      <AlertDialog 
-        isOpen={!!roleAlert} 
-        onClose={() => setRoleAlert(null)} 
-        onConfirm={() => setRoleAlert(null)} 
-        message={roleAlert || ""} 
+      <AlertDialog
+        isOpen={!!roleAlert}
+        onClose={() => setRoleAlert(null)}
+        onConfirm={() => setRoleAlert(null)}
+        message={roleAlert || ""}
+      />
+
+      <AlertDialog
+        isOpen={reminderAlert}
+        onClose={() => setReminderAlert(false)}
+        onConfirm={() => setReminderAlert(false)}
+        message="說書人找你，請查看私訊"
       />
 
       {isTravelerFabledOpen && currentScript && (

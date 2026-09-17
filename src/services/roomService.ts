@@ -41,13 +41,13 @@ export const postTownSquareAnnouncement = async (
   });
 };
 
-export const createRoom = async (hostId: string, hostName: string): Promise<string> => {
+export const createRoom = async (hostId: string, hostName: string, hostAvatarUrl?: string | null): Promise<string> => {
   const roomId = generateRoomId();
   const roomRef = nref(`rooms/${roomId}`);
-  
+
   const snapshot = await get(roomRef);
   if (snapshot.exists()) {
-    return createRoom(hostId, hostName); 
+    return createRoom(hostId, hostName, hostAvatarUrl);
   }
 
   const initialRoomState = {
@@ -72,6 +72,7 @@ export const createRoom = async (hostId: string, hostName: string): Promise<stri
     players: {
       [hostId]: {
         name: hostName,
+        avatarUrl: hostAvatarUrl || null,
         isHost: true,
         isAlive: true,
         hasGhostVote: true,
@@ -90,10 +91,10 @@ export const createRoom = async (hostId: string, hostName: string): Promise<stri
   return roomId;
 };
 
-export const joinRoom = async (roomId: string, userId: string, userName: string): Promise<string> => {
+export const joinRoom = async (roomId: string, userId: string, userName: string, avatarUrl?: string | null): Promise<string> => {
   const roomRef = nref(`rooms/${roomId}`);
   const snapshot = await get(roomRef);
-  
+
   if (!snapshot.exists()) {
     throw new Error("找不到該房間，請確認房號是否正確。");
   }
@@ -103,10 +104,13 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
   // 如果玩家已經在裡面（斷線重連）
   if (roomData.players && roomData.players[userId]) {
     // 標記為上線並允許進入，即使遊戲已經開始；
-    // 順便補寫名字 —— 若先前的 entry 是被 sitDown 等操作建立、沒有 name，會導致座位空白 / 顯示「未知玩家」
+    // 順便補寫名字/頭像 —— 若先前的 entry 是被 sitDown 等操作建立、沒有 name，會導致座位空白 / 顯示「未知玩家」
     const patch: Record<string, any> = { [`rooms/${roomId}/players/${userId}/isOnline`]: true };
     if (userName && roomData.players[userId].name !== userName) {
       patch[`rooms/${roomId}/players/${userId}/name`] = userName;
+    }
+    if (avatarUrl !== undefined && roomData.players[userId].avatarUrl !== avatarUrl) {
+      patch[`rooms/${roomId}/players/${userId}/avatarUrl`] = avatarUrl || null;
     }
     await touchAndUpdate(roomId, patch);
     return roomId;
@@ -122,6 +126,7 @@ export const joinRoom = async (roomId: string, userId: string, userName: string)
   const updates: Record<string, any> = {};
   updates[`rooms/${roomId}/players/${userId}`] = {
     name: userName,
+    avatarUrl: avatarUrl || null,
     isHost: false,
     isAlive: true,
     hasGhostVote: true,
@@ -171,6 +176,14 @@ export const removePlayerFromRoom = async (roomId: string, targetUid: string) =>
     [`rooms/${roomId}/private/${targetUid}`]: null,
     [`rooms/${roomId}/public/votingState/votes/${targetUid}`]: null,
   });
+};
+
+/**
+ * 說書人提醒玩家查看私訊：寫入當下時間戳到該玩家節點，玩家端偵測到這個值變動就跳出提示。
+ * 用時間戳而不是布林值，是為了讓說書人可以連續按、每次都能重新觸發（同一個值 onValue 不會視為變動）。
+ */
+export const remindPlayer = async (roomId: string, targetUid: string) => {
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/players/${targetUid}/reminderAt`]: Date.now() });
 };
 
 export const setPlayerSeat = async (roomId: string, userId: string, seatIndex: number | null) => {

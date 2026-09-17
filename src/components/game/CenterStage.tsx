@@ -4,7 +4,7 @@ import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { loadSeatRoleNotes, saveSeatRoleNotes, clearSeatRoleNotes } from "../../lib/localData";
-import { updateSeatStatus, updateVotingState, removePlayerFromRoom } from "../../services/roomService";
+import { updateSeatStatus, updateVotingState, removePlayerFromRoom, remindPlayer } from "../../services/roomService";
 import { AlertDialog } from "../common/AlertDialog";
 import { VotingOverlay } from "./VotingOverlay";
 import { RoleTooltip } from "../common/RoleTooltip";
@@ -281,6 +281,10 @@ export const CenterStage = ({
   const tokenBaseSeatPx = Math.min(computeSeatPx(9), Math.max(computeSeatPx(15), seatPx));
   // 夜晚順序標示：以 10 人的座位大小為上限，9 人以下不再放大
   const badgePx = Math.max(18, Math.min(seatPx, computeSeatPx(10)) * 0.32);
+  // 玩家頭像徽章：直接跟座位大小掛勾，比例取自「12 人局」量出來覺得剛好的頭像/座位比（約 0.55）；
+  // 人少、座位變大時頭像跟著等比放大（解決少人局太小的問題），人多、座位變小時也跟著等比縮小
+  const avatarPx = Math.max(20, seatPx * 0.55);
+  const avatarOffsetPx = avatarPx * (11 / 39); // 貼在座位外角、露出來的量跟頭像大小同比例
 
   const getSeatStyle = (index: number) => {
     const angleDeg = ((index - 1) / totalSeats) * 360 - 90;
@@ -581,12 +585,18 @@ export const CenterStage = ({
                 })()}
 
                 {/* 玩家頭像：貼在座位「外側」的上角（左半圓貼左上、右半圓貼右上），層級比座位本身高；
-                    避免疊到座位「內側」（靠圓心那一側）可能放置的筆記標記 */}
+                    避免疊到座位「內側」（靠圓心那一側）可能放置的筆記標記；大小固定（跟座位人數無關），統一棕色外框 */}
                 {playerInSeat && (
                   <div
-                    className={`absolute -top-[11%] w-[39%] h-[39%] rounded-full border-[3px] shadow-lg overflow-hidden pointer-events-none z-40 ${x > 50 ? '-right-[11%]' : '-left-[11%]'} ${
-                      playerInSeat.uid === userUid ? 'border-emerald-400/90 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'border-sky-400/80 shadow-[0_0_10px_rgba(56,189,248,0.4)]'
-                    }`}
+                    className="absolute rounded-full overflow-hidden pointer-events-none z-40"
+                    style={{
+                      width: avatarPx,
+                      height: avatarPx,
+                      top: -avatarOffsetPx,
+                      // 外框用 inset box-shadow 畫在圖片內側（往內縮 1px），蓋住縮圖邊緣可能殘留的一絲透明留白
+                      boxShadow: 'inset 0 0 0 1.5px #8b5a2b, 0 0 8px rgba(120,53,15,0.6)',
+                      ...(x > 50 ? { right: -avatarOffsetPx } : { left: -avatarOffsetPx }),
+                    }}
                   >
                     {playerInSeat.avatarUrl ? (
                       <img src={playerInSeat.avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -828,6 +838,14 @@ export const CenterStage = ({
                   >
                     <span className="text-amber-400 mr-1 tracking-wider">{seatIndex}.</span>
                     <span className="text-gray-100">{player ? player.name : '空座位'}</span>
+                    {player && player.uid === userUid && (
+                      <span
+                        className="text-emerald-400 font-bold ml-1"
+                        style={{ fontSize: `${Math.max(11, Math.min(20, seatPx * 0.15)) - 2 * (96 / 72)}px` }}
+                      >
+                        (我)
+                      </span>
+                    )}
                   </div>
                   
                   {activeDropdownSeat === seatIndex && (
@@ -860,6 +878,14 @@ export const CenterStage = ({
                           >
                             發起提名
                           </button>
+                          {player && player.uid !== userUid && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); remindPlayer(roomId, player.uid); setActiveDropdownSeat(null); }}
+                              className="w-full px-4 py-2 text-amber-400 hover:bg-slate-800 text-sm font-bold text-center transition-colors border-t border-white/10"
+                            >
+                              提醒玩家
+                            </button>
+                          )}
                           {player && player.uid !== userUid && (
                             <button
                               onClick={(e) => { e.stopPropagation(); setRemoveTarget({ seat: seatIndex, uid: player.uid, name: player.name }); setActiveDropdownSeat(null); }}
