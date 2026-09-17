@@ -133,6 +133,23 @@ export const deleteReplayEvent = async (roomId: string, eventId: string) => {
 };
 
 /**
+ * Reorder replay events by rewriting their timestamps to match the given id order
+ * (timeline 的排序完全依賴 timestamp，拖曳排序只需要依新順序重新分配遞增的 timestamp)
+ */
+export const reorderReplayTimeline = async (roomId: string, orderedIds: string[]) => {
+  try {
+    const base = Date.now() - orderedIds.length * 1000;
+    const updates: Record<string, number> = {};
+    orderedIds.forEach((id, index) => {
+      updates[`rooms/${roomId}/replay/timeline/${id}/timestamp`] = base + index * 1000;
+    });
+    await update(nref(), updates);
+  } catch (e) {
+    console.error("Failed to reorder replay timeline", e);
+  }
+};
+
+/**
  * Clear all replay events in room
  */
 export const clearReplayTimeline = async (roomId: string) => {

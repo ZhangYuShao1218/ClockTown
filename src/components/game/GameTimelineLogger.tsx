@@ -2,12 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { onValue } from 'firebase/database';
 import { nref } from '../../services/firebase';
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   recordReplayEvent,
   deleteReplayEvent,
   clearReplayTimeline,
   startRoomReplay,
   setRoomReplayStep,
   stopRoomReplay,
+  reorderReplayTimeline,
   type ReplayEvent
 } from '../../services/replayService';
 import { updateGameTime } from '../../services/roomService';
@@ -25,6 +41,57 @@ interface GameTimelineLoggerProps {
 }
 
 type TargetType = number | 'good' | 'evil' | 'storyteller';
+
+// 遊戲紀錄清單項目：外層負責排序位移動畫，拖曳只認左側把手，避免跟點擊跳轉/刪除鈕互搶手勢
+const SortableTimelineItem: React.FC<{
+  id: string;
+  isCur: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+  children: React.ReactNode;
+}> = ({ id, isCur, onClick, onDelete, children }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onClick}
+      className={`p-3 rounded-lg border text-sm transition-all relative group flex gap-2 ${
+        isCur
+          ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-md'
+          : 'bg-black/40 border-white/10 hover:bg-black/60 text-stone-200'
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="shrink-0 self-stretch w-5 flex items-center justify-center text-stone-500 hover:text-stone-300 cursor-grab active:cursor-grabbing touch-none"
+        title="拖曳調整順序"
+      >
+        ⠿
+      </button>
+      <div className="flex-1 min-w-0 pr-6">
+        {children}
+      </div>
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="absolute top-2 right-2 px-2 py-0.5 bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white rounded text-xs font-bold transition-all shadow-sm flex items-center justify-center"
+        title="刪除此紀錄"
+      >
+        ✕
+      </button>
+    </div>
+  );
+};
 
 export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
   roomId,
@@ -54,6 +121,19 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
 
   // Action Presets: 查驗、醉酒、投毒、殺害、保護、能力、得知、宣稱
   const actionPresets = ['查驗', '醉酒', '投毒', '殺害', '保護', '能力', '得知', '宣稱'];
+
+  // 遊戲紀錄拖曳排序：只認左側把手（PointerSensor 預設就會忽略卡片本身的點擊/按鈕操作）
+  const timelineDragSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const handleTimelineDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = timeline.findIndex(ev => ev.id === active.id);
+    const newIndex = timeline.findIndex(ev => ev.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(timeline, oldIndex, newIndex);
+    setTimeline(reordered); // 樂觀更新，避免等 Firebase 回寫才看到排序結果
+    reorderReplayTimeline(roomId, reordered.map(ev => ev.id!));
+  };
 
   // Subscribe to timeline
   useEffect(() => {
@@ -570,55 +650,42 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
               )}
             </div>
 
-            {/* Timeline Events Scroll List */}
+            {/* Timeline Events Scroll List：可拖曳左側把手調整順序（僅說書人看得到這個分頁） */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
               {timeline.length === 0 ? (
                 <div className="text-center py-10 text-base font-medium text-white">
                   尚未有任何紀錄
                 </div>
               ) : (
-                timeline.map((ev, idx) => {
-                  const isCur = isReplayActive && replayMode?.currentStepIndex === idx;
-                  return (
-                    <div
-                      key={ev.id || idx}
-                      onClick={() => {
-                        if (isReplayActive) {
-                          setIsAutoPlaying(false);
-                          setRoomReplayStep(roomId, idx, timeline);
-                        }
-                      }}
-                      className={`p-3 rounded-lg border text-sm transition-all relative group ${
-                        isCur
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-md'
-                          : 'bg-black/40 border-white/10 hover:bg-black/60 text-stone-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-xs text-stone-400 mb-1">
-                        <span className="font-bold text-amber-400 font-mono">
-                          #{idx + 1} 第 {ev.dayNumber} 天 ({ev.timePhase === 'night' ? '黑夜' : '白天'})
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (ev.id) deleteReplayEvent(roomId, ev.id);
-                            }}
-                            className="px-2 py-0.5 bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 hover:text-white rounded text-xs font-bold transition-all shadow-sm flex items-center justify-center"
-                            title="刪除此紀錄"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="font-bold text-base text-white whitespace-pre-line">{ev.title}</div>
-                      {ev.description && ev.description !== ev.title && (
-                        <div className="text-sm text-stone-300 mt-0.5 whitespace-pre-line">{ev.description}</div>
-                      )}
-                    </div>
-                  );
-                })
+                <DndContext sensors={timelineDragSensors} collisionDetection={closestCenter} onDragEnd={handleTimelineDragEnd}>
+                  <SortableContext items={timeline.map(ev => ev.id!)} strategy={verticalListSortingStrategy}>
+                    {timeline.map((ev, idx) => {
+                      const isCur = isReplayActive && replayMode?.currentStepIndex === idx;
+                      return (
+                        <SortableTimelineItem
+                          key={ev.id || idx}
+                          id={ev.id!}
+                          isCur={isCur}
+                          onClick={() => {
+                            if (isReplayActive) {
+                              setIsAutoPlaying(false);
+                              setRoomReplayStep(roomId, idx, timeline);
+                            }
+                          }}
+                          onDelete={() => { if (ev.id) deleteReplayEvent(roomId, ev.id); }}
+                        >
+                          <span className="font-bold text-amber-400 font-mono text-xs">
+                            #{idx + 1} 第 {ev.dayNumber} 天 ({ev.timePhase === 'night' ? '黑夜' : '白天'})
+                          </span>
+                          <div className="font-bold text-base text-white whitespace-pre-line mt-1">{ev.title}</div>
+                          {ev.description && ev.description !== ev.title && (
+                            <div className="text-sm text-stone-300 mt-0.5 whitespace-pre-line">{ev.description}</div>
+                          )}
+                        </SortableTimelineItem>
+                      );
+                    })}
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
 
