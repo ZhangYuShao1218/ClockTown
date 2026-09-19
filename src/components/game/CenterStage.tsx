@@ -336,12 +336,12 @@ export const CenterStage = ({
 
           <div className="flex justify-between items-center w-full px-0 lg:px-2 text-center">
             <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="總玩家數">
-              <img src="/assets/ui/HumanCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-md" alt="總數" />
+              <span className="text-sm lg:text-lg font-bold text-amber-300">總數</span>
               <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
             </div>
             <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
             <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="存活玩家數">
-              <img src="/assets/ui/LiveCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
+              <span className="text-sm lg:text-lg font-bold text-amber-300">存活</span>
               <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - seats.filter(s => seatStatus[s]?.isDead).length}</span>
             </div>
             <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
