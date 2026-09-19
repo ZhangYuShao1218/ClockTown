@@ -8,6 +8,13 @@ export const GuiZeGuaiTan: Script = {
   recommendedPlayers: "7 - 15",
   difficulty: "專家",
   author: "星火樂",
+  specialRules: [
+    {
+      title: '神的不在場證明',
+      description: '當無神論者與異端分子同時在場時，善良陣營的獲勝條件為場上存活人數小於等於2人，如果處決說書人會導致善良陣營失敗。［說書人不能打破規則讓上述內容無效］',
+      relatedRoleIds: ['atheist', 'heretic'],
+    },
+  ],
   roles: [
     AllRoles['noble'],
     AllRoles['balloonist'],

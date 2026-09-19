@@ -1,4 +1,5 @@
 import type { Script } from '../types';
+import { applyRoleOverrides } from '../../lib/scriptRules';
 import { TroubleBrewing } from './trouble_brewing';
 import { BadMoonRising } from './bad_moon_rising';
 import { SectsAndViolets } from './sects_and_violets';
@@ -18,7 +19,7 @@ import { WuYeLieChe } from './wu_ye_lie_che';
 import { XunWuQiLv } from './xun_wu_qi_lv';
 import { WangHaiMiYuan } from './wang_hai_mi_yuan';
 
-export const AllScripts: Record<string, Script> = {
+const RawScripts: Record<string, Script> = {
   trouble_brewing: TroubleBrewing,
   bad_moon_rising: BadMoonRising,
   sects_and_violets: SectsAndViolets,
@@ -38,6 +39,11 @@ export const AllScripts: Record<string, Script> = {
   xun_wu_qi_lv: XunWuQiLv,
   wang_hai_mi_yuan: WangHaiMiYuan
 };
+
+/** 對外一律使用此份：已套用各劇本 roleOverrides 的角色能力覆寫 */
+export const AllScripts: Record<string, Script> = Object.fromEntries(
+  Object.entries(RawScripts).map(([id, script]) => [id, applyRoleOverrides(script)])
+);
 
 export * from './trouble_brewing';
 export * from './bad_moon_rising';

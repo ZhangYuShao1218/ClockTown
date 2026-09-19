@@ -8,6 +8,18 @@ export const XunWuQiLv: Script = {
   recommendedPlayers: "7 - 15",
   difficulty: "進階",
   author: "Crispy Duck",
+  specialRules: [
+    {
+      title: '拜訪翡翠城',
+      description: '翡翠城裡的巫師能力有調整，同時如果巫師重新入場，也會有人再次得知巫師在場。每個白天，如果得知巫師在場的玩家依然存活，他可以找說書人猜測一次巫師在本局遊戲下的願望是什麼：他會得知他的猜測有多準確（或巫師尚未許願）。',
+      relatedRoleIds: ['wizard'],
+    },
+  ],
+  roleOverrides: {
+    wizard: {
+      ability: '始終會有一名善良玩家知道巫師在場。每局遊戲限一次，你可以向說書人許願。如果願望被實現，可能會伴隨著代價和線索。',
+    },
+  },
   roles: [
     // 鎮民 13
     AllRoles['librarian'],
