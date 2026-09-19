@@ -45,13 +45,17 @@ export const ScriptInfoModal = ({ isOpen, onClose, script }: ScriptInfoModalProp
                       <div className="w-14 h-14 shrink-0 bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] rounded-full flex items-center justify-center shadow-md border-2 border-white/20 relative">
                         <RoleIcon icon={role.icon} className="w-full h-full object-cover rounded-full transition-transform group-hover:scale-110" />
                       </div>
-                      <span className={`mt-2 text-xs font-bold text-center leading-tight ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
+                      <span className={`mt-2 text-xs font-bold text-center leading-tight flex items-center gap-1 ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
                         {role.name}
+                        {role.isOverridden && <img src="/assets/ui/SpecialDramaRule.png" className="w-[21px] h-[21px] object-contain shrink-0" alt="本劇本限定調整" title="本劇本限定調整" />}
                       </span>
-                      
+
                       {/* Tooltip for ability */}
                       <div className="absolute top-[105%] left-1/2 -translate-x-1/2 mt-1 w-56 bg-slate-900 border border-slate-500 text-white p-3 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                        <div className={`font-bold mb-1 ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>{role.name}</div>
+                        <div className={`font-bold mb-1 flex items-center gap-1 ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
+                          {role.name}
+                          {role.isOverridden && <img src="/assets/ui/SpecialDramaRule.png" className="w-[21px] h-[21px] object-contain shrink-0" alt="本劇本限定調整" />}
+                        </div>
                         <div className="text-xs text-white/90 leading-relaxed text-left">{highlightAbility(role.ability)}</div>
                       </div>
                     </div>

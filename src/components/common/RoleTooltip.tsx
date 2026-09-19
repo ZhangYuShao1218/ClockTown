@@ -52,6 +52,12 @@ export const RoleTooltip = ({ hoveredRole }: RoleTooltipProps) => {
         visibility: pos.x === 0 ? 'hidden' : 'visible' // Hide until measured
       }}
     >
+      {hoveredRole.role.isOverridden && (
+        <div className="mb-1.5 flex items-center gap-1 text-[11px] font-bold tracking-widest text-purple-300">
+          <img src="/assets/ui/SpecialDramaRule.png" className="w-6 h-6 object-contain shrink-0" alt="" />
+          本劇本限定調整
+        </div>
+      )}
       <div
         className="text-white/90 font-bold leading-relaxed text-justify"
         style={{ wordBreak: 'normal', wordWrap: 'break-word' }}

@@ -12,6 +12,7 @@ import { SeatTokenModal } from './SeatTokenModal';
 import type { SeatToken } from './SeatTokenModal';
 import { AllRoles } from '../../data/roles';
 import { scriptLogoSrc } from '../../lib/scriptAssets';
+import { ScriptSpecialRulesModal } from './ScriptSpecialRulesModal';
 
 interface CenterStageProps {
   seats: number[];
@@ -83,6 +84,7 @@ export const CenterStage = ({
   const [infoTab, setInfoTab] = useState<'bluffs' | 'fabled' | 'room'>('bluffs');
   // hover 座位或其筆記時，將該座位的筆記層級提高、壓過其他座位的筆記
   const [hoverSeat, setHoverSeat] = useState<number | null>(null);
+  const [isSpecialRulesOpen, setSpecialRulesOpen] = useState(false);
 
   const handleSaveSeatToken = async (token: SeatToken) => {
     if (tokenTargetSeat === null || !userUid || !roomId) return;
@@ -306,6 +308,17 @@ export const CenterStage = ({
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       
+      {/* 窄屏：劇本特殊規則徽章（右上角，陣營資訊卡下方；桌機改用左下角常駐卡） */}
+      {script?.specialRules && script.specialRules.length > 0 && (
+        <button
+          onClick={() => setSpecialRulesOpen(true)}
+          className="absolute z-20 top-32 right-2.5 lg:hidden w-12 h-12 flex items-center justify-center pointer-events-auto animate-pulse"
+          title="劇本特殊規則"
+        >
+          <img src="/assets/ui/SpecialDramaRule.png" className="w-12 h-12 object-contain drop-shadow-md" alt="特殊規則" />
+        </button>
+      )}
+
       {/* 資訊卡：桌機為右側直欄（自身寬度、不隨螢幕拉寬）；窄屏 = 陣營(右上) + 分頁視窗(右下) */}
       <div className="contents lg:absolute lg:z-20 lg:pointer-events-none lg:flex lg:flex-col lg:items-stretch lg:gap-4 lg:right-4 lg:top-4 lg:bottom-4 lg:w-64 2xl:w-72">
 
@@ -927,7 +940,20 @@ export const CenterStage = ({
       </div>
 
       {/* 左下角說書人資訊 */}
-      <div className="absolute left-0.5 bottom-7 lg:left-[36px] lg:bottom-[1px] z-20 w-[220px] pointer-events-none lg:pb-6 hidden lg:flex flex-col justify-end">
+      <div className="absolute left-0.5 bottom-7 lg:left-[36px] lg:bottom-[1px] z-20 w-[220px] pointer-events-none lg:pb-6 hidden lg:flex flex-col justify-end gap-3">
+        {/* 劇本特殊規則卡：只在劇本帶有 specialRules 時渲染 */}
+        {script?.specialRules && script.specialRules.length > 0 && (
+          <button
+            onClick={() => setSpecialRulesOpen(true)}
+            className="w-full bg-amber-950/70 border-2 border-amber-500/50 rounded-xl py-3 pr-3 pl-1 shadow-lg pointer-events-auto backdrop-blur-md flex items-center space-x-1 shrink-0 text-left hover:bg-amber-950/90 hover:border-amber-400/70 transition-colors group"
+          >
+            <img src="/assets/ui/SpecialDramaRule.png" className="w-16 h-16 -my-2 object-contain shrink-0 drop-shadow-md group-hover:scale-105 transition-transform" alt="特殊規則" />
+            <div className="flex flex-col items-start overflow-hidden w-full min-w-0">
+              <span className="text-base text-amber-300 font-bold tracking-widest uppercase">特殊規則</span>
+              <span className="text-base font-bold text-amber-100 truncate w-full">{script.specialRules[0].title}{script.specialRules.length > 1 ? ` 等${script.specialRules.length}項` : ''}</span>
+            </div>
+          </button>
+        )}
         <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
            <div className="w-12 h-12 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
              <span className="text-xl font-serif text-blue-200">GM</span>
@@ -940,7 +966,12 @@ export const CenterStage = ({
       </div>
 
       <RoleTooltip hoveredRole={hoveredRoleTooltip} />
-      <RoleSelectionModal 
+      <ScriptSpecialRulesModal
+        isOpen={isSpecialRulesOpen}
+        onClose={() => setSpecialRulesOpen(false)}
+        script={script}
+      />
+      <RoleSelectionModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSelect={handleModalSelect}

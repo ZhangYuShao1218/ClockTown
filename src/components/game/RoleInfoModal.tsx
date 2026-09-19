@@ -164,7 +164,10 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
                           <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)]" />
                         </div>
                         <div className="flex flex-col min-w-0 flex-1 justify-center">
-                          <span className={`text-[16px] leading-tight font-bold ${group.color} whitespace-nowrap mb-0.5`}>{role.name}</span>
+                          <span className={`text-[16px] leading-tight font-bold ${group.color} whitespace-nowrap mb-0.5 flex items-center gap-1`}>
+                            {role.name}
+                            {role.isOverridden && <img src="/assets/ui/SpecialDramaRule.png" className="w-6 h-6 object-contain shrink-0" alt="本劇本限定調整" title="本劇本限定調整" />}
+                          </span>
                           <span className="text-[13px] leading-snug text-white/80">{highlightAbility(role.ability)}</span>
                         </div>
                       </div>

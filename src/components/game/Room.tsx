@@ -596,8 +596,9 @@ export const Room = () => {
                       <div className="flex flex-col">
                         {myRoleInfo && (
                           <div className="flex justify-between items-end mb-3 pb-2 border-b border-white/10">
-                            <span className={`text-xl font-bold ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
+                            <span className={`text-xl font-bold flex items-center gap-1.5 ${isEvil ? 'text-red-400' : 'text-blue-300'}`}>
                               {myRoleInfo.name}
+                              {myRoleInfo.isOverridden && <img src="/assets/ui/SpecialDramaRule.png" className="w-[30px] h-[30px] object-contain shrink-0" alt="本劇本限定調整" title="本劇本限定調整" />}
                             </span>
                             <span className={`text-base font-medium ${isEvil ? 'text-red-400/80' : 'text-blue-300/80'}`}>
                               陣營：{isEvil ? '邪惡' : '善良'}
