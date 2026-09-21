@@ -1,5 +1,5 @@
 import { useState, Fragment } from "react";
-import { useElementSize } from "../../hooks/useElementSize";
+import { useSeatLayout } from "../../hooks/useSeatLayout";
 import { setGrimoireRole, setGrimoireBluff, updateFabledIndex } from "../../services/roomService";
 import type { Script } from "../../data/types";
 import { RoleIcon } from "../common/RoleIcon";
@@ -8,6 +8,8 @@ import { AllRoles } from "../../data/roles";
 import { scriptLogoSrc } from "../../lib/scriptAssets";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { SeatTokenModal } from './SeatTokenModal';
+import { InfoSidebar, CampStatsCard, BluffsCard, FabledCard, RoomInfoCard, RoleSlot, InfoSpacer } from './info-panel/InfoPanels';
+import type { InfoTab, HoveredRole } from './info-panel/InfoPanels';
 import type { SeatToken } from './SeatTokenModal';
 
 interface GrimoireProps {
@@ -57,17 +59,15 @@ export const Grimoire = ({
   const isSituationReplay = replayEventType === 'SITUATION_LOG';
   const [modalOpen, setModalOpen] = useState(false);
   const [target, setTarget] = useState<{ type: 'seat'|'bluff'|'fabled', index?: number } | null>(null);
-  const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<{ role: any, x: number, y: number } | null>(null);
+  const [hoveredRoleTooltip, setHoveredRoleTooltip] = useState<HoveredRole | null>(null);
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [tokenTargetSeat, setTokenTargetSeat] = useState<number | null>(null);
   // 窄屏：惡魔偽裝 / 傳奇 / 房間 合併為分頁視窗
-  const [infoTab, setInfoTab] = useState<'bluffs' | 'fabled' | 'room'>('bluffs');
+  const [infoTab, setInfoTab] = useState<InfoTab>('bluffs');
   // hover 座位或其筆記時，將該座位的筆記層級提高、壓過其他座位的筆記
   const [hoverSeat, setHoverSeat] = useState<number | null>(null);
 
-  // 圓桌等比縮放：量測外框可用區，取內接正方形當圓桌，座位 = min(桌機上限, 板寬 * 比例)。
-  const [boardWrapRef, boardWrap] = useElementSize<HTMLDivElement>();
-  const boardPx = Math.min(boardWrap.width, boardWrap.height) || 0;
+  const { boardWrapRef, boardPx, seatPx, seatCfg, tokenBaseSeatPx, badgePx, getSeatStyle } = useSeatLayout(seatCount);
 
   if (!script) return null;
 
@@ -111,214 +111,42 @@ export const Grimoire = ({
     } catch (e) { console.error(e); }
   };
 
-  const getSeatConfig = (count: number) => {
-    // frac ≈ 讓相鄰座位相接的比例；radius 是座位離圓心的距離（%）；
-    // 6 人與 8 人用相同 frac（手機上不再放大，中間留給筆記）；13 人以上維持原樣。
-    if (count <= 6) return { max: 460, frac: 0.248, floor: 58, radius: 34 };
-    if (count <= 8) return { max: 500, frac: 0.248, floor: 58, radius: 36 };
-    if (count <= 10) return { max: 420, frac: 0.206, floor: 50, radius: 37 };
-    if (count <= 12) return { max: 360, frac: 0.177, floor: 46, radius: 38 };
-    if (count <= 15) return { max: 300, frac: 0.150, floor: 38, radius: 40 };
-    return { max: 232, frac: 0.115, floor: 32, radius: 41 };
-  };
-
-  const computeSeatPx = (count: number) => {
-    const cfg = getSeatConfig(count);
-    // 桌機（板寬 ≥ 560）且 ≤12 人時，座位縮 0.82 → 間隔加大、較不擁擠；窄屏與 13+ 不受影響
-    const gf = boardPx >= 560 && count <= 12 ? 0.82 : 1;
-    return Math.min(cfg.max, Math.max(cfg.floor, (boardPx || 720) * cfg.frac * gf));
-  };
-
-  const seatCfg = getSeatConfig(seatCount);
-  const seatPx = computeSeatPx(seatCount);
-  // 筆記圈圈基準：座位大小夾在「9 人排版」與「15 人排版」之間，避免少人時太大、多人時太小
-  const tokenBaseSeatPx = Math.min(computeSeatPx(9), Math.max(computeSeatPx(15), seatPx));
-  // 夜晚順序標示：以 10 人的座位大小為上限，9 人以下不再放大
-  const badgePx = Math.max(18, Math.min(seatPx, computeSeatPx(10)) * 0.32);
-
-  const getSeatStyle = (index: number) => {
-    const angleDeg = ((index - 1) / seatCount) * 360 - 90;
-    const angleRad = (angleDeg * Math.PI) / 180;
-    const { radius } = seatCfg;
-    const x = 50 + radius * Math.cos(angleRad);
-    const y = 50 + radius * Math.sin(angleRad);
-    return {
-      left: `${x}%`,
-      top: `${y}%`,
-      transform: 'translate(-50%, -50%)',
-      width: `${seatPx}px`,
-      height: `${seatPx}px`
-    };
-  };
-
-  const [t, o, m, d, v = 0] = distribution || [0, 0, 0, 0, 0];
-
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       
-      {/* 資訊卡：桌機為右側直欄；窄屏 = 陣營(右上) + 分頁視窗(右下) */}
-      <div className="contents lg:absolute lg:z-20 lg:pointer-events-none lg:flex lg:flex-col lg:items-stretch lg:gap-4 lg:right-4 lg:top-4 lg:bottom-4 lg:w-64 2xl:w-72">
+      <InfoSidebar
+        activeTab={infoTab}
+        onTabChange={setInfoTab}
+        stats={
+          <CampStatsCard
+            distribution={distribution}
+            totalPlayers={seats.length}
+            alivePlayers={seats.length - Object.values(seatStatus).filter(s => s?.isDead).length}
+            deathVotes={Object.values(seatStatus).filter(s => s?.isDead && s?.hasGhostVote).length}
+          />
+        }
+      >
+        <BluffsCard activeTab={infoTab}>
+          {[0, 1, 2].map(i => {
+            const roleId = bluffs[i];
+            const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
+            return <RoleSlot key={i} variant="bluff" role={role} onHoverRole={setHoveredRoleTooltip} onClick={() => openModal("bluff", i)} />;
+          })}
+        </BluffsCard>
 
-        {/* 陣營人數與生存資訊（窄屏右上角） */}
-        <div className="absolute z-20 top-2.5 right-2.5 w-[160px] lg:static lg:w-full bg-stone-800/80 border-2 border-white/40 rounded-xl py-2 px-2 lg:py-2.5 shadow-lg pointer-events-auto backdrop-blur-md flex flex-col items-center">
-          <div className="flex justify-between items-center text-center divide-x divide-white/20 w-full mb-2 lg:mb-3">
-            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-blue-300">民</div><div className="text-sm lg:text-lg font-bold text-white">{t}</div></div>
-            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-blue-300">外</div><div className="text-sm lg:text-lg font-bold text-white">{o}</div></div>
-            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-red-400">爪</div><div className="text-sm lg:text-lg font-bold text-white">{m}</div></div>
-            <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-red-400">惡</div><div className="text-sm lg:text-lg font-bold text-white">{d}</div></div>
-            {v > 0 && <div className="flex-1"><div className="text-sm lg:text-lg font-bold text-purple-400">旅</div><div className="text-sm lg:text-lg font-bold text-white">{v}</div></div>}
-          </div>
+        <FabledCard
+          editable
+          slots={[0, 1, 2].map(i => (fabled[i] ? Object.values(AllRoles).find(r => r.id === fabled[i]) : null))}
+          onHoverRole={setHoveredRoleTooltip}
+          onOpenPicker={(i) => openModal("fabled", i)}
+          onRemove={(i) => updateFabledIndex(roomId, i, null)}
+          activeTab={infoTab}
+        />
 
-          <div className="w-[80%] h-px bg-white/20 mb-2 lg:mb-3" />
+        <InfoSpacer />
 
-          <div className="flex justify-between items-center w-full px-0 lg:px-2 text-center">
-            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="總玩家數">
-              <img src="/assets/ui/HumanCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-md" alt="總數" />
-              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length}</span>
-            </div>
-            <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
-            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="存活玩家數">
-              <img src="/assets/ui/LiveCount.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-[0_0_4px_rgba(185,28,28,0.6)]" alt="存活" />
-              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{seats.length - Object.values(seatStatus).filter(s => s?.isDead).length}</span>
-            </div>
-            <div className="w-px h-7 lg:h-10 bg-white/20 mx-1 lg:mx-2"></div>
-            <div className="flex flex-row justify-center items-center gap-1 lg:gap-2 flex-1 group" title="擁有死亡票數">
-              <img src="/assets/ui/DeathVote.png" className="w-6 h-6 lg:w-[34px] lg:h-[34px] object-contain drop-shadow-md" alt="死亡票" />
-              <span className="text-base lg:text-xl font-bold text-white group-hover:scale-110 transition-transform">{Object.values(seatStatus).filter(s => s?.isDead && s?.hasGhostVote).length}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 惡魔偽裝 / 傳奇 / 房間：桌機各自獨立卡；窄屏合併為右下角分頁視窗 */}
-        <div className="absolute z-20 bottom-7 right-0.5 w-[236px] flex flex-col lg:static lg:w-auto lg:contents">
-
-        {/* 分頁按鈕（僅窄屏） */}
-        <div className="flex lg:hidden rounded-t-xl overflow-hidden border-2 border-b-0 border-white/30 text-sm font-bold pointer-events-auto shadow-lg">
-          {([['bluffs', '偽裝'], ['fabled', '傳奇'], ['room', '房間']] as const).map(([k, label]) => (
-            <button key={k} onClick={() => setInfoTab(k)} className={`flex-1 py-1.5 transition-colors ${infoTab === k ? 'bg-stone-700 text-white' : 'bg-stone-900/85 text-white/45'}`}>{label}</button>
-          ))}
-        </div>
-
-        {/* 惡魔的偽裝 */}
-        <div className={`${infoTab === 'bluffs' ? 'flex' : 'hidden'} lg:flex flex-col items-center space-y-2 pointer-events-auto bg-stone-800/80 border-2 border-rose-900/80 p-3 pb-2 rounded-b-xl lg:rounded-xl shadow-lg backdrop-blur-md`}>
-          <h3 className="hidden lg:block text-lg font-bold text-red-400/90 uppercase tracking-widest border-b border-white/30 pb-1 w-full text-center">惡魔的偽裝</h3>
-          <div className="grid grid-cols-3 gap-2 w-full">
-            {[0, 1, 2].map(i => {
-              const roleId = bluffs[i];
-              const role = roleId ? script?.roles.find(r => r.id === roleId) : null;
-              return (
-                <div
-                  key={i}
-                  className="flex flex-col items-center cursor-pointer group min-w-0 relative"
-                  onClick={() => openModal("bluff", i)}
-                  onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); } }}
-                  onMouseLeave={() => setHoveredRoleTooltip(null)}
-                >
-                  <div className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden transition-all ${roleId ? 'border-red-900 bg-black hover:border-red-500' : 'border-red-500/40 border-dashed bg-black/60 hover:border-red-400'}`}>
-                    {role ? (
-                      <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] group-hover:scale-105 transition-transform" />
-                    ) : (
-                      <span className="text-red-500/60 text-lg font-bold group-hover:text-red-400">空</span>
-                    )}
-                  </div>
-                  {role && <span className="text-base font-bold text-red-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 傳奇角色 */}
-        <div className={`${infoTab === 'fabled' ? 'flex' : 'hidden'} lg:flex flex-col bg-stone-800/80 border-2 border-yellow-400 rounded-b-xl lg:rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md`}>
-          <h3 className="hidden lg:block text-lg font-bold text-yellow-500/80 mb-2 border-b border-yellow-500/20 pb-1 text-center uppercase tracking-widest cursor-pointer hover:text-yellow-400" onClick={() => openModal("fabled")}>傳奇角色</h3>
-          <div className="grid grid-cols-3 gap-2 w-full">
-            {[0, 1, 2].map(i => {
-              const roleId = fabled[i];
-              const role = roleId ? Object.values(AllRoles).find(r => r.id === roleId) : null;
-              return (
-                <div
-                  key={i}
-                  className="flex flex-col items-center cursor-pointer group min-w-0 relative hover:z-[9999]"
-                  onClick={() => openModal("fabled", i)}
-                  onMouseEnter={(e) => { if (role) { const rect = e.currentTarget.getBoundingClientRect(); setHoveredRoleTooltip({ role, x: rect.left + rect.width / 2, y: rect.bottom }); } }}
-                  onMouseLeave={() => setHoveredRoleTooltip(null)}
-                >
-                  <div className={`w-full aspect-square max-w-[84px] rounded-full border-2 flex items-center justify-center shadow-lg relative overflow-hidden transition-all ${roleId ? 'border-yellow-500/50 bg-black/80 hover:border-yellow-400' : 'border-yellow-500/40 border-dashed bg-black/50 hover:border-yellow-400'}`}>
-                    {role ? (
-                      <>
-                        <RoleIcon icon={role.icon} className="w-full h-full object-cover bg-[radial-gradient(circle_at_center,_#f4e5c5_0%,_#dcb37b_100%)] group-hover:scale-105 transition-transform" />
-                        <div className="absolute inset-0 bg-red-900/80 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity text-xl font-bold" onClick={(e) => { e.stopPropagation(); updateFabledIndex(roomId, i, null); }}>✕</div>
-                      </>
-                    ) : (
-                      <span className="text-yellow-500/60 text-3xl group-hover:text-yellow-400 font-bold">+</span>
-                    )}
-                  </div>
-                  {role && <span className="text-base font-bold text-yellow-400/90 uppercase tracking-widest mt-1 truncate w-full text-center">{role.name}</span>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Spacer to push the rest to bottom（僅直欄模式） */}
-        <div className="hidden lg:block flex-1 min-h-[1rem]" />
-
-        {/* 房間資訊 */}
-        <div className={`${infoTab === 'room' ? 'flex' : 'hidden'} lg:flex flex-col items-center bg-stone-800/80 border-2 border-white/40 rounded-b-xl lg:rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md space-y-3`}>
-          <div className="flex justify-start w-full items-center">
-            <span className="text-lg text-white/50 tracking-widest uppercase mr-2">Room :</span>
-            <span className="font-mono text-white text-lg font-bold">{roomId}</span>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                const btn = document.getElementById('copy-url-btn-grim');
-                if (btn) {
-                  const originalText = btn.innerText;
-                  btn.innerText = '已複製';
-                  btn.classList.add('text-green-400');
-                  setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.remove('text-green-400');
-                  }, 2000);
-                }
-              }}
-              id="copy-url-btn-grim"
-              className="ml-auto text-sm bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 px-2 py-1 rounded transition-colors"
-            >
-              複製網址
-            </button>
-          </div>
-          <button 
-            onClick={onOpenScriptModal}
-            className="w-full py-2 bg-[rgba(68,64,60,0.8)] border border-white/30 text-[#ff6b6b] hover:text-[#ff8b8b] hover:bg-[rgba(68,64,60,0.9)] rounded-lg shadow-md font-bold font-serif transition-colors text-lg px-2 flex items-center justify-center space-x-2 overflow-hidden group"
-          >
-            {script?.id && (
-              <img 
-                src={scriptLogoSrc(script)} 
-                alt="Script" 
-                className="w-24 h-auto max-h-20 object-contain shrink-0 drop-shadow-md py-1" 
-                onError={(e) => { e.currentTarget.style.display = 'none'; }} 
-              />
-            )}
-            <div className="flex flex-col items-center justify-center min-w-0 flex-1">
-              {script?.name ? (
-                <>
-                  <span className="text-base md:text-lg leading-tight w-full text-center break-words">{script.name.split(' ')[0]}</span>
-                  {script.name.split(' ').length > 1 && (
-                    <span className="text-sm md:text-base leading-tight w-full text-center break-words opacity-80">{script.name.split(' ').slice(1).join(' ')}</span>
-                  )}
-                </>
-              ) : (
-                <span className="text-lg text-center leading-tight truncate w-full">未知劇本</span>
-              )}
-            </div>
-          </button>
-          <button onClick={onLeaveRoom} className="w-full text-lg px-4 py-2 bg-red-900/80 hover:bg-red-800/90 border border-red-500/50 text-red-200 rounded-md transition-colors font-bold">
-            離開房間
-          </button>
-        </div>
-        </div>
-      </div>
+        <RoomInfoCard roomId={roomId} script={script} onOpenScriptModal={onOpenScriptModal} onLeaveRoom={onLeaveRoom} activeTab={infoTab} />
+      </InfoSidebar>
 
       {/* 座位區 */}
       <div ref={boardWrapRef} className="absolute left-0 right-0 top-[82px] bottom-[150px] lg:left-0 lg:right-[17rem] 2xl:right-[19rem] lg:top-2 lg:bottom-1 flex items-center justify-center pointer-events-none">
