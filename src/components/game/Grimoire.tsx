@@ -8,6 +8,8 @@ import { AllRoles } from "../../data/roles";
 import { scriptLogoSrc } from "../../lib/scriptAssets";
 import { RoleSelectionModal } from "./RoleSelectionModal";
 import { SeatTokenModal } from './SeatTokenModal';
+import { ScriptSpecialRulesModal } from './ScriptSpecialRulesModal';
+import { SpecialRulesBadge, SpecialRulesCard } from './ScriptSpecialRulesTriggers';
 import { InfoSidebar, CampStatsCard, BluffsCard, FabledCard, RoomInfoCard, RoleSlot, InfoSpacer } from './info-panel/InfoPanels';
 import type { InfoTab, HoveredRole } from './info-panel/InfoPanels';
 import type { SeatToken } from './SeatTokenModal';
@@ -66,6 +68,7 @@ export const Grimoire = ({
   const [infoTab, setInfoTab] = useState<InfoTab>('bluffs');
   // hover 座位或其筆記時，將該座位的筆記層級提高、壓過其他座位的筆記
   const [hoverSeat, setHoverSeat] = useState<number | null>(null);
+  const [isSpecialRulesOpen, setSpecialRulesOpen] = useState(false);
 
   const { boardWrapRef, boardPx, seatPx, seatCfg, tokenBaseSeatPx, badgePx, getSeatStyle } = useSeatLayout(seatCount);
 
@@ -114,6 +117,8 @@ export const Grimoire = ({
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       
+      <SpecialRulesBadge script={script} onOpen={() => setSpecialRulesOpen(true)} />
+
       <InfoSidebar
         activeTab={infoTab}
         onTabChange={setInfoTab}
@@ -404,7 +409,8 @@ export const Grimoire = ({
       </div>
 
       {/* 左下角說書人資訊 */}
-      <div className="absolute left-0.5 bottom-7 lg:left-[36px] lg:bottom-[1px] z-20 w-[220px] pointer-events-none lg:pb-6 hidden lg:flex flex-col justify-end">
+      <div className="absolute left-0.5 bottom-7 lg:left-[36px] lg:bottom-[1px] z-20 w-[220px] pointer-events-none lg:pb-6 hidden lg:flex flex-col justify-end gap-3">
+        <SpecialRulesCard script={script} onOpen={() => setSpecialRulesOpen(true)} />
         <div className="bg-stone-800/80 border-2 border-white/40 rounded-xl p-3 shadow-lg pointer-events-auto backdrop-blur-md flex w-full space-x-3 items-center shrink-0">
            <div className="w-12 h-12 rounded-full border-2 border-blue-400/50 shadow-md flex items-center justify-center bg-blue-900/40 shrink-0">
              <span className="text-xl font-serif text-blue-200">GM</span>
@@ -417,6 +423,11 @@ export const Grimoire = ({
       </div>
 
       <RoleTooltip hoveredRole={hoveredRoleTooltip} />
+      <ScriptSpecialRulesModal
+        isOpen={isSpecialRulesOpen}
+        onClose={() => setSpecialRulesOpen(false)}
+        script={script}
+      />
       <RoleSelectionModal 
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)} 

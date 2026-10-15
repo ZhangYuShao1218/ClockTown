@@ -18,7 +18,7 @@ export const ScriptSpecialRulesModal = ({ isOpen, onClose, script }: ScriptSpeci
         {rules.map((rule, i) => (
           <div key={i}>
             <h3 className="text-amber-400 font-bold text-[26px] flex items-center gap-2">
-              <img src="/assets/ui/SpecialDramaRule.png" className="w-8 h-8 object-contain shrink-0" alt="" />
+              <img src={rule.icon || "/assets/ui/SpecialDramaRule.png"} className={`${rule.icon ? "w-12 h-12" : "w-8 h-8"} object-contain shrink-0`} alt="" />
               {rule.title}
             </h3>
             <div className="mt-3 mb-5 h-px bg-amber-500/30" />
