@@ -3,6 +3,10 @@ import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution,
 import { AlertDialog } from "../common/AlertDialog";
 import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { AllScripts } from "../../data/scripts";
+import { AllRoles } from "../../data/roles";
+import { countBoardDistribution, compareDistribution } from "../../lib/boardDistribution";
+import type { DistributionComparison } from "../../lib/boardDistribution";
+import { DistributeConfirmDialog } from "./DistributeConfirmDialog";
 import type { Script } from "../../data/types";
 
 
@@ -58,6 +62,8 @@ export const GrimoireSettings = ({
   const [addError, setAddError] = useState<string | null>(null);
   const [isScriptSelectionOpen, setScriptSelectionOpen] = useState(false);
   const [missingSeatAlert, setMissingSeatAlert] = useState<string | null>(null);
+  // 分配前的確認視窗：列出版面與設置數量，不符時醒目提醒（不阻止分配，只要求說書人再按一次確定）
+  const [distributeConfirm, setDistributeConfirm] = useState<DistributionComparison | null>(null);
 
   const handleDistribute = async () => {
     // 檢查是否有空位
@@ -73,7 +79,12 @@ export const GrimoireSettings = ({
       return;
     }
     
-    // 如果沒缺，正式分配角色
+    // 一律跳出確認視窗，列出版面與設置數量；按下確定後才真正分配
+    const board = countBoardDistribution(grimoireState || {}, seatCount, (roleId) => script?.roles.find(r => r.id === roleId) ?? AllRoles[roleId]);
+    setDistributeConfirm(compareDistribution(board, distribution || []));
+  };
+
+  const performDistribute = async () => {
     const playersDict: Record<string, any> = {};
     players.forEach(p => playersDict[p.uid] = p);
     await distributeRoles(roomId, playersDict, grimoireState || {}, bluffs, script, safeSettings);
@@ -552,6 +563,11 @@ export const GrimoireSettings = ({
         onClose={() => setMissingSeatAlert(null)} 
         onConfirm={() => setMissingSeatAlert(null)} 
         message={missingSeatAlert || ""} 
+      />
+      <DistributeConfirmDialog
+        comparison={distributeConfirm}
+        onClose={() => setDistributeConfirm(null)}
+        onConfirm={performDistribute}
       />
     </div>
   );
