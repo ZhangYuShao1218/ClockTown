@@ -18,6 +18,12 @@ import { MiYingXunZong } from './mi_ying_xun_zong';
 import { WuYeLieChe } from './wu_ye_lie_che';
 import { XunWuQiLv } from './xun_wu_qi_lv';
 import { WangHaiMiYuan } from './wang_hai_mi_yuan';
+import { DaoGuangJianYing } from './dao_guang_jian_ying';
+import { YingSuHuaKai } from './ying_su_hua_kai';
+import { GuangYuYing } from './guang_yu_ying';
+import { EMoXueYuan } from './e_mo_xue_yuan';
+import { CaiFengYuBaoLuan } from './cai_feng_yu_bao_luan';
+import { YaoYingLeMa } from './yao_ying_le_ma';
 
 const RawScripts: Record<string, Script> = {
   trouble_brewing: TroubleBrewing,
@@ -37,7 +43,13 @@ const RawScripts: Record<string, Script> = {
   mi_ying_xun_zong: MiYingXunZong,
   wu_ye_lie_che: WuYeLieChe,
   xun_wu_qi_lv: XunWuQiLv,
-  wang_hai_mi_yuan: WangHaiMiYuan
+  wang_hai_mi_yuan: WangHaiMiYuan,
+  dao_guang_jian_ying: DaoGuangJianYing,
+  ying_su_hua_kai: YingSuHuaKai,
+  guang_yu_ying: GuangYuYing,
+  e_mo_xue_yuan: EMoXueYuan,
+  cai_feng_yu_bao_luan: CaiFengYuBaoLuan,
+  yao_ying_le_ma: YaoYingLeMa
 };
 
 /** 對外一律使用此份：已套用各劇本 roleOverrides 的角色能力覆寫 */
@@ -63,3 +75,9 @@ export * from './mi_ying_xun_zong';
 export * from './wu_ye_lie_che';
 export * from './xun_wu_qi_lv';
 export * from './wang_hai_mi_yuan';
+export * from './dao_guang_jian_ying';
+export * from './ying_su_hua_kai';
+export * from './guang_yu_ying';
+export * from './e_mo_xue_yuan';
+export * from './cai_feng_yu_bao_luan';
+export * from './yao_ying_le_ma';

@@ -1,6 +1,6 @@
 import type { Role } from '../types';
 
-// ================= 惡魔 (demon) — 29 個 =================
+// ================= 惡魔 (demon) — 28 個 =================
 export const Demons: Record<string, Role> = {
   'kazali': { id: 'kazali', name: '卡扎力', alignment: 'evil', type: 'demon', icon: '/character/character_kazali_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。[由你決定誰是什麼爪牙，-或+任意數量外來者]', flavor: '你自暗處點選爪牙，親手佈置這盤棋。此後每一夜，你的手指落在誰身上，誰就得死。', firstNight: 1000, otherNight: 7750, firstNightReminder: '喚醒卡扎力，讓他選擇玩家變成邪惡爪牙。', otherNightReminder: '喚醒卡扎力，讓他攻擊一名玩家。', reminders: ['死亡'], setup: true },
   'lord_of_typhon': { id: 'lord_of_typhon', name: '堤豐之首', alignment: 'evil', type: 'demon', icon: '/character/character_lord_of_typhon_demon.png', ability: '每個夜晚*，你要選擇一名玩家：他死亡。[邪惡角色全部鄰座，你位於正中，+1爪牙，-或+任意數量外來者]', flavor: '你是群魔之首，眾爪牙環繞在你兩側。每一夜，你伸手一指，便有人斷了氣。', firstNight: 90, otherNight: 7800, firstNightReminder: '將位於堤豐之首兩側的對應數量的玩家變成邪惡的爪牙，並分別喚醒他們通知他們的角色和陣營變化。', otherNightReminder: '喚醒堤豐之首，讓他攻擊一名玩家。', reminders: ['死亡'], setup: true },

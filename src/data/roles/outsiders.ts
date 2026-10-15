@@ -1,6 +1,6 @@
 import type { Role } from '../types';
 
-// ================= 外來者 (outsider) — 32 個 =================
+// ================= 外來者 (outsider) — 33 個 =================
 export const Outsiders: Record<string, Role> = {
   'snitch': { id: 'snitch', name: '告密者', alignment: 'good', type: 'outsider', icon: '/character/character_snitch_outsider.png', ability: '爪牙會在其首個夜晚得知三個偽裝。', flavor: '你藏不住秘密。開局之際，爪牙們便因你之口得知了三個偽裝。', firstNight: 2100, firstNightReminder: '如果告密者在場，對爪牙展示三個不在場的善良角色標記。' },
   'lunatic': { id: 'lunatic', name: '瘋子', alignment: 'good', type: 'outsider', icon: '/character/character_lunatic_outsider.png', ability: '你以為你是一個惡魔，但其實你不是。惡魔知道你是瘋子以及你在每個夜晚選擇了哪些玩家。', flavor: '你堅信自己是惡魔，夜夜「行兇」。真正的惡魔卻在暗處，冷眼看你的鬧劇。', firstNight: 2300, otherNight: 4200, firstNightReminder: '如果有七名或更多玩家，喚醒瘋子：展示“他們是你的爪牙”信息標記。指向任意對應數量的玩家。展示“這些角色不在場”信息標記。展示三個善良角色。讓瘋子重新入睡。喚醒惡魔。展示“你是”信息標記和惡魔角色標記。展示“這名玩家是”信息標記和瘋子角色標記，然後指向瘋子玩家。', otherNightReminder: '做任何需要做的事情來模擬一位惡魔的行動。讓瘋子重新入睡。喚醒惡魔。對惡魔展示瘋子角色標記，並指向瘋子玩家，隨後是瘋子的攻擊目標。' },
@@ -31,5 +31,8 @@ export const Outsiders: Record<string, Role> = {
   'shijie': { id: 'shijie', name: '使節', alignment: 'good', type: 'outsider', icon: '/character/character_shijie_outsider.png', ability: '每個夜晚限一次，一名玩家在使用自身能力選擇邪惡玩家時會改為選中你，即使你已死亡。', flavor: '你替人擋下明槍暗箭。每夜一次，射向邪惡之人的能力會改為落在你身上，縱使你已死。', reminders: ['已觸發'] },
   'sweetheart': { id: 'sweetheart', name: '心上人', alignment: 'good', type: 'outsider', icon: '/character/character_sweetheart_outsider.png', ability: '當你死亡時，會有一名玩家開始醉酒。', flavor: '眾人為你傾心。你香消玉殞的那一刻，總有一人因悲慟而神智昏亂。', otherNight: 9700, otherNightReminder: '如果心上人死亡，一名玩家醉酒。', reminders: ['醉酒'] },
   'tinker': { id: 'tinker', name: '修補匠', alignment: 'good', type: 'outsider', icon: '/character/character_tinker_outsider.png', ability: '你隨時可能死亡。', flavor: '你的身子早已零件鬆脫。死亡隨時可能找上你，不需要任何理由。', otherNight: 9200, otherNightReminder: '修補匠可能會死亡。如果說書人選擇讓修補匠死亡，放置死亡標記。' },
+  'wunv': { id: 'wunv', name: '巫女', alignment: 'good', type: 'outsider', icon: '/character/character_wunv_outsider.png', ability: '在你的第一個白天，你會秘密得知一個任務、期限與後果。如果任務未被完成，後果會發生，即使你已死亡。', flavor: '神諭向你低語一道使命與期限。若時辰已到而使命未竟，災厄便會降臨。', reminders: ['任務', '期限', '後果'] },
+  'wuyazui': { id: 'wuyazui', name: '烏鴉嘴', alignment: 'good', type: 'outsider', icon: '/character/character_wuyazui_outsider.png', ability: '可能會有一名善良玩家得知一條不該存在的資訊，即使你已死亡。', flavor: '你一開口，不祥的預言便會應驗。總有人會聽見一句本不該存在的話。', reminders: ['失去能力'] },
+  'xiaoyaogu': { id: 'xiaoyaogu', name: '逍遙谷', alignment: 'good', type: 'outsider', icon: '/character/character_xiaoyaogu_outsider.png', ability: '距離你最遠或者最近的一名善良玩家醉酒，如果你提名並處決了這名玩家，改為一名邪惡玩家醉酒，即使你已死亡。', flavor: '谷中的酒香飄向遠近。被你灌醉的那人，唯有被你送上刑台，醉意才會轉嫁他人。', reminders: ['醉酒'] },
   'zealot': { id: 'zealot', name: '狂熱者', alignment: 'good', type: 'outsider', icon: '/character/character_zealot_outsider.png', flavor: '你信念偏執。只要場上還有五人以上，你就必須在每一次提名中舉手。', ability: '如果有大於等於五名玩家存活，你必須在所有提名中投票。' },
 };

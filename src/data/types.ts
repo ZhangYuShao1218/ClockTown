@@ -31,6 +31,8 @@ export interface ScriptSpecialRule {
   description: string;
   /** 關聯角色 id（供 UI 顯示關聯提示，非必填） */
   relatedRoleIds?: string[];
+  /** 規則圖示路徑（例如劇本專用傳奇改以特殊規則呈現時的圖示）；未提供則用預設特殊規則圖示 */
+  icon?: string;
 }
 
 export interface Script {
