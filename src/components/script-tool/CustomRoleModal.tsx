@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import type { Role, RoleType } from '../../data/types';
+import { ROLE_ICON_OPTIONS, readFileAsDataUrl, resizeImage } from '../../lib/imageResize';
 
 interface CustomRoleModalProps {
   isOpen: boolean;
@@ -68,13 +69,11 @@ export const CustomRoleModal: React.FC<CustomRoleModalProps> = ({
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setIconUrl(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      // 自訂角色圖會隨 customScript 推送給房內每個人，先縮成小圖再存
+      readFileAsDataUrl(file)
+        .then((dataUrl) => resizeImage(dataUrl, ROLE_ICON_OPTIONS))
+        .then(setIconUrl)
+        .catch((err) => console.error("角色圖片處理失敗:", err));
     }
   };
 

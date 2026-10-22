@@ -1,40 +1,10 @@
 import { useRef, useState } from "react";
+import { AVATAR_OPTIONS, readFileAsDataUrl, resizeImage } from "../../lib/imageResize";
 
 // 14 組內建頭像（血染鐘樓風格的插畫，放在 public/avatars/）
 const PRESET_AVATARS = Array.from({ length: 14 }, (_, i) => `/avatars/preset-${String(i + 1).padStart(2, "0")}.png`);
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB，避免手機原圖太大卡住畫布處理
-const OUTPUT_SIZE = 200; // 輸出正方形頭像邊長（px）
-
-/** 把使用者上傳的圖片裁成正方形並壓縮成小尺寸 JPEG data URI，直接存進 Firebase 玩家資料（沒有另外架 Storage） */
-const resizeImageFile = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("檔案讀取失敗"));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("圖片讀取失敗，請確認檔案格式"));
-      img.onload = () => {
-        const size = Math.min(img.width, img.height);
-        const sx = (img.width - size) / 2;
-        const sy = (img.height - size) / 2;
-        const canvas = document.createElement("canvas");
-        canvas.width = OUTPUT_SIZE;
-        canvas.height = OUTPUT_SIZE;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("瀏覽器不支援圖片處理"));
-          return;
-        }
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-};
-
 // 外框統一用 inset box-shadow（畫在圖片內側）取代 border，蓋住縮圖邊緣可能殘留的一絲透明留白
 const RING_SELECTED = "shadow-[inset_0_0_0_2px_#fbbf24,0_0_10px_rgba(251,191,36,0.5)]";
 const RING_IDLE = "shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.15)]";
@@ -68,7 +38,8 @@ export const AvatarPicker = ({ value, onChange }: AvatarPickerProps) => {
     setUploadError("");
     setIsProcessing(true);
     try {
-      const dataUrl = await resizeImageFile(file);
+      // 裁成正方形並壓縮成小尺寸 JPEG data URI，直接存進 Firebase 玩家資料
+      const dataUrl = await resizeImage(await readFileAsDataUrl(file), AVATAR_OPTIONS);
       onChange(dataUrl);
     } catch (err: any) {
       setUploadError(err.message || "圖片處理失敗，請換一張再試");
