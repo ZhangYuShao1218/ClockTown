@@ -155,9 +155,10 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
         </div>
 
         {pageKeys.length === 0 ? (
-          <div className="py-16 text-center text-slate-500">找不到符合「{query}」的劇本</div>
+          <div className="flex items-center justify-center py-16 sm:py-0 sm:h-[948px] lg:h-[624px] mb-2 text-center text-slate-500">找不到符合「{query}」的劇本</div>
         ) : (
-          <div className="flex min-h-[240px] sm:min-h-[320px] flex-wrap content-start justify-center gap-3 sm:gap-6 pb-2">
+          // 固定格線：桌機 3×2、平板 2×3 的卡片欄列都預留滿 6 個，劇本不足一頁時視窗不縮小，且由左至右排列
+          <div className="grid grid-cols-1 justify-items-center content-start gap-3 sm:grid-cols-[repeat(2,280px)] sm:grid-rows-[repeat(3,300px)] sm:justify-center sm:gap-6 lg:grid-cols-[repeat(3,280px)] lg:grid-rows-[repeat(2,300px)] pb-2">
             {pageKeys.map(key => {
               const script = AllScripts[key];
               const isSelected = key === currentScriptId;
@@ -239,41 +240,39 @@ export const ScriptSelectionModal = ({ isOpen, onClose, currentScriptId, onSelec
           </div>
         )}
 
-        {/* Pagination */}
-        {pageCount > 1 && (
-          <div className="flex items-center justify-center gap-2 pb-4 pt-2">
+        {/* Pagination（只有一頁時用 invisible 保留高度，視窗大小不變） */}
+        <div className={`flex items-center justify-center gap-2 pb-4 pt-2 ${pageCount > 1 ? '' : 'invisible'}`}>
+          <button
+            type="button"
+            onClick={() => goPage(Math.max(0, safePage - 1))}
+            disabled={safePage === 0}
+            className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 transition-colors duration-200 hover:border-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            上一頁
+          </button>
+          {Array.from({ length: pageCount }).map((_, i) => (
             <button
+              key={i}
               type="button"
-              onClick={() => goPage(Math.max(0, safePage - 1))}
-              disabled={safePage === 0}
-              className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 transition-colors duration-200 hover:border-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              onClick={() => goPage(i)}
+              className={`h-8 w-8 rounded-lg border text-sm font-bold transition-colors duration-200 ${
+                i === safePage
+                  ? 'border-indigo-400 bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]'
+                  : 'border-slate-600 bg-slate-900 text-slate-300 hover:border-slate-300 hover:text-white'
+              }`}
             >
-              上一頁
+              {i + 1}
             </button>
-            {Array.from({ length: pageCount }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => goPage(i)}
-                className={`h-8 w-8 rounded-lg border text-sm font-bold transition-colors duration-200 ${
-                  i === safePage
-                    ? 'border-indigo-400 bg-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]'
-                    : 'border-slate-600 bg-slate-900 text-slate-300 hover:border-slate-300 hover:text-white'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => goPage(Math.min(pageCount - 1, safePage + 1))}
-              disabled={safePage === pageCount - 1}
-              className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 transition-colors duration-200 hover:border-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              下一頁
-            </button>
-          </div>
-        )}
+          ))}
+          <button
+            type="button"
+            onClick={() => goPage(Math.min(pageCount - 1, safePage + 1))}
+            disabled={safePage === pageCount - 1}
+            className="rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 transition-colors duration-200 hover:border-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            下一頁
+          </button>
+        </div>
       </div>
     </Modal>
   );
