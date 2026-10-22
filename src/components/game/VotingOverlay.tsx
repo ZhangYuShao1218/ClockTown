@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { updateVotingState, updatePlayerVote } from '../../services/roomService';
 import type { VotingState, SeatStatus } from '../../data/types';
 
@@ -30,6 +31,12 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   const [timeSetting, setTimeSetting] = useState<number>(1250); // Default 1.25 second
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
   const requestRef = useRef<number>(0);
+  // 本地收合投票面板（避免擋住座位筆記）；換新提名或切換階段時自動展開，避免錯過投票
+  const [isPanelHidden, setIsPanelHidden] = useState(false);
+
+  useEffect(() => {
+    setIsPanelHidden(false);
+  }, [nominatorSeat, nomineeSeat, phase]);
 
   const aliveCount = seats.filter(s => !seatStatus[s]?.isDead).length;
   const requiredVotes = Math.ceil(aliveCount / 2);
@@ -195,6 +202,25 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
   const blueHeight = radius * 1.11;
   const redHeight = radius * 0.86;
 
+  // 分隔線 + 正中間的收合按鈕。按鈕用 visible 覆寫父層 invisible，面板隱藏時仍留在原位可再按回來
+  const toggleDivider = (
+    <div className="relative w-full flex items-center justify-center my-5">
+      <div className="w-[85%] h-[3px] bg-gradient-to-r from-transparent via-stone-300 to-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
+      <button
+        onClick={() => setIsPanelHidden(h => !h)}
+        title={isPanelHidden ? '顯示投票視窗' : '隱藏投票視窗'}
+        aria-label={isPanelHidden ? '顯示投票視窗' : '隱藏投票視窗'}
+        className={`visible pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center bg-stone-900 border-2 ring-1 ring-black shadow-md transition-colors duration-200 ${
+          isPanelHidden
+            ? 'border-amber-700/80 text-amber-400 hover:text-amber-300'
+            : 'border-stone-500 text-stone-300 hover:text-amber-400 hover:border-amber-800'
+        }`}
+      >
+        {isPanelHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+
   if (!phase || (phase === 'idle' && typeof nomineeSeat !== 'number') || (phase === 'selecting_nominee' && !isHost && typeof nominatorSeat !== 'number')) return null;
 
   return (
@@ -204,7 +230,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       {typeof nominatorSeat === 'number' && (
         <img 
           src="/assets/ui/Blue_Pointer_clean.png"
-          className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-md"
+          className={`absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-0 opacity-90 drop-shadow-md ${isPanelHidden ? 'invisible' : ''}`}
           style={{ 
             height: `${blueHeight}%`,
             transform: `translate(-50%, -20%) rotate(${(((nominatorSeat - 1) / totalSeats) * 360) + 180}deg)`
@@ -217,7 +243,7 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       {typeof nominatorSeat === 'number' && (
         <img 
           src="/assets/ui/Red_Pointer_clean.png"
-          className="absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-10 drop-shadow-md"
+          className={`absolute left-1/2 top-1/2 w-auto max-w-none origin-[50%_20%] object-contain z-10 drop-shadow-md ${isPanelHidden ? 'invisible' : ''}`}
           style={{ 
             height: `${redHeight}%`,
             transform: `translate(-50%, -20%) rotate(${(phase === 'voting' && startTime ? currentAngle : ((((typeof nomineeSeat === 'number' ? nomineeSeat : nominatorSeat) - 1) / totalSeats) * 360 - 90)) + 270}deg)`,
@@ -228,8 +254,8 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
       )}
 
       {/* Central Panel (Transparent background) */}
-      <div className="relative z-10 w-full max-w-2xl flex flex-col items-center pointer-events-auto mt-8">
-        
+      {/* 隱藏時：整個面板 invisible 保留版面（按鈕不跳動），並關掉子元素 transition，讓上下半部同時消失 */}
+      <div className={`relative z-10 w-full max-w-2xl flex flex-col items-center mt-8 ${isPanelHidden ? 'invisible pointer-events-none [&_*]:!transition-none' : 'pointer-events-auto'}`}>
         {phase === 'selecting_nominee' && (
           <h2 className="text-3xl font-bold text-white mb-4 font-serif tracking-widest text-center animate-pulse drop-shadow-[0_4px_4px_rgba(0,0,0,1)]" style={{ animationDuration: '3s' }}>
             {isHost ? '請選擇被提名人...' : '等待發起提名...'}
@@ -267,12 +293,8 @@ export const VotingOverlay: React.FC<VotingOverlayProps> = ({
               </div>
             )}
             
-            {/* Spacing and Divider */}
-            {phase === 'idle' && (
-              <div className="w-full flex flex-col items-center">
-                <div className="w-[85%] h-[3px] bg-gradient-to-r from-transparent via-stone-300 to-transparent my-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
-              </div>
-            )}
+            {/* Spacing and Divider（正中間為收合按鈕；選擇被提名人階段不需收合） */}
+            {phase !== 'selecting_nominee' && toggleDivider}
 
             {/* Actions */}
             {phase === 'idle' && isHost && (
