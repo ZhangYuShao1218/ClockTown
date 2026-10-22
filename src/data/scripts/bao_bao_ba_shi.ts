@@ -8,17 +8,9 @@ export const BaoBaoBaShi: Script = {
   recommendedPlayers: "5 - 15",
   difficulty: "入門",
   author: "太一",
-  specialRules: [
-    {
-      title: '女裁縫替換藝術家',
-      description: '如果玩家整體水平較高，建議使用女裁縫替代藝術家。劇本難度會有一定提升，對局會更加平衡。',
-      relatedRoleIds: ['seamstress', 'artist'],
-    },
-    {
-      title: '相剋規則：玩偶與告密者',
-      description: '玩偶不會獲得不在場角色，遊戲開始時惡魔會替代玩偶獲得 3 個不在場角色。',
-      relatedRoleIds: ['wanou', 'snitch'],
-    },
+  jinxes: [
+    { role1: 'seamstress', role2: 'artist', reason: '如果玩家整體水平較高，建議使用女裁縫替代藝術家。劇本難度會有一定提升，對局會更加平衡。' },
+    { role1: 'wanou', role2: 'snitch', reason: '玩偶不會獲得不在場角色，遊戲開始時惡魔會替代玩偶獲得 3 個不在場角色。' },
   ],
   roles: [
     // 鎮民 14（女裁縫為藝術家的替換選項）

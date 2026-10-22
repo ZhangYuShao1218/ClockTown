@@ -45,6 +45,12 @@ export const RoleInfoModal = ({ isOpen, onClose, script }: RoleInfoModalProps) =
   const getJinxPartners = (roleId: string): Array<{ other: Role; reason: string }> => {
     const out: Array<{ other: Role; reason: string }> = [];
     const seen = new Set<string>();
+    // 劇本專屬相剋（Script.jinxes）優先於全域官方相剋
+    for (const j of script.jinxes ?? []) {
+      const otherId = j.role1 === roleId ? j.role2 : j.role2 === roleId ? j.role1 : null;
+      const other = otherId ? roleById.get(otherId) : undefined;
+      if (other && !seen.has(other.id)) { out.push({ other, reason: j.reason }); seen.add(other.id); }
+    }
     for (const j of OfficialJinxes[roleId] ?? []) {
       const other = roleById.get(j.with);
       if (other && !seen.has(other.id)) { out.push({ other, reason: j.reason }); seen.add(other.id); }
