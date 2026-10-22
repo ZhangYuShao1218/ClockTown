@@ -1,6 +1,6 @@
 import type { Role } from '../types';
 
-// ================= 爪牙 (minion) — 43 個 =================
+// ================= 爪牙 (minion) — 44 個 =================
 export const Minions: Record<string, Role> = {
   'baibijuren': { id: 'baibijuren', name: '百臂巨人', alignment: 'evil', type: 'minion', icon: '/character/character_baibijuren_minion.png', ability: '如果你死於處決，所有玩家都會得知此事，當你投票時，你的票數等於你死於處決時所獲得的票數。', flavor: '你被眾人的手送上刑台，也將以眾人之手回擊。每一隻舉起的手，都會化為你的臂膀。', reminders: ['死於處決'] },
   'boffin': { id: 'boffin', name: '科學怪人', alignment: 'evil', type: 'minion', icon: '/character/character_boffin_minion.png', ability: '惡魔擁有一個不在場的善良角色的能力，即使他醉酒或中毒。你和他都知道他獲得了什麼能力。', flavor: '你在實驗室縫合善與惡。你賦予惡魔一項本不屬於它的力量，你倆心知肚明。', firstNight: 110, firstNightReminder: '（分別或同時）喚醒科學怪人和惡魔，通知他們惡魔因為科學怪人而獲得的善良角色的能力。', setup: true },
@@ -45,4 +45,5 @@ export const Minions: Record<string, Role> = {
   'xiaji': { id: 'xiaji', name: '夏基', alignment: 'evil', type: 'minion', icon: '/character/character_xiaji_minion.png', ability: '每局遊戲限一次，在夜晚時，你可以選擇一名玩家：他中毒且你獲得他的能力。', flavor: '你嗅得到別人身上的天賦。一口咬下，他的力量便歸你所有，只留下毒傷。', firstNight: 5300, otherNight: 1600, firstNightReminder: '喚醒夏基，他可以搖頭不使用能力，或選擇一名玩家。如果他選擇了玩家，標記該玩家中毒，夏基獲得他的能力。', otherNightReminder: '如果夏基未曾使用能力，喚醒夏基，他可以搖頭不使用能力，或選擇一名玩家。如果他選擇了玩家，標記該玩家中毒，夏基獲得他的能力。', reminders: ['中毒', '失去能力'] },
   'xueyuanzhang': { id: 'xueyuanzhang', name: '學院長', alignment: 'evil', type: 'minion', icon: '/character/character_xueyuanzhang_minion.png', ability: '在你的首個白天，拜訪並告知說書人一項新的可以獲得進修點的任務，一名善良玩家可能會得知一些相關的線索。', flavor: '你執掌惡魔學院的教務。你親手寫下的新課題，將成為惡魔晉升的階梯。', reminders: ['得知'], setup: true },
   'yangguren': { id: 'yangguren', name: '養蠱人', alignment: 'evil', type: 'minion', icon: '/character/character_yangguren_minion.png', ability: '在你存活時提名你的玩家會在當晚死亡，即使你已死亡。', flavor: '你在甕中豢養毒蠱。凡在你活著時提名你的人，當夜難逃一死，哪怕你早已入土。', otherNight: 8800, otherNightReminder: '今天白天提名了存活的養蠱人的玩家死亡。', reminders: ['蠱'] },
+  'wanou': { id: 'wanou', name: '玩偶', alignment: 'evil', type: 'minion', icon: '/character/character_wanou_minion.png', ability: '你以為你是一個善良角色，但其實你不是。如果你被惡魔殺死，惡魔要選擇一名玩家：他變成玩偶。[玩偶會與惡魔鄰座]', flavor: '你抱著自己是好人的念頭入睡，卻不知身上縫著惡魔的線。你倒下了，還會有新的玩偶。', firstNight: 3210, otherNight: 5660, firstNightReminder: '如果玩偶在場，對惡魔展示玩偶角色標記並指向玩偶玩家。', otherNightReminder: '如果玩偶今晚被惡魔殺死，喚醒惡魔，讓他選擇一名玩家：該玩家變成玩偶（不告知該玩家）。', setup: true },
 };

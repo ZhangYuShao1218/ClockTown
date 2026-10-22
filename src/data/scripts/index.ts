@@ -24,6 +24,9 @@ import { GuangYuYing } from './guang_yu_ying';
 import { EMoXueYuan } from './e_mo_xue_yuan';
 import { CaiFengYuBaoLuan } from './cai_feng_yu_bao_luan';
 import { YaoYingLeMa } from './yao_ying_le_ma';
+import { JiuRiShuShi } from './jiu_ri_shu_shi';
+import { BaoBaoBaShi } from './bao_bao_ba_shi';
+import { JiLiuYongJin } from './ji_liu_yong_jin';
 
 const RawScripts: Record<string, Script> = {
   trouble_brewing: TroubleBrewing,
@@ -49,7 +52,10 @@ const RawScripts: Record<string, Script> = {
   guang_yu_ying: GuangYuYing,
   e_mo_xue_yuan: EMoXueYuan,
   cai_feng_yu_bao_luan: CaiFengYuBaoLuan,
-  yao_ying_le_ma: YaoYingLeMa
+  yao_ying_le_ma: YaoYingLeMa,
+  jiu_ri_shu_shi: JiuRiShuShi,
+  bao_bao_ba_shi: BaoBaoBaShi,
+  ji_liu_yong_jin: JiLiuYongJin
 };
 
 /** 對外一律使用此份：已套用各劇本 roleOverrides 的角色能力覆寫 */
@@ -81,3 +87,6 @@ export * from './guang_yu_ying';
 export * from './e_mo_xue_yuan';
 export * from './cai_feng_yu_bao_luan';
 export * from './yao_ying_le_ma';
+export * from './jiu_ri_shu_shi';
+export * from './bao_bao_ba_shi';
+export * from './ji_liu_yong_jin';
