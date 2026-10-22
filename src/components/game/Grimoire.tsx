@@ -299,7 +299,7 @@ export const Grimoire = ({
                       </div>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center group-hover/token:hidden absolute inset-0">
-                        <span className="text-center font-extrabold leading-none w-[90%] break-all" style={{ fontSize: `${tokenSize * 0.24}px`, color: '#ffffff', WebkitTextStroke: '0.3px #000000', textShadow: '0 1px 3px rgba(0,0,0,0.8)', lineHeight: '1.2' }}>
+                        <span className="text-center font-extrabold leading-none w-[90%] break-all" style={{ fontSize: `calc(${tokenSize * 0.24}px - 1pt)`, color: '#ffffff', WebkitTextStroke: '0.3px #000000', textShadow: '0 1px 3px rgba(0,0,0,0.8)', lineHeight: '1.2' }}>
                           {currentTokens[i].content}
                         </span>
                       </div>
