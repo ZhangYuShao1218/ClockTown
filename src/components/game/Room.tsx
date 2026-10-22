@@ -114,6 +114,8 @@ export const Room = () => {
   }, [gameState?.public?.activeSetupId]);
 
   const hasJoinedRef = useRef(false);
+  const roomAliveRef = useRef(false);
+  roomAliveRef.current = !!gameState;
 
   useEffect(() => {
     if (!user || !id || !gameState || hasJoinedRef.current) return;
@@ -137,13 +139,27 @@ export const Room = () => {
   useEffect(() => {
     if (!user || !id) return;
 
+    let cancelled = false;
+    let cancelOnDisconnect: (() => void) | null = null;
+    let markOffline: (() => void) | null = null;
     import("firebase/database").then(({ onDisconnect, update }) => {
       import("../../services/firebase").then(({ nref }) => {
+        if (cancelled) return;
         const playerOnlineRef = nref(`rooms/${id}/players/${user.uid}/isOnline`);
         update(nref(), { [`rooms/${id}/players/${user.uid}/isOnline`]: true });
-        onDisconnect(playerOnlineRef).set(false);
+        const handler = onDisconnect(playerOnlineRef);
+        handler.set(false);
+        cancelOnDisconnect = () => { handler.cancel().catch(() => {}); };
+        markOffline = () => { update(nref(), { [`rooms/${id}/players/${user.uid}/isOnline`]: false }).catch(() => {}); };
       });
     });
+    // 離開房間頁時取消斷線處理：否則房間被刪除後連線一斷，會在已刪除的房間路徑下重建 players/{uid}/isOnline 殘骸
+    // 改為離開頁面時自行標記離線，但房間已被刪除就不寫（同樣避免重建殘骸）
+    return () => {
+      cancelled = true;
+      cancelOnDisconnect?.();
+      if (roomAliveRef.current) markOffline?.();
+    };
   }, [id, user]);
 
   if (loading) {
