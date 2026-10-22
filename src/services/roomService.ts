@@ -442,10 +442,12 @@ export const recallRoles = async (roomId: string, players: Record<string, any>) 
 };
 
 export const updateSeatStatus = async (roomId: string, seatIndex: number, status: Partial<import('../data/types').SeatStatus>) => {
-  const currentRef = nref(`rooms/${roomId}/public/seatStatus/${seatIndex}`);
-  const snapshot = await get(currentRef);
-  const current = snapshot.val() || {};
-  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/seatStatus/${seatIndex}`]: { ...current, ...status } });
+  // 逐欄位寫入，等同 { ...current, ...status }，免去先讀再整包覆寫
+  const updates: Record<string, any> = {};
+  Object.entries(status).forEach(([k, v]) => {
+    updates[`rooms/${roomId}/public/seatStatus/${seatIndex}/${k}`] = v ?? null;
+  });
+  await touchAndUpdate(roomId, updates);
 
   // 記錄復盤事件 (若生死狀態改變)
   if (status.isDead !== undefined) {
@@ -494,10 +496,12 @@ export const updateSeatStatus = async (roomId: string, seatIndex: number, status
 };
 
 export const updateVotingState = async (roomId: string, stateUpdate: Partial<import('../data/types').VotingState>) => {
-  const currentRef = nref(`rooms/${roomId}/public/votingState`);
-  const snapshot = await get(currentRef);
-  const current = snapshot.val() || {};
-  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/votingState`]: { ...current, ...stateUpdate } });
+  // 逐欄位寫入，等同 { ...current, ...stateUpdate }；只推送有變的欄位，不再整包（含所有人的票）重送
+  const updates: Record<string, any> = {};
+  Object.entries(stateUpdate).forEach(([k, v]) => {
+    updates[`rooms/${roomId}/public/votingState/${k}`] = v ?? null;
+  });
+  await touchAndUpdate(roomId, updates);
 };
 
 export const updatePlayerVote = async (roomId: string, userUid: string, vote: boolean) => {
@@ -506,11 +510,11 @@ export const updatePlayerVote = async (roomId: string, userUid: string, vote: bo
 
 
 export const addVoteRecord = async (roomId: string, record: any) => {
-  const currentRef = nref(`rooms/${roomId}/public/voteHistory`);
-  const snapshot = await get(currentRef);
-  const history = snapshot.val() || [];
-  history.push(record);
-  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/voteHistory`]: history });
+  // 只寫新的一筆到陣列尾端（public 已在監聽中，這次 get 走本地快取），不再整個陣列重寫推送給全場
+  const snapshot = await get(nref(`rooms/${roomId}/public/voteHistory`));
+  const history = snapshot.val();
+  const nextIndex = Array.isArray(history) ? history.length : Object.keys(history || {}).length;
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/voteHistory/${nextIndex}`]: record });
 
   // 提名／投票結果不再寫入復盤紀錄（只保留廣場公告與投票紀錄面板）；
   // 復盤時間軸僅記錄死亡等關鍵事件。
