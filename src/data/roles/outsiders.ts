@@ -1,6 +1,6 @@
 import type { Role } from '../types';
 
-// ================= 外來者 (outsider) — 33 個 =================
+// ================= 外來者 (outsider) — 34 個 =================
 export const Outsiders: Record<string, Role> = {
   'snitch': { id: 'snitch', name: '告密者', alignment: 'good', type: 'outsider', icon: '/character/character_snitch_outsider.png', ability: '爪牙會在其首個夜晚得知三個偽裝。', flavor: '你藏不住秘密。開局之際，爪牙們便因你之口得知了三個偽裝。', firstNight: 2100, firstNightReminder: '如果告密者在場，對爪牙展示三個不在場的善良角色標記。' },
   'lunatic': { id: 'lunatic', name: '瘋子', alignment: 'good', type: 'outsider', icon: '/character/character_lunatic_outsider.png', ability: '你以為你是一個惡魔，但其實你不是。惡魔知道你是瘋子以及你在每個夜晚選擇了哪些玩家。', flavor: '你堅信自己是惡魔，夜夜「行兇」。真正的惡魔卻在暗處，冷眼看你的鬧劇。', firstNight: 2300, otherNight: 4200, firstNightReminder: '如果有七名或更多玩家，喚醒瘋子：展示“他們是你的爪牙”信息標記。指向任意對應數量的玩家。展示“這些角色不在場”信息標記。展示三個善良角色。讓瘋子重新入睡。喚醒惡魔。展示“你是”信息標記和惡魔角色標記。展示“這名玩家是”信息標記和瘋子角色標記，然後指向瘋子玩家。', otherNightReminder: '做任何需要做的事情來模擬一位惡魔的行動。讓瘋子重新入睡。喚醒惡魔。對惡魔展示瘋子角色標記，並指向瘋子玩家，隨後是瘋子的攻擊目標。' },
@@ -35,4 +35,5 @@ export const Outsiders: Record<string, Role> = {
   'wuyazui': { id: 'wuyazui', name: '烏鴉嘴', alignment: 'good', type: 'outsider', icon: '/character/character_wuyazui_outsider.png', ability: '可能會有一名善良玩家得知一條不該存在的資訊，即使你已死亡。', flavor: '你一開口，不祥的預言便會應驗。總有人會聽見一句本不該存在的話。', reminders: ['失去能力'] },
   'xiaoyaogu': { id: 'xiaoyaogu', name: '逍遙谷', alignment: 'good', type: 'outsider', icon: '/character/character_xiaoyaogu_outsider.png', ability: '距離你最遠或者最近的一名善良玩家醉酒，如果你提名並處決了這名玩家，改為一名邪惡玩家醉酒，即使你已死亡。', flavor: '谷中的酒香飄向遠近。被你灌醉的那人，唯有被你送上刑台，醉意才會轉嫁他人。', reminders: ['醉酒'] },
   'zealot': { id: 'zealot', name: '狂熱者', alignment: 'good', type: 'outsider', icon: '/character/character_zealot_outsider.png', flavor: '你信念偏執。只要場上還有五人以上，你就必須在每一次提名中舉手。', ability: '如果有大於等於五名玩家存活，你必須在所有提名中投票。' },
+  'acrobat': { id: 'acrobat', name: '雜技演員', alignment: 'good', type: 'outsider', icon: '/character/character_acrobat_outsider.png', ability: '每個夜晚*，如果與你鄰近的存活善良玩家之一醉酒或中毒，你死亡。', flavor: '你在鋼索上與死亡共舞。身旁的同伴若中了邪毒，失衡墜落的會是你。', otherNight: 9350, otherNightReminder: '如果雜技演員左右兩側最近的存活善良玩家之一中毒或醉酒，雜技演員死亡。', reminders: ['死亡'] },
 };
