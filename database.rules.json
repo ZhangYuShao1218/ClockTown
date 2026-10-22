@@ -2,6 +2,11 @@
   "rules": {
     "envs": {
       "$env": {
+        "roomIndex": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".indexOn": ["createdAt"]
+        },
         "rooms": {
           ".read": "auth != null",
           ".write": "auth != null",

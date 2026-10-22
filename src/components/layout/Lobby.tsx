@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { onValue, query, limitToLast, remove } from "firebase/database";
-import { nref } from "../../services/firebase";
 import { createRoom, joinRoom } from "../../services/roomService";
+import { subscribePublicRooms, type PublicRoom } from "../../services/roomIndexService";
 import { useAuth } from "../../hooks/useAuth";
 import { generateMockRoom } from "../../lib/testUtils";
 import { LobbyGuideModal, type GuideTab } from "./LobbyGuideModal";
 import { scriptLogoSrc } from "../../lib/scriptAssets";
 import { AvatarPicker } from "./AvatarPicker";
+import { AVATAR_MAX_DATA_URL_LENGTH, AVATAR_OPTIONS, resizeImage } from "../../lib/imageResize";
 
 export const Lobby = () => {
   const navigate = useNavigate();
@@ -25,52 +25,27 @@ export const Lobby = () => {
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isEditingName, setIsEditingName] = useState(!playerName);
-  const [publicRooms, setPublicRooms] = useState<any[]>([]);
+  const [publicRooms, setPublicRooms] = useState<PublicRoom[]>([]);
 
   // 指引視窗（遊戲介紹 / 新手技巧）
   const [guideTab, setGuideTab] = useState<GuideTab | null>(null);
 
   useEffect(() => {
-    // 監聽房間列表 (抓取最新的 50 個房間)
-    const roomsRef = query(nref("rooms"), limitToLast(50));
-    // 超過這個時間沒有任何寫入（lastActivityAt）的房間視為死房
-    const STALE_MS = 8 * 60 * 60 * 1000;
-    const isStale = (room: any, now: number) =>
-      now - (room?.public?.lastActivityAt ?? room?.public?.createdAt ?? 0) > STALE_MS;
+    // 舊版上傳的頭像是 200px / 0.85 的 JPEG（約 15–25 KB），每次進房要乘上人數下載；重新壓縮一次存回本地
+    if (!playerAvatar?.startsWith("data:") || playerAvatar.length <= AVATAR_MAX_DATA_URL_LENGTH) return;
+    resizeImage(playerAvatar, AVATAR_OPTIONS)
+      .then((smaller) => {
+        localStorage.setItem("botc_player_avatar", smaller);
+        setPlayerAvatar(smaller);
+      })
+      .catch((err) => console.error("頭像重新壓縮失敗:", err));
+    // 只在進入大廳時檢查一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const unsubscribe = onValue(roomsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const now = Date.now();
-
-        // 順手清掃：把死房直接刪掉（不論房內有無玩家、不論 lobby/playing/finished）。
-        // 已登入 + App Check，規則允許刪除；刪已不存在的房是無害的 no-op。
-        Object.entries(data).forEach(([id, room]) => {
-          if (isStale(room, now)) {
-            remove(nref(`rooms/${id}`)).catch(() => {});
-          }
-        });
-
-        const availableRooms = Object.keys(data)
-          .map(key => ({
-            id: key,
-            ...data[key]
-          }))
-          .filter(room => room.public?.status === "lobby") // 只顯示等待中的房間
-          .filter(room => !isStale(room, now))
-          .map(room => {
-            const hostName = room.players?.[room.public.hostId]?.name || "未知說書人";
-            const playerCount = room.players ? Object.keys(room.players).length : 0;
-            return { id: room.id, hostName, playerCount, createdAt: room.public.createdAt, scriptId: room.public.scriptId, scriptLogo: room.public.customScript?.logo as string | undefined };
-          })
-          .sort((a, b) => b.createdAt - a.createdAt); // 最新建立的在上面
-
-        setPublicRooms(availableRooms);
-      } else {
-        setPublicRooms([]);
-      }
-    });
-
+  useEffect(() => {
+    // 監聽大廳索引 roomIndex（只含房間摘要），死房清掃也在 service 內處理
+    const unsubscribe = subscribePublicRooms(setPublicRooms);
     return () => unsubscribe();
   }, []);
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useRoomIndexSync } from "../../hooks/useRoomIndexSync";
 import { useGameState } from "../../hooks/useGameState";
 import { useAuth } from "../../hooks/useAuth";
 import { leaveRoom, setPlayerSeat } from "../../services/roomService";
@@ -29,7 +30,7 @@ export const Room = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { gameState, loading, error } = useGameState(id);
+  const { gameState, loading, error } = useGameState(id, user?.uid);
 
   const [activeTab, setActiveTab] = useState<'stage' | 'truth'>('stage');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -55,6 +56,7 @@ export const Room = () => {
 
   const myPlayerRaw = user && gameState?.players ? gameState.players[user.uid] : null;
   const isHostRaw = gameState?.public?.hostId === user?.uid;
+  useRoomIndexSync(id, gameState, isHostRaw);
   const previousRoleRef = useRef<string | undefined | null>(undefined);
   const isInitialLoad = useRef(true);
   const [roleAlert, setRoleAlert] = useState<string | null>(null);

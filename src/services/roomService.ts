@@ -1,5 +1,6 @@
-import { set, get, update, remove, serverTimestamp } from "firebase/database";
+import { set, get, update, serverTimestamp } from "firebase/database";
 import { nref } from "./firebase";
+import { deleteRoom, writeRoomIndex } from "./roomIndexService";
 
 const generateRoomId = () => {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -88,18 +89,31 @@ export const createRoom = async (hostId: string, hostName: string, hostAvatarUrl
   };
 
   await set(roomRef, initialRoomState);
+  // 索引寫入失敗不影響開房（說書人進房後 useRoomIndexSync 會再補寫）
+  await writeRoomIndex(roomId, {
+    hostName,
+    playerCount: 1,
+    status: "lobby",
+    scriptId: initialRoomState.public.scriptId,
+    scriptLogo: null,
+    createdAt: initialRoomState.public.createdAt,
+    lastActivityAt: initialRoomState.public.createdAt,
+  }).catch((err) => console.error("寫入大廳索引失敗:", err));
   return roomId;
 };
 
 export const joinRoom = async (roomId: string, userId: string, userName: string, avatarUrl?: string | null): Promise<string> => {
-  const roomRef = nref(`rooms/${roomId}`);
-  const snapshot = await get(roomRef);
+  // 只讀 public 與 players：不再監聽整間房後，get 整間房會真的下載聊天與覆盤紀錄
+  const [publicSnap, playersSnap] = await Promise.all([
+    get(nref(`rooms/${roomId}/public`)),
+    get(nref(`rooms/${roomId}/players`)),
+  ]);
 
-  if (!snapshot.exists()) {
+  if (!publicSnap.exists()) {
     throw new Error("找不到該房間，請確認房號是否正確。");
   }
 
-  const roomData = snapshot.val();
+  const roomData = { public: publicSnap.val(), players: playersSnap.val() };
 
   // 如果玩家已經在裡面（斷線重連）
   if (roomData.players && roomData.players[userId]) {
@@ -139,15 +153,18 @@ export const joinRoom = async (roomId: string, userId: string, userName: string,
 };
 
 export const leaveRoom = async (roomId: string, userId: string) => {
-  const roomRef = nref(`rooms/${roomId}`);
-  const snapshot = await get(roomRef);
-  if (!snapshot.exists()) return;
+  // 只讀判斷需要的 public 與 players，不抓整間房（聊天、覆盤時間軸可能很大）
+  const [publicSnap, playersSnap] = await Promise.all([
+    get(nref(`rooms/${roomId}/public`)),
+    get(nref(`rooms/${roomId}/players`)),
+  ]);
+  if (!publicSnap.exists()) return;
 
-  const roomData = snapshot.val();
+  const roomData = { public: publicSnap.val(), players: playersSnap.val() };
 
   // 房主在 lobby 階段離開 → 直接解散房間
   if (roomData.public?.status === "lobby" && roomData.public?.hostId === userId) {
-    await remove(roomRef);
+    await deleteRoom(roomId);
     return;
   }
 
@@ -160,7 +177,7 @@ export const leaveRoom = async (roomId: string, userId: string) => {
     ([uid, p]) => uid !== userId && (p as any)?.isOnline
   );
   if (!someoneElseOnline) {
-    await remove(roomRef);
+    await deleteRoom(roomId);
   }
 };
 
