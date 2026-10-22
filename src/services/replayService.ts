@@ -47,39 +47,47 @@ export interface GameReplay {
   timeline: ReplayEvent[];
 }
 
+/** RTDB 以座位號為 key 的節點可能回傳陣列（含 null 洞）或物件，統一轉成 [seat, value] */
+const seatEntries = <T,>(node: Record<string, T | null> | (T | null)[] | null | undefined): [number, T][] =>
+  Object.entries(node || {})
+    .filter(([, v]) => v !== null && v !== undefined)
+    .map(([seat, v]) => [Number(seat), v as T]);
+
 /**
  * Capture current game board state snapshot
+ * 復盤時全場看到的是說書人「舞台中央」頁面的樣子：舞台上的角色筆記與標記，不取鐘樓真相（魔典）的資料。
+ * 只讀需要的節點，不抓整間房（聊天、覆盤時間軸可能很大）。
  */
 export const captureBoardSnapshot = async (roomId: string): Promise<BoardSnapshot> => {
   try {
-    const roomSnap = await get(nref(`rooms/${roomId}`));
-    const data = roomSnap.val() || {};
+    const base = `rooms/${roomId}`;
+    const [hostSnap, statusSnap] = await Promise.all([
+      get(nref(`${base}/public/hostId`)),
+      get(nref(`${base}/public/seatStatus`)),
+    ]);
+    const hostId = hostSnap.val() as string | null;
+    const [notesSnap, stageTokensSnap] = hostId
+      ? await Promise.all([
+          get(nref(`${base}/private/notes/${hostId}`)),
+          get(nref(`${base}/private/seatTokens/${hostId}`)),
+        ])
+      : [null, null];
 
     const seatRoles: Record<number, string> = {};
-    const grimoire = data.private?.grimoire || {};
-    const players = data.players || {};
-
-    // Get roles from grimoire or players
-    Object.entries(players).forEach(([_, p]: [string, any]) => {
-      if (p?.seat && p?.roleId) {
-        seatRoles[p.seat] = p.roleId;
-      }
-    });
-    Object.entries(grimoire).forEach(([seat, g]: [string, any]) => {
-      if (g?.roleId) {
-        seatRoles[Number(seat)] = g.roleId;
-      }
+    seatEntries<string>(notesSnap?.val()).forEach(([seat, roleId]) => {
+      seatRoles[seat] = roleId;
     });
 
-    const seatStatus = data.public?.seatStatus || {};
-    const hostId = data.public?.hostId;
-    const seatTokens = (hostId && data.private?.seatTokens?.[hostId]) || 
-                       (hostId && data.private?.grimoireTokens?.[hostId]) || {};
+    const seatTokens: Record<number, any[]> = {};
+    seatEntries<any[]>(stageTokensSnap?.val()).forEach(([seat, tokens]) => {
+      const list = Object.values(tokens || {}).filter(Boolean);
+      if (list.length > 0) seatTokens[seat] = list;
+    });
 
     return {
       seatRoles,
-      seatStatus,
-      seatTokens
+      seatStatus: statusSnap.val() || {},
+      seatTokens,
     };
   } catch (e) {
     console.error("Failed to capture board snapshot", e);
@@ -168,11 +176,17 @@ export const clearReplayTimeline = async (roomId: string) => {
  */
 export const getGameReplay = async (roomId: string): Promise<GameReplay | null> => {
   try {
-    const snap = await get(nref(`rooms/${roomId}`));
-    if (!snap.exists()) return null;
+    // 只讀覆盤需要的節點；整間房含聊天紀錄，覆盤每走一步都抓會很浪費
+    const base = `rooms/${roomId}`;
+    const [publicSnap, playersSnap, timelineSnap] = await Promise.all([
+      get(nref(`${base}/public`)),
+      get(nref(`${base}/players`)),
+      get(nref(`${base}/replay/timeline`)),
+    ]);
+    if (!publicSnap.exists()) return null;
 
-    const data = snap.val();
-    const rawTimeline = data.replay?.timeline || {};
+    const data = { public: publicSnap.val(), players: playersSnap.val() };
+    const rawTimeline = timelineSnap.val() || {};
     const timeline: ReplayEvent[] = Object.entries(rawTimeline).map(([key, ev]: [string, any]) => ({
       id: key,
       ...ev

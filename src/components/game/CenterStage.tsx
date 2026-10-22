@@ -102,7 +102,8 @@ export const CenterStage = ({
   };
 
   const handleRemoveSeatToken = async (seatIdx: number, tokenId: string) => {
-    if (!userUid || !roomId) return;
+    // 復盤時顯示的是說書人快照，唯讀；否則會把快照標記寫進自己的筆記
+    if (!userUid || !roomId || isReplayActive) return;
     try {
       const currentTokens = (seatTokens || {})[seatIdx] || [];
       const newTokens = currentTokens.filter(t => t.id !== tokenId);
@@ -466,6 +467,7 @@ export const CenterStage = ({
                       selectNomineeAction(seatIndex);
                       return;
                     }
+                    if (isReplayActive) return; // 復盤快照唯讀
                     setTargetSeat(seatIndex);
                     setModalOpen(true);
                   }}
@@ -583,7 +585,7 @@ export const CenterStage = ({
                   </div>
                 );
               }
-              if (currentTokens.length < 3) {
+              if (currentTokens.length < 3 && !isReplayActive) {
                 const pos = getPosition(currentTokens.length);
                 elements.push(
                   <div

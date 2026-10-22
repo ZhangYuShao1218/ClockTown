@@ -34,6 +34,8 @@ interface GrimoireProps {
   replayActorSeat?: number | null;
   replayTargetSeats?: number[];
   replayEventType?: string;
+  /** 復盤中：顯示快照，魔典與標記皆唯讀（避免誤改真實魔典） */
+  isReplayActive?: boolean;
 }
 
 export const Grimoire = ({ 
@@ -55,7 +57,8 @@ export const Grimoire = ({
   highlightedSeats = [],
   replayActorSeat = null,
   replayTargetSeats = [],
-  replayEventType
+  replayEventType,
+  isReplayActive = false
 }: GrimoireProps) => {
   // 局勢紀錄：座位只閃爍外框、不顯示「目標」文字標籤
   const isSituationReplay = replayEventType === 'SITUATION_LOG';
@@ -75,6 +78,7 @@ export const Grimoire = ({
   if (!script) return null;
 
   const openModal = (type: 'seat'|'bluff'|'fabled', index?: number) => {
+    if (isReplayActive) return;
     setTarget({ type, index });
     setModalOpen(true);
   };
@@ -104,7 +108,7 @@ export const Grimoire = ({
   };
 
   const handleRemoveSeatToken = async (seatIdx: number, tokenId: string) => {
-    if (!userUid || !roomId) return;
+    if (!userUid || !roomId || isReplayActive) return;
     try {
       const currentTokens = (seatTokens || {})[seatIdx] || [];
       const newTokens = currentTokens.filter(t => t.id !== tokenId);
@@ -308,7 +312,7 @@ export const Grimoire = ({
                   </div>
                 );
               }
-              if (currentTokens.length < 3) {
+              if (currentTokens.length < 3 && !isReplayActive) {
                 const pos = getPosition(currentTokens.length);
                 elements.push(
                   <div

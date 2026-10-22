@@ -453,6 +453,7 @@ export const Room = () => {
                 script={currentScript}
                 
                 grimoireState={isReplayActive ? replayGrimoireState : gameState.private?.grimoire}
+                isReplayActive={isReplayActive}
                 bluffs={bluffs}
                 distribution={gameState?.public?.distribution || DEFAULT_DISTRIBUTION}
                 seats={seats}
