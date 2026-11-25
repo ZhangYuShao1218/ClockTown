@@ -57,3 +57,18 @@ export const ROLE_ICON_OPTIONS: ResizeOptions = { size: 160, fit: "contain", typ
 
 /** 超過這個長度的頭像 data URI 視為舊版（200px / 0.85）未壓縮過的，需要重新壓縮 */
 export const AVATAR_MAX_DATA_URL_LENGTH = 12_000;
+
+/** 聊天室圖片壓縮：保留原始長寬比，限制最大邊長 720px，避免 RTDB 流量過大 */
+export const resizeChatImage = async (src: string, maxDim = 720, quality = 0.72): Promise<string> => {
+  const img = await loadImage(src);
+  const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("瀏覽器不支援圖片處理");
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+};
