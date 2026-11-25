@@ -15,6 +15,9 @@ import { VoteHistoryModal } from "./VoteHistoryModal";
 import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { Chat } from "./Chat";
 import { GameTimelineLogger } from "./GameTimelineLogger";
+import { PhaseTimer } from "./PhaseTimer";
+import { playNightBell, playDawnRooster, isSoundMuted, setSoundMuted } from "../../lib/soundEffects";
+import { BellSoundOnIcon, BellSoundOffIcon } from "../common/CthulhuIcons";
 import { AlertDialog } from "../common/AlertDialog";
 import { AllScripts } from "../../data/scripts";
 import type { Script } from "../../data/types";
@@ -53,6 +56,8 @@ export const Room = () => {
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [isClearDataAlertOpen, setClearDataAlertOpen] = useState(false);
   const [hostDrawerTab, setHostDrawerTab] = useState<'chat' | 'controls'>('chat');
+  const [soundMuted, setSoundMutedState] = useState(() => isSoundMuted());
+  const prevTimePhaseRef = useRef<'day' | 'night' | null>(null);
 
   const myPlayerRaw = user && gameState?.players ? gameState.players[user.uid] : null;
   const isHostRaw = gameState?.public?.hostId === user?.uid;
@@ -162,6 +167,25 @@ export const Room = () => {
     };
   }, [id, user]);
 
+  // 晝夜切換時播放音效：進入黑夜敲鐘、進入白天雞鳴（跳過初次進房載入與復盤模式）
+  const rawTimePhase: 'day' | 'night' = gameState?.public?.timePhase || (gameState?.public?.isNight ? 'night' : 'day');
+  const hasPublicState = !!gameState?.public;
+  useEffect(() => {
+    if (loading || !hasPublicState) return;
+    if (prevTimePhaseRef.current === null) {
+      prevTimePhaseRef.current = rawTimePhase;
+      return;
+    }
+    if (!isReplayActive && rawTimePhase !== prevTimePhaseRef.current) {
+      if (rawTimePhase === 'night') {
+        playNightBell();
+      } else {
+        playDawnRooster();
+      }
+    }
+    prevTimePhaseRef.current = rawTimePhase;
+  }, [rawTimePhase, loading, isReplayActive, hasPublicState]);
+
   if (loading) {
     return <div className="flex h-screen items-center justify-center text-white/50 bg-black">讀取房間中...</div>;
   }
@@ -231,7 +255,7 @@ export const Room = () => {
   };
 
   const dayNumber = gameState?.public?.dayNumber || 1;
-  const timePhase = gameState?.public?.timePhase || (gameState?.public?.isNight ? 'night' : 'day');
+  const timePhase: 'day' | 'night' = gameState?.public?.timePhase || (gameState?.public?.isNight ? 'night' : 'day');
   const currentDayNumber = isReplayActive ? (replayMode?.dayNumber || 1) : dayNumber;
   const currentTimePhase = isReplayActive ? (replayMode?.timePhase || 'day') : timePhase;
   const currentIsNight = currentTimePhase === 'night';
@@ -345,7 +369,7 @@ export const Room = () => {
       })()}
 
       {/* Top Left Nav（窄屏擠到選單鈕右邊） */}
-      <div className="absolute top-2.5 left-[68px] lg:top-4 lg:left-[36px] z-50 flex items-center space-x-3 pointer-events-auto">
+      <div className="absolute top-2.5 left-[68px] lg:top-4 lg:left-[36px] z-50 flex items-center space-x-2 pointer-events-auto">
         <div className="flex space-x-1 bg-black/60 p-1 rounded-lg border border-white/20 backdrop-blur-md">
           <button 
             onClick={() => setActiveTab('stage')} 
@@ -358,11 +382,30 @@ export const Room = () => {
               onClick={() => setActiveTab('truth')} 
               className={`px-2 py-1 lg:px-4 lg:py-1.5 rounded-md font-bold tracking-wider lg:tracking-widest transition-colors text-sm lg:text-lg ${activeTab === 'truth' ? 'bg-red-900/80 text-red-100 shadow-md' : 'text-red-300/80 bg-red-900/20 hover:text-red-100 hover:bg-red-900/40'}`}
             >
-              鐘樓真相
+              劇本排版
             </button>
           )}
         </div>
+        <button
+          onClick={() => {
+            const next = !soundMuted;
+            setSoundMuted(next);
+            setSoundMutedState(next);
+          }}
+          className="px-2.5 py-2 bg-black/60 hover:bg-black/80 border border-white/20 rounded-lg text-amber-200/85 hover:text-amber-100 text-sm backdrop-blur-md transition-colors shadow-md flex items-center justify-center"
+          title={soundMuted ? '已靜音（點擊開啟晝夜音效）' : '晝夜音效已開啟（點擊靜音）'}
+        >
+          {soundMuted ? <BellSoundOffIcon className="w-5 h-5" /> : <BellSoundOnIcon className="w-5 h-5" />}
+        </button>
       </div>
+
+      {/* Top Center Phase Timer */}
+      <PhaseTimer
+        roomId={id!}
+        timer={gameState?.public?.timer || null}
+        isHost={isHost}
+        isReplayActive={isReplayActive}
+      />
 
       {/* 獨立選單按鈕：窄屏在左上角、桌機在右欄左側 */}
       <div className="absolute left-2.5 top-2.5 lg:left-auto lg:right-[313px] lg:top-4 z-40 pointer-events-auto flex flex-col items-start lg:items-end">
@@ -649,7 +692,7 @@ export const Room = () => {
                     )}
                   </div>
                   <div className="flex-1 min-h-0 border-t border-white/10 overflow-hidden shadow-inner">
-                    <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} onUnreadCountChange={setTotalUnreadCount} isVisible={isDrawerOpen && !(activeTab === 'truth' && isHost) && (!isHost || hostDrawerTab === 'chat')} />
+                    <Chat roomId={id!} userUid={user?.uid!} userName={myPlayerRaw?.name || localStorage.getItem("botc_player_name") || 'Unknown'} isHost={isHost} players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))} hostPlayer={{ uid: gameState?.public?.hostId, ...hostPlayer }} isEvil={isEvil} settings={gameState?.public?.settings} seatCount={gameState?.public?.seatCount} script={currentScript} grimoireState={gameState.private?.grimoire} bluffs={bluffs} onUnreadCountChange={setTotalUnreadCount} isVisible={isDrawerOpen && !(activeTab === 'truth' && isHost) && (!isHost || hostDrawerTab === 'chat')} />
                   </div>
               </div>
               {isHost && (
@@ -661,6 +704,8 @@ export const Room = () => {
                     seats={seats}
                     players={Object.entries(players).map(([uid_str, p]: [string, any]) => ({ uid: uid_str, ...p }))}
                     grimoireState={gameState.private?.grimoire}
+                    grimoireTokens={gameState.private?.grimoireTokens?.[gameState?.public?.hostId]}
+                    script={currentScript}
                     isReplayActive={isReplayActive}
                     replayMode={replayMode}
                   />

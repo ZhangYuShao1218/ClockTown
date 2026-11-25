@@ -556,3 +556,149 @@ export const updateGameTime = async (roomId: string, dayNumber: number, timePhas
     { day: dayNumber, phase: timePhase },
   ).catch(console.error);
 };
+
+export interface TimerState {
+  durationSec: number;
+  remainingSec: number;
+  isRunning: boolean;
+  startedAt: number | null;
+}
+
+export const setRoomTimer = async (roomId: string, durationSec: number, autoStart = true) => {
+  const timer: TimerState = {
+    durationSec,
+    remainingSec: durationSec,
+    isRunning: autoStart,
+    startedAt: autoStart ? Date.now() : null,
+  };
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/timer`]: timer });
+};
+
+export const toggleRoomTimer = async (roomId: string, timer: TimerState) => {
+  if (timer.isRunning && timer.startedAt) {
+    const elapsed = (Date.now() - timer.startedAt) / 1000;
+    const remaining = Math.max(0, Math.round(timer.remainingSec - elapsed));
+    await touchAndUpdate(roomId, {
+      [`rooms/${roomId}/public/timer`]: {
+        ...timer,
+        remainingSec: remaining,
+        isRunning: false,
+        startedAt: null,
+      },
+    });
+  } else {
+    const remaining = timer.remainingSec > 0 ? timer.remainingSec : timer.durationSec;
+    await touchAndUpdate(roomId, {
+      [`rooms/${roomId}/public/timer`]: {
+        ...timer,
+        remainingSec: remaining,
+        isRunning: true,
+        startedAt: Date.now(),
+      },
+    });
+  }
+};
+
+export const adjustRoomTimer = async (roomId: string, deltaSec: number, timer: TimerState) => {
+  const currentRem = timer.isRunning && timer.startedAt
+    ? Math.max(0, Math.round(timer.remainingSec - (Date.now() - timer.startedAt) / 1000))
+    : timer.remainingSec;
+  const nextRem = Math.max(0, currentRem + deltaSec);
+  await touchAndUpdate(roomId, {
+    [`rooms/${roomId}/public/timer`]: {
+      durationSec: Math.max(timer.durationSec, nextRem),
+      remainingSec: nextRem,
+      isRunning: timer.isRunning && nextRem > 0,
+      startedAt: timer.isRunning && nextRem > 0 ? Date.now() : null,
+    },
+  });
+};
+
+export const clearRoomTimer = async (roomId: string) => {
+  await touchAndUpdate(roomId, { [`rooms/${roomId}/public/timer`]: null });
+};
+
+export const stopRoomTimer = async (roomId: string, timer: TimerState) => {
+  await touchAndUpdate(roomId, {
+    [`rooms/${roomId}/public/timer`]: {
+      durationSec: timer.durationSec,
+      remainingSec: 0,
+      isRunning: false,
+      startedAt: null,
+    },
+  });
+};
+
+const MOCK_PLAYER_NAMES = [
+  '艾莉絲', '鮑伯', '克萊兒', '大衛', '伊芙', '弗蘭克', '格蕾絲', '漢斯',
+  '艾比', '傑克', '凱文', '莉莉', '馬克', '妮娜', '奧斯卡',
+];
+
+export const fillMockPlayers = async (
+  roomId: string,
+  seatCount: number,
+  existingPlayers: Record<string, any> | { uid: string; seat?: number | null }[],
+) => {
+  const playerList = Array.isArray(existingPlayers)
+    ? existingPlayers
+    : Object.entries(existingPlayers || {}).map(([uid, p]) => ({ uid, ...(p || {}) }));
+
+  const occupiedSeats = new Set<number>(
+    playerList.map((p) => p.seat).filter((s): s is number => typeof s === 'number' && s > 0),
+  );
+
+  const updates: Record<string, any> = {};
+  let addedCount = 0;
+  for (let seat = 1; seat <= seatCount; seat++) {
+    if (occupiedSeats.has(seat)) continue;
+    const mockUid = `mock-seat-${seat}-${Date.now().toString(36)}`;
+    const baseName = MOCK_PLAYER_NAMES[(seat - 1) % MOCK_PLAYER_NAMES.length];
+    updates[`rooms/${roomId}/players/${mockUid}`] = {
+      name: `[假人] ${baseName}`,
+      isHost: false,
+      isAlive: true,
+      hasGhostVote: true,
+      isOnline: true,
+      seat,
+      isMock: true,
+    };
+    addedCount++;
+  }
+
+  if (addedCount > 0) {
+    await touchAndUpdate(roomId, updates);
+  }
+  return addedCount;
+};
+
+export const clearMockPlayers = async (
+  roomId: string,
+  existingPlayers: Record<string, any> | { uid: string; isMock?: boolean }[],
+) => {
+  const playerList = Array.isArray(existingPlayers)
+    ? existingPlayers
+    : Object.entries(existingPlayers || {}).map(([uid, p]) => ({ uid, ...(p || {}) }));
+
+  const updates: Record<string, any> = {};
+  let removedCount = 0;
+  playerList.forEach((p) => {
+    if (p.uid.startsWith('mock-') || p.isMock) {
+      updates[`rooms/${roomId}/players/${p.uid}`] = null;
+      removedCount++;
+    }
+  });
+
+  if (removedCount > 0) {
+    await touchAndUpdate(roomId, updates);
+  }
+  return removedCount;
+};
+
+export const saveBattleReport = async (roomId: string, notes: { id: string; text: string; afterIndex: number }[]) => {
+  await touchAndUpdate(roomId, {
+    [`rooms/${roomId}/private/battleReport`]: {
+      notes,
+      updatedAt: Date.now(),
+    },
+  });
+};

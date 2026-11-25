@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles, rotateGrimoireRoles } from "../../services/roomService";
+import { updateRoomScript, updateSeatCount, setCustomScript, updateDistribution, applySetupToRoom, updateRoomSettings, distributeRoles, rotateGrimoireRoles, fillMockPlayers, clearMockPlayers } from "../../services/roomService";
 import { AlertDialog } from "../common/AlertDialog";
 import { ScriptSelectionModal } from "./ScriptSelectionModal";
 import { AllScripts } from "../../data/scripts";
@@ -555,6 +555,36 @@ export const GrimoireSettings = ({
           >
             收回角色
           </button>
+        </div>
+
+        {/* 假人測試工具 */}
+        <div className="flex space-x-3 pt-2 border-t border-slate-700/70">
+          <button
+            type="button"
+            onClick={async () => {
+              const added = await fillMockPlayers(roomId, seatCount, players);
+              if (added > 0) {
+                setMissingSeatAlert(`已於空座位填入 ${added} 位測試假人，可直接按「分配角色」測試完整流程。`);
+              } else {
+                setMissingSeatAlert("所有座位皆已有玩家，無需填入假人。");
+              }
+            }}
+            className="flex-1 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold py-2 rounded-lg border border-amber-500/30 text-sm transition-colors shadow"
+          >
+            假人測試
+          </button>
+          {players.some((p) => p.uid?.startsWith('mock-') || p.isMock) && (
+            <button
+              type="button"
+              onClick={async () => {
+                const removed = await clearMockPlayers(roomId, players);
+                setMissingSeatAlert(`已清除 ${removed} 位測試假人。`);
+              }}
+              className="px-4 bg-slate-900 hover:bg-red-950/70 text-red-300 font-bold py-2 rounded-lg border border-red-500/30 text-sm transition-colors shadow"
+            >
+              清除假人
+            </button>
+          )}
         </div>
 
       </div>

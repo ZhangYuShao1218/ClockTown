@@ -444,6 +444,7 @@ export const Grimoire = ({
         isOpen={tokenModalOpen}
         onClose={() => setTokenModalOpen(false)}
         onSave={handleSaveSeatToken}
+        script={script}
       />
     </div>
   );

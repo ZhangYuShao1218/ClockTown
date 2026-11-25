@@ -802,6 +802,7 @@ export const CenterStage = ({
         isOpen={tokenModalOpen}
         onClose={() => setTokenModalOpen(false)}
         onSave={handleSaveSeatToken}
+        script={script}
       />
       <AlertDialog
         isOpen={removeTarget !== null}
