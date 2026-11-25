@@ -26,8 +26,16 @@ import {
   reorderReplayTimeline,
   type ReplayEvent
 } from '../../services/replayService';
-import { updateGameTime } from '../../services/roomService';
+import { updateGameTime, saveBattleReport } from '../../services/roomService';
 import { AllRoles } from '../../data/roles';
+import type { Script } from '../../data/types';
+import type { SeatToken } from './SeatTokenModal';
+import {
+  findRoleByNameOrId,
+  generateBattleReportDraft,
+  exportBattleReportPlainText,
+  type BattleReportNote,
+} from '../../lib/battleReportUtils';
 
 interface GameTimelineLoggerProps {
   roomId: string;
@@ -36,6 +44,8 @@ interface GameTimelineLoggerProps {
   seats: number[];
   players: any[];
   grimoireState?: any;
+  grimoireTokens?: Record<string, SeatToken[] | undefined> | null;
+  script?: Script;
   isReplayActive: boolean;
   replayMode?: any;
 }
@@ -54,7 +64,7 @@ const SortableTimelineItem: React.FC<{
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? 'none' : transition,
     opacity: isDragging ? 0.5 : 1,
   };
 
@@ -63,7 +73,7 @@ const SortableTimelineItem: React.FC<{
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className={`p-3 rounded-lg border text-sm transition-all relative group flex gap-2 ${
+      className={`p-3 rounded-lg border text-sm transition-colors relative group flex gap-2 ${
         isCur
           ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-md'
           : 'bg-black/40 border-white/10 hover:bg-black/60 text-stone-200'
@@ -98,12 +108,21 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
   dayNumber,
   timePhase,
   seats,
+  players,
   grimoireState,
+  grimoireTokens,
+  script,
   isReplayActive,
   replayMode
 }) => {
   const [timeline, setTimeline] = useState<ReplayEvent[]>([]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [customNotes, setCustomNotes] = useState<BattleReportNote[]>([]);
+  const [noteInput, setNoteInput] = useState('');
+  const [reportMenu, setReportMenu] = useState<'none' | 'seat' | 'role'>('none');
+  const [reportCopied, setReportCopied] = useState(false);
+  const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
+  const [dropAfterIndex, setDropAfterIndex] = useState<number | null>(null);
 
   // 3 Tabs: 'action' ("動作") vs 'situation' ("局勢") vs 'history' ("遊戲紀錄")
   const [activeTab, setActiveTab] = useState<'action' | 'situation' | 'history'>('action');
@@ -148,6 +167,23 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
       setTimeline(list);
     });
     return () => unsubscribe();
+  }, [roomId]);
+
+  // 訂閱自訂戰報補充文字列表
+  useEffect(() => {
+    if (!roomId) return;
+    const reportRef = nref(`rooms/${roomId}/private/battleReport`);
+    const unsub = onValue(reportRef, (snap) => {
+      const val = snap.val();
+      if (val && Array.isArray(val.notes)) {
+        setCustomNotes(val.notes);
+      } else if (val && typeof val.content === 'string' && val.content.trim()) {
+        setCustomNotes([{ id: 'legacy-1', text: val.content, afterIndex: 9999 }]);
+      } else {
+        setCustomNotes([]);
+      }
+    });
+    return () => unsub();
   }, [roomId]);
 
   // Set default actorSeat to first available seat if not set
@@ -651,13 +687,18 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
             </div>
 
             {/* Timeline Events Scroll List：可拖曳左側把手調整順序（僅說書人看得到這個分頁） */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar">
+            <div className="flex-1 min-h-[120px] overflow-y-auto p-3 space-y-2 custom-scrollbar">
               {timeline.length === 0 ? (
-                <div className="text-center py-10 text-base font-medium text-white">
+                <div className="text-center py-6 text-sm font-medium text-white/50">
                   尚未有任何紀錄
                 </div>
               ) : (
-                <DndContext sensors={timelineDragSensors} collisionDetection={closestCenter} onDragEnd={handleTimelineDragEnd}>
+                <DndContext
+                  sensors={timelineDragSensors}
+                  collisionDetection={closestCenter}
+                  autoScroll={{ threshold: { x: 0, y: 0.08 } }}
+                  onDragEnd={handleTimelineDragEnd}
+                >
                   <SortableContext items={timeline.map(ev => ev.id!)} strategy={verticalListSortingStrategy}>
                     {timeline.map((ev, idx) => {
                       const isCur = isReplayActive && replayMode?.currentStepIndex === idx;
@@ -688,6 +729,341 @@ export const GameTimelineLogger: React.FC<GameTimelineLoggerProps> = ({
                 </DndContext>
               )}
             </div>
+
+            {/* 戰報區域（根據遊戲紀錄自動產生不可編輯模板 + 可自由插入/調整位置的自訂文字） */}
+            {(() => {
+              const templateDraft = generateBattleReportDraft({
+                events: timeline,
+                players,
+                grimoireState,
+                grimoireTokens,
+                script,
+              });
+              const templateLines = templateDraft.split('\n');
+              const maxIndex = Math.max(-1, templateLines.length - 1);
+
+              const persistNotes = (next: BattleReportNote[]) => {
+                setCustomNotes(next);
+                saveBattleReport(roomId, next);
+              };
+
+              const handleAddNote = () => {
+                if (!noteInput.trim()) return;
+                const newNote: BattleReportNote = {
+                  id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  text: noteInput.trim(),
+                  afterIndex: maxIndex,
+                };
+                persistNotes([...customNotes, newNote]);
+                setNoteInput('');
+              };
+
+              const moveNote = (noteId: string, delta: -1 | 1) => {
+                const target = customNotes.find((n) => n.id === noteId);
+                if (!target) return;
+                const clampedCur = Math.min(Math.max(-1, target.afterIndex), maxIndex);
+                const nextIdx = Math.min(Math.max(-1, clampedCur + delta), maxIndex);
+                persistNotes(
+                  customNotes.map((n) => (n.id === noteId ? { ...n, afterIndex: nextIdx } : n))
+                );
+              };
+
+              const deleteNote = (noteId: string) => {
+                persistNotes(customNotes.filter((n) => n.id !== noteId));
+              };
+
+              const handleDropAt = (targetAfterIndex: number) => {
+                if (!draggingNoteId) return;
+                const clamped = Math.min(Math.max(-1, targetAfterIndex), maxIndex);
+                persistNotes(
+                  customNotes.map((n) => (n.id === draggingNoteId ? { ...n, afterIndex: clamped } : n))
+                );
+                setDraggingNoteId(null);
+                setDropAfterIndex(null);
+              };
+
+              const renderSeatLabel = (seatNum: number, name?: string, key?: number) => (
+                <span key={key} className="font-bold">
+                  <span className="text-amber-300">{seatNum}號{name ? ' - ' : ''}</span>
+                  {name && <span className="text-white">{name}</span>}
+                </span>
+              );
+
+              const renderYellowSeatTag = (raw: string, key: number) => {
+                const m = /^(\d+號(?:\s*-\s*)?)([\s\S]*)$/.exec(raw);
+                if (!m) return <span key={key} className="text-amber-300 font-bold">{raw}</span>;
+                return (
+                  <span key={key} className="font-bold">
+                    <span className="text-amber-300">{m[1]}</span>
+                    {m[2] && <span className="text-white">{m[2]}</span>}
+                  </span>
+                );
+              };
+
+              const renderColoredLine = (line: string, keyPrefix: string) => {
+                const tokens = line.split(/(@\d+|#[^\s，。、：；！？（）()\n]+|\[死亡\]|\[存活\]|\[好人\]|\[邪惡\]|\[說書人\]|\[yellow\][\s\S]*?\[\/yellow\]|\[blue\][\s\S]*?\[\/blue\]|\[red\][\s\S]*?\[\/red\])/g);
+                return (
+                  <div key={keyPrefix} className="leading-relaxed min-h-[1.25rem]">
+                    {tokens.map((tok, i) => {
+                      if (!tok) return null;
+                      if (/^@\d+$/.test(tok)) {
+                        const seatNum = Number(tok.slice(1));
+                        const p = players.find((pl: any) => pl.seat === seatNum);
+                        return renderSeatLabel(seatNum, p?.name, i);
+                      }
+                      if (tok.startsWith('#')) {
+                        const roleName = tok.slice(1);
+                        const role = findRoleByNameOrId(roleName, script);
+                        const isEvilRole = role?.type === 'minion' || role?.type === 'demon';
+                        const cls = !role ? 'text-emerald-300 font-bold' : isEvilRole ? 'text-red-400 font-bold' : 'text-blue-300 font-bold';
+                        return <span key={i} className={cls}>{roleName}</span>;
+                      }
+                      if (tok === '[死亡]') return <span key={i} className="text-red-400 font-bold">[死亡]</span>;
+                      if (tok === '[存活]') return <span key={i} className="text-emerald-300 font-bold">[存活]</span>;
+                      if (tok === '[好人]') return <span key={i} className="text-blue-300 font-bold">[好人]</span>;
+                      if (tok === '[邪惡]') return <span key={i} className="text-red-400 font-bold">[邪惡]</span>;
+                      if (tok === '[說書人]') return <span key={i} className="text-amber-300 font-bold">[說書人]</span>;
+                      if (tok.startsWith('[yellow]')) return renderYellowSeatTag(tok.replace(/\[\/?yellow\]/g, ''), i);
+                      if (tok.startsWith('[blue]')) return <span key={i} className="text-blue-300 font-bold">{tok.replace(/\[\/?blue\]/g, '')}</span>;
+                      if (tok.startsWith('[red]')) return <span key={i} className="text-red-400 font-bold">{tok.replace(/\[\/?red\]/g, '')}</span>;
+                      return <span key={i}>{tok}</span>;
+                    })}
+                  </div>
+                );
+              };
+
+              const notesAtIndex = (idx: number) =>
+                customNotes.filter((n) => Math.min(Math.max(-1, n.afterIndex), maxIndex) === idx);
+
+              const renderNoteBlock = (note: BattleReportNote) => {
+                const clampedIdx = Math.min(Math.max(-1, note.afterIndex), maxIndex);
+                const isDragging = draggingNoteId === note.id;
+                return (
+                  <div
+                    key={note.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', note.id);
+                      setDraggingNoteId(note.id);
+                    }}
+                    onDragEnd={() => {
+                      setDraggingNoteId(null);
+                      setDropAfterIndex(null);
+                    }}
+                    className={`my-1 px-2 py-1 rounded bg-amber-950/35 border border-amber-500/30 flex items-start justify-between gap-1.5 group transition-opacity ${isDragging ? 'opacity-40' : ''}`}
+                  >
+                    <span
+                      className="shrink-0 self-stretch flex items-center text-amber-400/60 group-hover:text-amber-300 cursor-grab active:cursor-grabbing select-none pr-0.5"
+                      title="拖曳調整位置"
+                    >
+                      ⠿
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      {note.text.split('\n').map((l, li) => renderColoredLine(l, `${note.id}-${li}`))}
+                    </div>
+                    <div className="flex items-center gap-0.5 shrink-0 opacity-75 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        disabled={clampedIdx <= -1}
+                        onClick={() => moveNote(note.id, -1)}
+                        className="px-1 py-0.5 rounded bg-black/50 hover:bg-amber-600/40 text-amber-200 text-[10px] disabled:opacity-25"
+                        title="上移一層"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        disabled={clampedIdx >= maxIndex}
+                        onClick={() => moveNote(note.id, 1)}
+                        className="px-1 py-0.5 rounded bg-black/50 hover:bg-amber-600/40 text-amber-200 text-[10px] disabled:opacity-25"
+                        title="下移一層"
+                      >
+                        ▼
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteNote(note.id)}
+                        className="px-1 py-0.5 rounded bg-black/50 hover:bg-red-800/70 text-red-300 text-[10px]"
+                        title="刪除"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                );
+              };
+
+              const buildCombinedPlainText = () => {
+                const out: string[] = [];
+                notesAtIndex(-1).forEach((n) => out.push(n.text));
+                templateLines.forEach((line, idx) => {
+                  out.push(line);
+                  notesAtIndex(idx).forEach((n) => out.push(n.text));
+                });
+                return exportBattleReportPlainText(out.join('\n'), players);
+              };
+
+              return (
+                <div className="border-t border-white/15 bg-black/40 flex flex-col shrink-0 max-h-[55%] relative">
+                  {reportMenu !== 'none' && (
+                    <div className="fixed inset-0 z-40" onClick={() => setReportMenu('none')} />
+                  )}
+                  <div className="px-3 py-1.5 flex items-center justify-between border-b border-white/10">
+                    <span className="text-xs font-bold text-amber-300 tracking-wider">戰報</span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(buildCombinedPlainText());
+                        setReportCopied(true);
+                        setTimeout(() => setReportCopied(false), 1800);
+                      }}
+                      className="px-2.5 py-0.5 bg-blue-600/80 hover:bg-blue-500 text-white rounded text-xs font-bold transition-colors"
+                    >
+                      {reportCopied ? '✓ 已複製' : '複製戰報'}
+                    </button>
+                  </div>
+
+                  {/* 唯讀戰報模板 ＋ 可調整位置的自訂補充（支援拖曳或 ▲▼） */}
+                  <div className="flex-1 overflow-y-auto px-3 py-2 text-xs text-stone-200 space-y-0.5 custom-scrollbar select-text">
+                    {draggingNoteId && (
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setDropAfterIndex(-1); }}
+                        onDrop={(e) => { e.preventDefault(); handleDropAt(-1); }}
+                        className={`h-3 rounded transition-colors ${dropAfterIndex === -1 ? 'bg-amber-400/40 border border-amber-400' : 'border border-dashed border-white/15'}`}
+                      />
+                    )}
+                    {notesAtIndex(-1).map(renderNoteBlock)}
+                    {templateLines.map((line, idx) => (
+                      <React.Fragment key={`tpl-${idx}`}>
+                        <div
+                          onDragOver={(e) => {
+                            if (!draggingNoteId) return;
+                            e.preventDefault();
+                            setDropAfterIndex(idx);
+                          }}
+                          onDrop={(e) => {
+                            if (!draggingNoteId) return;
+                            e.preventDefault();
+                            handleDropAt(idx);
+                          }}
+                          className={`rounded transition-colors ${
+                            draggingNoteId && dropAfterIndex === idx
+                              ? 'border-b-2 border-amber-400 bg-amber-500/10'
+                              : ''
+                          }`}
+                        >
+                          {renderColoredLine(line, `tpl-${idx}`)}
+                        </div>
+                        {notesAtIndex(idx).map(renderNoteBlock)}
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {/* 座位 / 角色快速插入 ＋ 自訂文字輸入框 */}
+                  <div className="p-2 border-t border-white/10 bg-black/50 space-y-1.5 relative">
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setReportMenu(reportMenu === 'seat' ? 'none' : 'seat')}
+                        className={`px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1 ${reportMenu === 'seat' ? 'bg-amber-600/50 border-amber-400 text-amber-100' : 'bg-slate-900 hover:bg-slate-800 border-white/20 text-amber-300'}`}
+                      >
+                        <span>座位</span>
+                        <span className="text-[10px] opacity-60">▾</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReportMenu(reportMenu === 'role' ? 'none' : 'role')}
+                        className={`px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1 ${reportMenu === 'role' ? 'bg-blue-700/70 border-blue-400 text-blue-100' : 'bg-blue-950/70 hover:bg-blue-900/70 border-blue-500/40 text-blue-400'}`}
+                      >
+                        <span>角色</span>
+                        <span className="text-[10px] opacity-60">▾</span>
+                      </button>
+                      <span className="text-[10px] text-white/40 ml-auto">新增後可按 ▲▼ 調整位置</span>
+                    </div>
+
+                    {reportMenu === 'seat' && (
+                      <div className="absolute bottom-full left-2 right-2 mb-1 z-50 bg-slate-900 border border-slate-600 rounded-lg shadow-2xl p-2 grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto custom-scrollbar">
+                        {seats.map((s) => {
+                          const p = players.find((pl: any) => pl.seat === s);
+                          const label = p?.name ? `${s}號 - ${p.name}` : `${s}號`;
+                          const tag = `[yellow]${label}[/yellow]`;
+                          return (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => {
+                                setNoteInput((prev) => (prev ? `${prev} ${tag}` : tag));
+                                setReportMenu('none');
+                              }}
+                              className="px-2 py-1 rounded bg-slate-800 hover:bg-amber-600/30 border border-white/10 text-amber-300 font-bold text-xs truncate text-left"
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {reportMenu === 'role' && (
+                      <div className="absolute bottom-full left-2 right-2 mb-1 z-50 bg-slate-900 border border-slate-600 rounded-lg shadow-2xl p-2 grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto custom-scrollbar">
+                        {(script?.roles || []).map((r) => {
+                          const roleColor =
+                            r.type === 'townsfolk'
+                              ? 'text-blue-400 hover:bg-blue-900/40'
+                              : r.type === 'outsider'
+                              ? 'text-sky-300 hover:bg-sky-900/40'
+                              : r.type === 'minion'
+                              ? 'text-rose-300 hover:bg-rose-900/40'
+                              : r.type === 'demon'
+                              ? 'text-red-500 hover:bg-red-900/40'
+                              : 'text-purple-300 hover:bg-purple-900/40';
+                          const isEvilRole = r.type === 'minion' || r.type === 'demon';
+                          const tag = isEvilRole ? `[red]【${r.name}】[/red]` : `[blue]【${r.name}】[/blue]`;
+                          return (
+                            <button
+                              key={r.id}
+                              type="button"
+                              onClick={() => {
+                                setNoteInput((prev) => (prev ? `${prev} ${tag}` : tag));
+                                setReportMenu('none');
+                              }}
+                              className={`px-2 py-1 rounded bg-slate-800 border border-white/10 font-bold text-xs truncate text-left ${roleColor}`}
+                            >
+                              {r.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={noteInput}
+                        onChange={(e) => setNoteInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddNote();
+                          }
+                        }}
+                        placeholder="輸入自訂戰報補充文字..."
+                        className="flex-1 min-w-0 bg-black/70 border border-white/15 focus:border-amber-400 rounded-md px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddNote}
+                        disabled={!noteInput.trim()}
+                        className="px-2.5 py-1.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-35 text-white rounded-md text-xs font-bold shrink-0 transition-colors"
+                      >
+                        ＋ 插入
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 開始覆盤按鈕 (放置在遊戲紀錄分頁最後) */}
             <div className="p-4 bg-black/60 border-t border-white/10 shrink-0">
